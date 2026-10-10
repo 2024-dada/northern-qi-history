@@ -1,0 +1,27 @@
+/* An illustrated source reading, with no external artwork or dependencies. */
+.scene-animation{margin:42px 0 32px;scroll-margin-top:0;border:1px solid #c9beaa;background:#e7e0d1}
+.scene-heading{padding:25px 28px 20px;display:flex;gap:20px;align-items:center;justify-content:space-between}
+.scene-heading .eyebrow{margin:0 0 8px}.scene-heading h3{font-size:24px;margin:0;font-weight:500;letter-spacing:.04em}
+.scene-duration{font-size:11px;color:#766a54;border:1px solid #b8ac95;padding:6px 9px;white-space:nowrap}
+.scene-screen{position:relative;background:#222d2b;color:#e9e1d0;overflow:hidden}
+.scene-screen svg{display:block;width:100%;height:auto}.scene-screen svg text{font-family:"SimSun","Songti SC",serif}
+.scene-screen .scene-svg-label{font-size:14px;fill:#e5d7ba;letter-spacing:2px}.scene-screen .scene-svg-small{font-size:10px;fill:#9daca1;letter-spacing:1px}
+.scene-screen-note{position:absolute;right:15px;top:13px;font-size:10px;color:#b7c0b3;letter-spacing:.08em}
+.scene-steps{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #c9beaa}
+.scene-steps button{background:none;border:0;border-right:1px solid #c9beaa;color:#776e5e;min-height:48px;padding:9px 5px;font:inherit;font-size:12px;cursor:pointer}
+.scene-steps button:last-child{border-right:0}.scene-steps button.active{color:#923b2b;background:#f0e9dc;box-shadow:inset 0 -2px #923b2b}.scene-steps button span{margin-right:8px;font-size:10px;opacity:.7}
+.scene-commentary{padding:22px 28px 0;min-height:153px}.scene-commentary .eyebrow{color:#923b2b;margin:0 0 8px}.scene-commentary h4{font-size:20px;font-weight:500;margin:0 0 10px}
+.scene-commentary p:not(.eyebrow){font-size:14px;line-height:1.9;color:#5c5c4f;margin:0}
+.scene-controls{display:flex;align-items:center;gap:12px;padding:0 28px 20px}
+.scene-play{background:#913c2c;border:1px solid #913c2c;color:#faf2e2;min-width:140px;padding:11px 14px;cursor:pointer;font:inherit;font-size:13px;white-space:nowrap}
+.scene-replay{background:none;color:#5c5c4f;border:0;font:inherit;font-size:12px;cursor:pointer;padding:10px 3px}
+.scene-scrubber{display:flex;align-items:center;gap:12px;flex:1;min-width:0}.scene-scrubber input{width:100%;min-width:50px;accent-color:#923b2b;cursor:pointer}.scene-scrubber output{white-space:nowrap;font-size:11px;font-variant-numeric:tabular-nums;color:#776e5e}
+.scene-citation{padding:17px 28px 20px;border-top:1px solid #c9beaa;background:#f0e9dc}.scene-citation p{margin:0 0 9px;font-size:12px;line-height:1.9;color:#706852}.scene-citation .scene-boundary{font-size:11px;color:#857b69}.scene-citation button{font-size:12px}
+.scene-motion-note{font-size:12px;margin:0;padding:0 28px 18px;color:#706852}.scene-motion-note[hidden]{display:none}
+.scene-animation button:focus-visible,.scene-animation input:focus-visible{outline:2px solid #9b583e;outline-offset:3px}
+@media(max-width:650px){
+  .scene-animation{margin:28px 0;scroll-margin-top:0}.scene-heading{padding:20px 17px 17px;gap:8px}.scene-heading h3{font-size:20px}.scene-duration{font-size:9px;padding:4px 6px}
+  .scene-screen svg{width:100%;max-width:none}.scene-screen-note{font-size:8px;top:8px;right:8px}
+  .scene-steps button{font-size:11px;min-height:46px}.scene-steps button span{display:block;margin:0 0 4px}.scene-commentary{padding:18px 17px 0;min-height:215px}.scene-commentary h4{font-size:18px}.scene-commentary p:not(.eyebrow){font-size:13px}
+  .scene-controls{padding:16px 17px;flex-wrap:wrap;gap:8px 15px}.scene-play{min-width:137px}.scene-scrubber{flex-basis:100%;margin-top:3px}.scene-citation{padding:16px 17px}.scene-motion-note{padding:0 17px 16px}
+}
