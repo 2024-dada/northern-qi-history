@@ -1,0 +1,56 @@
+(() => {
+  'use strict';
+  const data=window.RESEARCH, dialog=document.querySelector('#detail-dialog'), body=document.querySelector('#dialog-body');
+  const escape=(value)=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const links=(source)=>source.links.map(([label,url])=>`<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(label)} ↗</a>`).join('');
+  let returnFocus=null, parentEvent=null;
+  function show(content){if(!dialog.open)returnFocus=document.activeElement;body.innerHTML=content;if(!dialog.open)dialog.showModal();dialog.scrollTop=0;dialog.querySelector('.dialog-close').focus();}
+  function sourceDetail(key,backEvent=null){const s=data.sources[key];if(!s)return;parentEvent=backEvent;show(`<p class="eyebrow">原典出处 / [${s.number}]</p><h2 id="dialog-title">${escape(s.title)}</h2><p>${escape(s.book)}</p><h3>所用版本与入口</h3><p>${escape(s.edition)}</p><h3>原文短引 · 简体转写</h3><blockquote>${escape(s.quote).replace(/\n/g,'<br>')}</blockquote><h3>白话与阅读提示</h3><p>${escape(s.explanation)}</p><div class="source-state">${escape(s.status)}</div><div class="dialog-links">${links(s)}</div>${backEvent?'<button class="dialog-back" data-back-event>← 返回事件详情</button>':''}`);}
+  function eventDetail(id){const e=data.events.find(x=>x.id===id);if(!e)return;parentEvent=null;const s=data.sources[e.source];show(`<p class="eyebrow">${escape(e.id)} / ${escape(e.ruler)} / ${escape(e.year)}</p><h2 id="dialog-title">${escape(e.name)}</h2><p>${escape(e.type)}</p><h3>事件处境</h3><p>${escape(e.context)}</p><h3>谁推动、谁下令、谁执行</h3><p>${escape(e.agency)}</p><blockquote>${escape(s.quote).replace(/\n/g,'<br>')}</blockquote><h3>原因初析 · 主次暂定</h3><p><strong>主要候选：</strong>${escape(e.primary)}</p><p><strong>次要／促成：</strong>${escape(e.secondary)}</p><div class="source-state">${escape(s.status)}<br>原因排序是本项目初析，未完成现代学术研究核验。</div><button class="related-source" data-event-source="${e.source}" data-parent-event="${e.id}">展开出处 [${s.number}] ↗</button><div class="dialog-links">${links(s)}</div>`);}
+  function methodDetail(){parentEvent=null;show('<p class="eyebrow">关于史料</p><h2 id="dialog-title">先核事件，再谈解释。</h2><p>这份初始网页以十个候选事件检验阅读结构。它不是全书事件统计，也不把样本数量作为人物残暴排名。</p><h3>我们怎样区分材料</h3><ul><li>事件与记载分开：同一次死亡在多书出现，不重复计数。</li><li>亲自实施、下令、促成与执行分开；年号不能直接决定施事者。</li><li>原文、白话、史臣评价和项目解释分开。</li><li>字词、日期或叙述有分歧时，保留分歧，回到影印核字。</li></ul><h3>为什么多来源还要检查文本关系</h3><p>《四库全书总目》记载传世《北齐书》有取《北史》补亡的情况。多个书名可能承袭同一文本，不能自动成为独立见证。</p><div class="dialog-links"><a href="https://www.shidianguji.com/book/SK0000A/chapter/1kgsnkeqjizoo" target="_blank" rel="noopener noreferrer">识典 · 北齐书提要 ↗</a></div><h3>当前核验状态</h3><p>已做原典录文初对照；关键句影印核字、版本关系和现代学术解释仍待完成。示意图只帮助理解，不能充当历史现场证据。</p><div class="source-state">人物对话为史书所述，不标作现场逐字录音；宫阙、人物与位置图均为示意。</div>');}
+  dialog.querySelector('.dialog-close').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
+  dialog.addEventListener('close',()=>{if(returnFocus?.isConnected)returnFocus.focus();parentEvent=null;});
+  document.addEventListener('click',event=>{const t=event.target.closest('[data-source],[data-event],[data-open-method],[data-event-source],[data-back-event]');if(!t)return;if(t.hasAttribute('data-source'))sourceDetail(t.dataset.source);else if(t.hasAttribute('data-event'))eventDetail(t.dataset.event);else if(t.hasAttribute('data-open-method'))methodDetail();else if(t.hasAttribute('data-event-source'))sourceDetail(t.dataset.eventSource,t.dataset.parentEvent);else if(t.hasAttribute('data-back-event')&&parentEvent)eventDetail(parentEvent);});
+  const art={scroll:'<path d="M25 20h70v100H25zM25 20q-20 0-12 14h12M95 120q20 0 12-14H95"/><path d="M42 40h36M42 56h36M42 72h23M42 88h36"/>',network:'<circle cx="60" cy="55" r="16"/><circle cx="22" cy="105" r="10"/><circle cx="100" cy="105" r="10"/><path d="M50 70l-22 25M70 70l22 25M22 40h25M100 40H74"/>',command:'<path d="M20 25h80v45H20zM60 70v28M45 87l15 15 15-15M30 120h60"/><path d="M35 43h50M35 55h35"/>',seal:'<path d="M40 20h40v26H40zM25 46h70v28H25zM20 110h80v13H20z"/><path d="M40 92h40" stroke="#9d4236"/>'};
+  function stage(index){const s=data.stages[index];document.querySelectorAll('[data-stage]').forEach(b=>{const active=Number(b.dataset.stage)===index;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});document.querySelector('#stage-index').textContent=String(index+1).padStart(2,'0');document.querySelector('#stage-kicker').textContent=s.kicker;document.querySelector('#stage-title').textContent=s.title;document.querySelector('#stage-text').textContent=s.text;document.querySelector('#stage-quote').textContent=s.quote;document.querySelector('#stage-quote-label').textContent=([0,3].includes(index)?'史书短引 · 简体转写':'阅读提示 · 项目概括');document.querySelector('#stage-art').innerHTML=`<svg viewBox="0 0 120 145" fill="none" stroke="#8b8f79" stroke-width="1.5">${art[s.symbol]}</svg>`;}
+  document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',()=>stage(Number(b.dataset.stage))));stage(0);
+  function node(key){const n=data.nodes[key];document.querySelectorAll('[data-node]').forEach(b=>{const active=b.dataset.node===key;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});document.querySelector('#node-role').textContent=n.role;document.querySelector('#node-title').textContent=n.title;document.querySelector('#node-text').textContent=n.text;}
+  document.querySelectorAll('[data-node]').forEach(b=>b.addEventListener('click',()=>node(b.dataset.node)));node('ruler');
+  const conclusions={annals:'本纪突出突然发作；仅凭这一段，无法解释所有此前过程。',biography:'后妃传显示延续过程；但不能凭时间延伸就否定情绪因素。',both:'两种叙述重心不同。对既往关系的猜忌有线索，突然失控与延续惩罚的权重仍不能确定。'};
+  function version(key){document.querySelectorAll('[data-version]').forEach(b=>{const active=b.dataset.version===key;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});document.querySelectorAll('[data-text]').forEach(a=>a.hidden=key!=='both'&&a.dataset.text!==key);document.querySelector('.comparison').classList.toggle('single',key!=='both');document.querySelector('#version-conclusion').textContent=conclusions[key];}
+  document.querySelectorAll('[data-version]').forEach(b=>b.addEventListener('click',()=>version(b.dataset.version)));version('both');
+  let filter='全部', view='person';
+  const classifications={
+    E01:{date:547,method:'记载待核',disputed:true},E02:{date:559,method:'处斩'},
+    E03:{date:559,method:'处斩'},E04:{date:null,method:'记载待核',disputed:true},
+    E05:{date:563,method:'记载待核',disputed:true},E06:{date:566,method:'拷打致死'},
+    E07:{date:571,method:'宫中命令杀害'},E08:{date:572,method:'宫中命令杀害',disputed:true},
+    E09:{date:573,method:'遣使送毒药'},E10:{date:573,method:'处斩'}
+  };
+  const viewNotes={person:'按研究人物查找，点开事件可见原因初析和来源。',time:'按已定位的年份排列；具体年份未定的事件单列，不强行补入时间顺序。',method:'依据记载中的致死描述分组。方式未明的单列，具体器物与操作不补造。',difference:'查看日期、方式或篇章叙述有分歧的案例，点开详情核对相应来源。'};
+  function eventRow(e){return `<button class="event-row" data-event="${e.id}" aria-label="展开${escape(e.name)}"><span class="event-id">${e.id.slice(1)}</span><span class="event-ruler">${escape(e.ruler)}</span><span class="event-content"><strong>${escape(e.name)}</strong><span class="event-meta">${escape(e.type)}</span></span><span class="event-year">${escape(e.year)}</span><span class="event-arrow" aria-hidden="true">↗</span></button>`;}
+  function renderEvents(){
+    const q=document.querySelector('#event-search').value.trim().toLowerCase();
+    let events=data.events.filter(e=>(filter==='全部'||e.ruler===filter)&&[e.name,e.ruler,e.aliases,e.type,e.year,classifications[e.id].method].join(' ').toLowerCase().includes(q));
+    if(view==='difference')events=events.filter(e=>classifications[e.id].disputed);
+    if(view==='time')events.sort((a,b)=>(classifications[a.id].date??Infinity)-(classifications[b.id].date??Infinity));
+    let html='';
+    if(view==='time'||view==='method'){
+      const groups=new Map();
+      events.forEach(e=>{const c=classifications[e.id];const key=view==='time'?(c.date?`${c.date}年`:'具体年份待核'):c.method;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(e);});
+      groups.forEach((items,key)=>{html+=`<h3 class="event-group-heading">${escape(key)}</h3>${items.map(eventRow).join('')}`;});
+    }else html=events.map(eventRow).join('');
+    document.querySelector('#event-list').innerHTML=html;
+    document.querySelector('#result-count').textContent=`显示 ${events.length} / ${data.events.length} 个候选事件`;
+    document.querySelector('#view-note').textContent=viewNotes[view];
+    document.querySelector('#empty-results').hidden=events.length>0;
+  }
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;document.querySelectorAll('[data-view]').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});renderEvents();}));
+  document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});renderEvents();}));document.querySelector('#event-search').addEventListener('input',renderEvents);renderEvents();
+  document.querySelector('#source-list').innerHTML=Object.entries(data.sources).map(([key,s])=>`<li><button data-source="${key}">${escape(s.book)}</button><small>${escape(s.title)}</small></li>`).join('');
+  const chapters=[...document.querySelectorAll('[data-chapter]')], railLinks=[...document.querySelectorAll('.chapter-rail nav a')];
+  function updateProgress(){const position=window.innerHeight*.35;let active=0;chapters.forEach((c,i)=>{if(c.getBoundingClientRect().top<=position)active=i;});railLinks.forEach((a,i)=>{a.classList.toggle('active',i===active);if(i===active)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');});document.querySelector('#reading-progress').style.width=`${(active+1)/chapters.length*100}%`;document.querySelector('#progress-label').textContent=`第 ${active+1} / ${chapters.length} 层`;}
+  let scheduled=false;window.addEventListener('scroll',()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{updateProgress();scheduled=false;});},{passive:true});updateProgress();
+})();
+
