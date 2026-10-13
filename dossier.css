@@ -3,3 +3,5 @@
 @media(max-width:1000px){.d-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.d-heading h2{font-size:35px}}@media(max-width:650px){.d-grid{grid-template-columns:1fr}.d-heading{display:block}.d-heading h2{font-size:30px}.royal-dossier{padding-block:45px}.d-card-copy>span{min-height:0}.d-toolbar{display:block}.d-toolbar label{display:block;margin-top:15px}.d-toolbar input{width:100%}.d-art .d-relation{font-size:12px}}@media(prefers-reduced-motion:reduce){.d-art *{animation:none!important}.d-card{transition:none}.d-arrow,.d-flame,.d-impact,.d-contact{opacity:.6}}
 
 .d-control{font:inherit;font-size:12px;padding:10px 16px;color:#645b49;background:transparent;border:1px solid #b8aa91;cursor:pointer}.d-scorpion .d-person{transform-box:fill-box;transform-origin:bottom;animation:d-recoil 5.6s ease-in-out infinite;animation-play-state:paused}.d-mask .d-mask{animation-name:d-fade}
+
+#violence-cards .d-card .d-art{aspect-ratio:480/340;background:#20342d}#sources .d-critique{max-width:900px}#explore .filters{flex-wrap:wrap}#explore [data-topic]{font-size:11px}#dialog-body .related-source{margin:5px 5px 5px 0}
