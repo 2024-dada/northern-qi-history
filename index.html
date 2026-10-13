@@ -9,16 +9,18 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="animation.css">
   <link rel="stylesheet" href="violence.css">
+  <link rel="stylesheet" href="dossier.css">
   <script src="data.js" defer></script>
   <script src="violence.js" defer></script>
   <script src="app.js" defer></script>
   <script src="animation.js" defer></script>
+  <script src="dossier.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#story">跳到故事正文</a>
   <header class="site-header">
     <a class="brand" href="#top"><span class="seal" aria-hidden="true">齐</span><span>帝怒之后<small>北齐高氏 · 事件与叙述</small></span></a>
-    <nav aria-label="主要导航"><a href="#violence-gallery">动态档案</a><a href="#story">循迹阅读</a><a href="#explore">自由探索</a><button class="text-button" data-open-method>关于史料 <span>↗</span></button></nav>
+    <nav aria-label="主要导航"><a href="#violence-gallery">动态档案</a><a href="#story">循迹阅读</a><a href="#royal-dossier">皇室异行</a><a href="#explore">自由探索</a><button class="text-button" data-open-method>关于史料 <span>↗</span></button></nav>
   </header>
   <main id="top">
     <section class="hero" aria-labelledby="hero-title">
@@ -90,6 +92,7 @@
       </div>
     </div>
     <section class="exploration section-shell" id="explore"><div class="explore-heading"><div><p class="eyebrow">史料档案 / 自由探索</p><h2>沿你自己的问题，<br>继续往里走。</h2></div><p>10 个候选事件，4 位研究人物。<br>这是材料样本，不是杀人总数统计。</p></div><div class="explore-views" role="group" aria-label="探索视角"><button data-view="person" aria-pressed="true" class="active">按人物</button><button data-view="time" aria-pressed="false">按时间</button><button data-view="method" aria-pressed="false">按方式</button><button data-view="difference" aria-pressed="false">看分歧</button></div><p id="view-note" class="view-note"></p><div class="explore-tools"><div class="filters" role="group" aria-label="按研究人物过滤"><button data-filter="全部" class="active" aria-pressed="true">全部</button><button data-filter="高洋" aria-pressed="false">高洋</button><button data-filter="高纬" aria-pressed="false">高纬</button><button data-filter="高澄" aria-pressed="false">高澄</button><button data-filter="高湛" aria-pressed="false">高湛</button></div><label class="search-box"><span aria-hidden="true">⌕</span><input id="event-search" type="search" placeholder="搜索人物、事件或方式" aria-label="搜索人物、事件或方式"></label></div><p class="result-count" id="result-count" aria-live="polite"></p><div id="event-list" class="event-list"></div><p id="empty-results" hidden>没有匹配的事件。试试其他姓名、封号或方式。</p></section>
+    <section class="royal-dossier section-shell" id="royal-dossier" aria-label="皇室异行档案"></section>
     <section class="sources section-shell" id="sources"><p class="eyebrow">原典与出处</p><h2>每一个判断，<br>都应能回到它的来处。</h2><p>以识典古籍为主要入口，辅助在线录文用于定位与对照。多个书名可能承袭同一文本，不能直接当成多份独立证据。</p><ol id="source-list"></ol><div class="research-status"><span class="status-dot"></span><p><strong>史料初查 · 关键句影印待核</strong><br>已做原典录文对照；影印核字、版本关系及现代学术解释仍需继续核验。</p><button class="text-button" data-open-method>了解整理原则 ↗</button></div></section>
   </main>
   <footer class="site-footer"><span>帝怒之后 / 北齐高氏暴力的事件与叙述</span><span>中国历史概论 · 初始网页 · 2026</span><a href="#top">回到开篇 ↑</a></footer>
