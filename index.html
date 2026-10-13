@@ -8,7 +8,9 @@
   <title>帝怒之后 · 北齐高氏暴力的事件与叙述</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="animation.css">
+  <link rel="stylesheet" href="violence.css">
   <script src="data.js" defer></script>
+  <script src="violence.js" defer></script>
   <script src="app.js" defer></script>
   <script src="animation.js" defer></script>
 </head>
@@ -16,11 +18,11 @@
   <a class="skip-link" href="#story">跳到故事正文</a>
   <header class="site-header">
     <a class="brand" href="#top"><span class="seal" aria-hidden="true">齐</span><span>帝怒之后<small>北齐高氏 · 事件与叙述</small></span></a>
-    <nav aria-label="主要导航"><a href="#story">循迹阅读</a><a href="#explore">自由探索</a><button class="text-button" data-open-method>关于史料 <span>↗</span></button></nav>
+    <nav aria-label="主要导航"><a href="#violence-gallery">动态档案</a><a href="#story">循迹阅读</a><a href="#explore">自由探索</a><button class="text-button" data-open-method>关于史料 <span>↗</span></button></nav>
   </header>
   <main id="top">
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy"><p class="eyebrow">中国历史概论 / 550—577</p><h1 id="hero-title">帝怒<span>之后</span><i>。</i></h1><p class="hero-subtitle">当史书写下「帝怒」，<br>我们还能追问哪些过程？</p><p class="hero-description">从一个人的死亡出发，沿着冲突、谗言与命令，<br class="desktop-only">走进北齐高氏暴力的层层叙述。</p><div class="hero-actions"><a class="primary-button" href="#story">开始循迹 <span>↓</span></a><a class="quiet-link" href="#explore">或，自由探索 <span>↗</span></a></div><p class="reading-note">约 9 分钟引导 · 4 个核心事件 · 随时展开原文</p></div>
+      <div class="hero-copy"><p class="eyebrow">中国历史概论 / 550—577</p><h1 id="hero-title">帝怒<span>之后</span><i>。</i></h1><p class="hero-subtitle">当史书写下「帝怒」，<br>我们还能追问哪些过程？</p><p class="hero-description">从一个人的死亡出发，沿着冲突、谗言与命令，<br class="desktop-only">走进北齐高氏暴力的层层叙述。</p><div class="hero-actions"><a class="primary-button" href="#story">开始循迹 <span>↓</span></a><a class="quiet-link" href="#violence-gallery">先看动态档案 <span>↗</span></a></div><p class="reading-note">约 9 分钟引导 · 4 个核心事件 · 随时展开原文</p></div>
       <div class="hero-art" role="img" aria-label="抽象的宫阙、人物剪影与朱色命令线，均为情境示意，并非历史现场复原">
         <span class="art-caption">权力所至，命令所及</span><div class="sun-disc"></div><svg viewBox="0 0 560 580" aria-hidden="true">
           <defs><linearGradient id="ink" x2="0" y2="1"><stop stop-color="#242e2a"/><stop offset="1" stop-color="#535c4f"/></linearGradient><pattern id="roof" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 0V12" stroke="#eeeadb" opacity=".16"/></pattern></defs>
@@ -33,6 +35,11 @@
         </svg><span class="art-footnote">宫阙与人物为抽象示意</span><div class="vertical-script" aria-hidden="true">一纸史书<br>数重因果</div>
       </div>
       <div class="hero-bottom"><span>01 / 死亡只是入口</span><span>展开记录，判断才开始 <span aria-hidden="true">↓</span></span></div>
+    </section>
+    <section class="violence-gallery section-shell" id="violence-gallery" aria-labelledby="violence-title">
+      <div class="violence-heading"><div><p class="eyebrow">暴力方式档案 / 六幅动态切片</p><h2 id="violence-title">看见动作，<br>再走进它的来处。</h2></div><div class="violence-intro"><p>一记挥砍，一道命令，一杯毒药。<br>点开剪影，看见事件、权力与史料。</p><button id="violence-blood" type="button" aria-pressed="true">血色特效：开启</button><button id="violence-motion" type="button" aria-pressed="false">暂停卡片动画 Ⅱ</button></div></div>
+      <div id="violence-cards" class="violence-cards"></div>
+      <p class="violence-boundary">动作、人物与器物为象征性设计。标签区分先行伤害、致死记载与方式分歧；关键句影印仍待核。喷血与飞溅为设计特效，不表示确定的伤口部位或出血量。动画无音效。</p>
     </section>
     <section class="orientation section-shell"><p class="eyebrow">先认清这几个人</p><div class="orientation-content"><p>高欢奠基，高洋建国。<br><span>同一个家族，不同的身份与处境。</span><sup><button data-source="foundation" aria-label="查看来源1">[1]</button></sup></p><div class="family"><div><span>高欢</span><small>政权奠基者</small></div><span class="family-arrow">→</span><div><span>高洋</span><small>北齐开国皇帝</small></div><span class="family-divider">/</span><div><span>高湛</span><small>武成帝 · 后为太上皇</small></div><span class="family-arrow">→</span><div><span>高纬</span><small>后主 · 高湛之子</small></div></div></div><p class="small-note">高澄为高洋之兄，在建国前掌握东魏政权，后被追尊。本次重点看高洋与高纬，其他人物供比较。</p></section>
     <div class="reading-layout" id="story">
@@ -89,6 +96,3 @@
   <dialog id="detail-dialog" aria-labelledby="dialog-title"><button class="dialog-close" aria-label="关闭详情">×</button><div id="dialog-body"></div></dialog>
 </body>
 </html>
-
-
-
