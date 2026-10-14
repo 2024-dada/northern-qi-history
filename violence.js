@@ -80,6 +80,12 @@
   const wave=(p,a,b,c,d)=>p<a||p>d?0:p<b?smooth((p-a)/(b-a)):p<c?1:1-smooth((p-c)/(d-c));
   const radians=v=>v*Math.PI/180;
   function poseAt(key,p){const frames=poses[key];let i=0;while(i<frames.length-2&&p>frames[i+1][0])i++;const a=frames[i],b=frames[i+1],t=smooth((p-a[0])/(b[0]-a[0]));return a.slice(1).map((v,j)=>v+(b[j+1]-v)*t);}
+  const cycleFor=key=>key==='behead'?7200:5600;
+  function worldPoint(rig,pose,x,y,drop=0){
+    const [step,body]=pose,angle=radians(body),facing=Number(rig.dataset.facing);
+    return {x:Number(rig.dataset.x)+step+facing*(x*Math.cos(angle)-(y+25)*Math.sin(angle)),y:Number(rig.dataset.y)+drop+x*Math.sin(angle)+(y+25)*Math.cos(angle)-25};
+  }
+  function bladeTip(rig,pose){const [,body,shoulder,elbow]=pose,hand=worldPoint(rig,pose,10+26*Math.cos(radians(shoulder))+24*Math.cos(radians(shoulder+elbow)),-69+26*Math.sin(radians(shoulder))+24*Math.sin(radians(shoulder+elbow))),length=Number(rig.querySelector('.rig-weapon')?.dataset.length||0),angle=radians(body+shoulder+elbow);return {x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)};}
   function rigPose(rig,pose,drop=0){
     const [step,body,shoulder,elbow]=pose;
     rig.querySelector('.rig-move').setAttribute('transform',`translate(${step} ${drop})`);
@@ -97,11 +103,12 @@
     const hand={x:Number(rig.dataset.x)+step+Number(rig.dataset.facing)*bx,y:Number(rig.dataset.y)+drop+by};const length=Number(rig.querySelector('.rig-weapon')?.dataset.length||0),angle=radians(body+shoulder+elbow);return {...hand,tip:{x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)}};
   }
   function drawScene(scene){
-    const {svg,key,actor,victim}=scene,p=(scene.elapsed%5600)/5600,strike=['slash','behead'].includes(key)?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
+    const {svg,key,actor,victim}=scene,p=(scene.elapsed%cycleFor(key))/cycleFor(key),strike=['slash','behead'].includes(key)?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
     if(svg.closest('.detail-visual')){const slider=document.querySelector('[data-scene-progress]');if(slider)slider.value=String(Math.round(p*100));const output=document.querySelector('[data-scene-time]');if(output)output.textContent=Math.round(p*100)+'%';}
     const actorPose=poseAt(key,p);actorPose[1]+=Math.sin(p*Math.PI*2)*.45;const hand=rigPose(actor,actorPose);
     const fatal=['slash','rear','poison','behead'].includes(key);
     let victimPose=[impact*4,-impact*15,65-impact*13,18+impact*9],drop=impact*5;
+    if(key==='behead'){const reaction=smooth((p-strike)/.09);victimPose=[reaction*4,-reaction*15,65-reaction*13,18+reaction*9];drop=reaction*5;}
     if(key==='punish'){victimPose=[impact*7,-impact*20,70,15];drop=impact*8;}
     if(['poison','drink'].includes(key)){const sip=wave(p,.34,.47,.63,.83);victimPose=[0,-sip*7,25-sip*80,15+sip*38];}
     const otherHand=rigPose(victim,victimPose,drop);
@@ -117,27 +124,30 @@
     svg.querySelector('.v-clock-line').setAttribute('stroke-dashoffset',String(1-p));
     svg.querySelectorAll('[data-dust]').forEach((dust,i)=>dust.setAttribute('transform',`translate(${Math.sin(p*6.28+i)*3} ${-p*8})`));
     const cutting=['slash','behead'].includes(key);
-    scene.trail=scene.trail||[];
-    if(p<.32||p>.56)scene.trail=[];
-    else if(cutting){scene.trail.push(hand.tip);if(scene.trail.length>8)scene.trail.shift();}
+    scene.trail=cutting&&p>=.32&&p<=.56?Array.from({length:9},(_,i)=>{const time=Math.max(.32,p-(8-i)*.005),pose=poseAt(key,time);pose[1]+=Math.sin(time*Math.PI*2)*.45;return bladeTip(actor,pose);}):[];
     const path=scene.trail.map((point,i)=>`${i?'L':'M'}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
     svg.querySelector('.v-sweep-soft').setAttribute('d',path);
     svg.querySelector('.v-sweep-edge').setAttribute('d',path);
     svg.querySelector('.v-sweep-fan').setAttribute('d',scene.trail.length>1?`M${hand.x} ${hand.y} ${path.replace(/^M/,'L')} Z`:'');
     svg.querySelector('.v-trail').style.opacity=String(cutting?wave(p,.34,.4,.48,.56):0);
     if(key==='behead'){
-      const detached=p>=strike&&p<.88,head=victim.querySelector('.rig-head');head.style.opacity=detached?'0':'1';
+      const detached=p>=strike,head=victim.querySelector('.rig-head'),fade=1-smooth((p-.92)/.08);
+      head.style.opacity=detached?'0':'1';
+      actor.querySelector('.rig-move').style.opacity=String(fade);
+      victim.querySelector('.rig-move').style.opacity=String(.82*fade+(detached?0:.18));
       const piece=svg.querySelector('.v-fallen-head'),shadow=svg.querySelector('.v-head-shadow');
-      const t=clamp((p-strike)/.25),landing=.68;
-      const rise=t<landing?-14*Math.sin(t/landing*Math.PI):0;
-      const bounce=t>landing?-10*Math.sin((t-landing)/(1-landing)*Math.PI)*(1-t):0;
-      const hx=Number(victim.dataset.x)+58*t,hy=117+88*Math.min(1,t/landing)**2+rise+bounce;
-      piece.setAttribute('transform',`translate(${hx} ${hy}) rotate(${t*160})`);
-      piece.style.opacity=String(detached?wave(p,strike,strike+.008,.82,.88):0);
-      shadow.style.opacity=String(detached?Math.min(.5,t*.8)*wave(p,strike,strike+.02,.82,.88):0);
-      shadow.setAttribute('cx',String(hx));
-      const ring=svg.querySelector('.v-landing-ring'),pulse=detached?Math.max(0,Math.sin(clamp((t-landing)/.16)*Math.PI)):0;ring.setAttribute('cx',String(hx));ring.setAttribute('rx',String(8+18*pulse));ring.setAttribute('ry',String(2+4*pulse));ring.style.opacity=String(pulse*.45);
-      victim.querySelector('.rig-move').style.opacity=String(1-impact*.18);
+      // The detached silhouette is cloned from the figure, preserving its face and headwear.
+      if(!piece.dataset.ready){const copy=head.cloneNode(true);copy.removeAttribute('class');copy.removeAttribute('style');piece.replaceChildren(copy);copy.setAttribute('transform','translate(0 99) scale(-1 1)');piece.dataset.ready='true';}
+      const startPose=[0,0,65,18],origin=worldPoint(victim,startPose,0,-99);
+      const t=clamp((p-strike)/.22),landing=.76;
+      const descent=clamp(t/landing),bounce=t>landing?-8*Math.sin((t-landing)/(1-landing)*Math.PI)*(1-t)/.24:0;
+      const hx=origin.x+58*(1-(1-t)**1.5),hy=origin.y+(205-origin.y)*descent*descent-9*Math.sin(descent*Math.PI)+bounce;
+      piece.setAttribute('transform',`translate(${hx} ${hy}) rotate(${150*smooth(t)})`);
+      piece.style.opacity=String(detached?fade:0);
+      shadow.style.opacity=String(detached?(.12+.38*descent)*fade:0);shadow.setAttribute('cx',String(hx));shadow.setAttribute('rx',String(10+5*descent));
+      const ring=svg.querySelector('.v-landing-ring'),pulse=detached?Math.sin(clamp((t-landing)/.18)*Math.PI):0;
+      ring.setAttribute('cx',String(hx));ring.setAttribute('rx',String(8+20*pulse));ring.setAttribute('ry',String(2+4*pulse));ring.style.opacity=String(pulse*.4*fade);
+      const contact=worldPoint(victim,victimPose,0,-86,drop);svg.querySelector('.v-contact').setAttribute('transform',`translate(${contact.x} ${contact.y})`);
     }
     svg.querySelector('.v-contact').style.opacity=String(['slash','thrust','behead'].includes(key)?wave(p,strike-.01,strike+.01,strike+.035,strike+.1):0);
     svg.querySelector('.v-harm').style.opacity=String(key==='punish'?impact:0);
@@ -165,7 +175,7 @@
   document.querySelector('#violence-speed')?.addEventListener('click',()=>{speed=speed===1?.55:1;document.documentElement.classList.toggle('scene-slow',speed!==1);const button=document.querySelector('#violence-speed');button.textContent=speed===1?'速度：正常':'速度：慢放';button.setAttribute('aria-pressed',String(speed!==1));});
   document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.elapsed=reduce.matches?2900:0;drawScene(scene);});document.dispatchEvent(new Event('archive-replay'));});
   toggle.addEventListener('click',()=>{paused=!paused;update();});
-  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.elapsed=Math.min(.999,p)*5600;scene.trail=[];drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent;});
+  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);scene.trail=[];drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent;});
   reduce.addEventListener('change',()=>{paused=reduce.matches;tracked.forEach(item=>{item.elapsed=reduce.matches?2900:0;drawScene(item);});update();});
   const observer=new IntersectionObserver(items=>items.forEach(item=>item.target.classList.toggle('in-view',item.isIntersecting)),{threshold:.1});
   cards.querySelectorAll('.violence-card').forEach(card=>observer.observe(card));
