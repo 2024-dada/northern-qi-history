@@ -14,3 +14,7 @@
 @media(max-width:650px){.v-card-body{padding:22px 20px}.v-card-body strong{font-size:22px}.violence-intro{max-width:none}.violence-intro button{font-size:11px;padding:9px 12px}.v-card-top{padding:13px 16px}.v-nameplate text{font-size:16px}.v-nameplate .v-role{font-size:10px}}
 
 .scene-detail-controls{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}.scene-detail-controls button{font:inherit;font-size:11px;padding:8px 12px;border:1px solid #b4a386;background:#eee4d3;color:#6c5a3e;cursor:pointer;border-radius:2px}.scene-detail-controls button:hover{background:#ddcdb2}.scene-detail-controls button:focus-visible{outline:2px solid #994935;outline-offset:2px}
+
+.v-behead .v-trail,.v-behead .v-contact{display:block}.v-fallen-head,.v-head-shadow{pointer-events:none}.v-fallen-head{fill:#c9ad83}.v-sweep-edge{stroke-linecap:round;stroke-linejoin:round}.v-sweep-soft{stroke-linecap:round;stroke-linejoin:round}.v-behead .v-nameplate text{fill:#eed8b1}
+
+.scene-scrub-label{display:flex;align-items:center;gap:12px;width:100%;font-size:12px;color:#766a50}.scene-scrub-label input{flex:1;accent-color:#9d654d}.scene-scrub-label output{min-width:32px;text-align:right}
