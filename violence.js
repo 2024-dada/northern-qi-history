@@ -91,7 +91,7 @@
     return {x:Number(rig.dataset.x)+step+Number(rig.dataset.facing)*bx,y:Number(rig.dataset.y)+drop+by};
   }
   function drawScene(scene){
-    const {svg,key,actor,victim}=scene,p=(scene.elapsed%5600)/5600,impact=wave(p,.39,.45,.64,.86);
+    const {svg,key,actor,victim}=scene,p=(scene.elapsed%5600)/5600,strike=key==='slash'?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
     const actorPose=poseAt(key,p);actorPose[1]+=Math.sin(p*Math.PI*2)*.45;const hand=rigPose(actor,actorPose);
     const fatal=['slash','rear','poison'].includes(key);
     let victimPose=[impact*4,-impact*15,65-impact*13,18+impact*9],drop=impact*5;
@@ -109,21 +109,22 @@
     }
     svg.querySelector('.v-clock-line').setAttribute('stroke-dashoffset',String(1-p));
     svg.querySelectorAll('[data-dust]').forEach((dust,i)=>dust.setAttribute('transform',`translate(${Math.sin(p*6.28+i)*3} ${-p*8})`));
-    svg.querySelector('.v-trail').style.opacity=String(key==='slash'?wave(p,.32,.4,.44,.5):0);
-    svg.querySelector('.v-contact').style.opacity=String(['slash','thrust'].includes(key)?wave(p,.37,.42,.45,.5):0);
+    svg.querySelector('.v-trail').style.opacity=String(key==='slash'?wave(p,.37,.43,.46,.52):0);
+    svg.querySelector('.v-contact').style.opacity=String(['slash','thrust'].includes(key)?wave(p,strike-.01,strike+.01,strike+.035,strike+.1):0);
     svg.querySelector('.v-harm').style.opacity=String(key==='punish'?impact:0);
     svg.querySelector('.v-cart').style.opacity=String(key==='drink'?wave(p,.52,.6,.74,.85):0);
     svg.querySelector('.v-verdict').style.opacity=String(wave(p,.5,.58,.8,.92));
     svg.querySelectorAll('.v-phase').forEach((phase,i)=>phase.style.opacity=String(i===(p<.32?0:p<.55?1:2)?1:.25));
     const blood=svg.querySelector('.v-blood');
     if(blood){
-      const burst=wave(p,.37,.42,.47,.62);
+      blood.setAttribute('transform',`translate(${Number(victim.dataset.x)+victimPose[0]-3} ${Number(victim.dataset.y)+drop-65})`);
+      const burst=wave(p,strike,strike+.025,strike+.065,strike+.2);
       blood.querySelector('.v-blood-jet').style.opacity=String(burst);
       blood.querySelector('.v-blood-jet').setAttribute('transform',`scale(${.3+burst*.7})`);
       blood.querySelector('.v-blood-haze').style.opacity=String(burst*.12);
-      blood.querySelector('.v-blood-residue').style.opacity=String(wave(p,.45,.52,.72,.86)*.55);
+      blood.querySelector('.v-blood-residue').style.opacity=String(wave(p,strike+.06,strike+.13,.72,.86)*.55);
       blood.querySelectorAll('.v-drop').forEach((particle,i)=>{
-        const t=clamp((p-.38-i%3*.007)/.18);
+        const t=clamp((p-strike-i%3*.007)/.18);
         const dx=parseFloat(particle.style.getPropertyValue('--blood-x')),dy=parseFloat(particle.style.getPropertyValue('--blood-y'));
         particle.style.opacity=String(t>0&&t<1?Math.sin(t*Math.PI):0);
         particle.setAttribute('transform',`translate(${dx*t} ${dy*t+70*t*t}) scale(${.6+.4*t})`);
