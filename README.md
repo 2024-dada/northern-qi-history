@@ -6,15 +6,35 @@
 - 动态档案：https://2024-dada.github.io/northern-qi-history/#violence-gallery
 - 项目仓库：https://github.com/2024-dada/northern-qi-history
 
+## 项目简介
+
+本项目以网页形式呈现北齐（550—577）高氏皇室的暴力事件研究。从一个人的死亡出发，沿着冲突、谗言与命令进入史料，讨论政治处境、宫廷关系、文化语言与个人行为如何共同构成事件。高欢是政权奠基者，高洋是北齐开国皇帝；主线重点考察高洋、高纬，并将高澄、高湛、高绰等相关材料放进同一档案比较。
+
 ## 当前版本
 
-16幅融合动态档案、41条统一材料、约9分钟的四案引导主线。支持人物筛选、多关键词搜索、出处弹窗、慢放、暂停、重播与动画进度拖动。手机单列布局与阅读导航已优化。
+16幅融合动态档案、41条统一材料、约9分钟的四案引导主线。支持人物筛选、多关键词搜索、出处弹窗、慢放、暂停、重播和动画进度拖动。手机单列布局与阅读导航已优化。
 
-网页动作、人物、服饰、器物及断离轨迹为美术示意；引文为原典录文初查，关键句影印、版本关系和学术解释仍须核验。不能将不同篇章直接拼成已证实的现场，也不作现代精神疾病诊断。
+网页动作、人物、服饰、器物及断离轨迹为美术示意；引文为原典录文初查，关键句影印、版本关系和学术解释仍须核验。不同篇章不能直接拼成已证实的现场；本项目不作现代精神疾病诊断。
 
-## 源码在哪里
+## 核心内容
 
-网页10个文件直接放在仓库根目录。无需安装依赖或构建。
+- **动态档案**：16幅动画切片，呈现事件、人物关系和史料边界。
+- **循迹阅读**：四个核心事件逐步展开：
+  1. 高洋与高德政 · 559年
+  2. 高纬与斛律光 · 572年
+  3. 高纬与高俨 · 571年
+  4. 高洋与薛嫔 · 天保年间
+- **自由探索**：41条事件、比较与宫廷行为材料，支持按人物、时间、方式和记载分歧浏览。
+- **史料对照**：以识典古籍为主要入口，辅助在线录文定位；区分史书叙述、项目解释和待核内容。
+
+## 技术栈
+
+- 原生 HTML、CSS、JavaScript，无框架依赖。
+- 纯静态网页，无需安装依赖或构建工具。
+
+## 源码结构
+
+网页10个文件直接放在仓库根目录。
 
 | 文件 | 用途 |
 | --- | --- |
@@ -25,21 +45,21 @@
 | dossier.js / dossier.css | 文档线索融入统一材料及动画 |
 | animation.js / animation.css | 斛律光案四幕引导动画 |
 
-本地可在仓库目录执行 `python -m http.server 8766`，访问 http://127.0.0.1:8766/ 。也可直接打开index.html；对外分享用上面的公开网站。
+本地预览可在仓库目录运行 `python -m http.server 8766`，访问 http://127.0.0.1:8766/；也可直接打开 index.html。对外分享请使用上面的公开网站。
 
 ## 如何获取2024-dada的更新
 
-GitHub上的main是共享最新版。你看到主仓库已经更新，并不表示你的Fork或电脑文件自动更新。
+GitHub上的 main 是共享最新版。主仓库更新后，你的Fork或电脑文件不会自动更新。
 
 ### 使用自己的Fork（推荐用于提PR的协作者）
 
-1. 打开你自己账号下的northern-qi-history仓库。
-2. 在main分支点击 **Sync fork → Update branch**。如有冲突，按GitHub提示先处理，保留自己的修改。
+1. 打开你自己账号下的 northern-qi-history 仓库。
+2. 在 main 分支点击 **Sync fork → Update branch**。如有冲突，按GitHub提示处理并保留自己的修改。
 3. 如果还在电脑上写代码，在本地项目目录运行：
 
 ```bash
-git switch main
-git pull --ff-only origin main
+ git switch main
+ git pull --ff-only origin main
 ```
 
 如果没有Git，可以在同步Fork后点击 **Code → Download ZIP** 下载最新版；先备份正在修改的文件，避免覆盖。
@@ -49,22 +69,22 @@ git pull --ff-only origin main
 在本地项目目录运行：
 
 ```bash
-git switch main
-git pull --ff-only origin main
+ git switch main
+ git pull --ff-only origin main
 ```
 
 执行前先保存未提交的改动。出现冲突或提示不能快进时，不要强制覆盖，先检查本地改动和分支状态。
 
 ### GitHub Desktop
 
-先切到main，点击 **Fetch origin**；有新提交时再点 **Pull origin**。如果origin是自己的Fork，先完成网页上的Sync fork。
+先切到 main，点击 **Fetch origin**；有新提交时再点 **Pull origin**。如果 origin 是自己的Fork，先完成网页上的 Sync fork。
 
 ## 如何把改动发给2024-dada
 
-先同步最新版，再从main建立自己的功能分支，例如：
+先同步最新版，再从 main 建立自己的功能分支，例如：
 
 ```bash
-git switch -c improve-animation
+ git switch -c improve-animation
 ```
 
 改完后提交并推送该分支，在GitHub点击 **Compare & pull request**。确认：
@@ -73,13 +93,13 @@ git switch -c improve-animation
 - base branch：main
 - head：你修改后的分支
 
-PR中简述改了什么，附截图、史料出处或检查结果。等待2024-dada审阅并合并。合并到main后GitHub Pages自动部署；部署完成才会在公开网站上看到变化。
+PR中简述改了什么，附截图、史料出处或检查结果。等待2024-dada审阅并合并。合并到 main 后 GitHub Pages 自动部署；部署完成才会在公开网站上看到变化。
 
-每次开工前先同步main，避免用旧源码覆盖同伴修改；不要把改动直接覆盖到对方电脑。
+每次开工前先同步 main，避免用旧源码覆盖同伴修改；不要把改动直接覆盖到对方电脑。
 
 ## 如何得知有更新
 
-打开主仓库 **Commits** 或 **Activity** 查看新提交。可以在Watch中订阅讨论、PR等通知，但通知不等于自动拉取源码，也不能保证每次普通push都发通知。
+打开主仓库 **Commits** 或 **Activity** 查看新提交。可以在 Watch 中订阅讨论、PR等通知，但通知不等于自动拉取源码，也不能保证每次普通push都发通知。
 
 ## 修改时的约定
 
