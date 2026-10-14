@@ -90,12 +90,12 @@
   items.filter(e=>!mergeIds.has(e.id)).forEach(e=>data.events.push({id:e.id,ruler:e.person,name:e.title,aliases:e.relation,year:dates[e.id]?dates[e.id]+'年':'具体年份待核',type:e.category,category:e.category,source:'archive-'+e.ref,context:e.account,agency:e.relation,primary:e.primary,secondary:e.secondary,boundary:e.boundary,status:e.status,dossier:e,date:dates[e.id],method:e.category==='暴力事件'?({cage:'拘禁、刺击与火焚',scorpion:'蝎盆伤害',dog:'纵犬伤害',saw:'刑具记载待核',arrow:'射箭伤害',wrestle:'相扑掩饰下扼杀',assassin:'刺杀',beat:'击打与伤害',river:'宗族集体迫害',mask:'死后处置'}[e.scene]||'方式待核'):e.category}));
   const related={E04:['D09','D29'],E05:['D10','D11'],E06:['D10','D11'],E08:['E09','D26'],E09:['E08','D26'],E07:['D11','D26','D27']};
   data.relatedEvents=related;
-  const galleryIds=['D04','D18','D15','D23','D26','D31','D07','D11','D10','D06'];
+  const galleryIds=['D04','D18','D15','D23','D26','D31','D07','D11','D10'];
   const gallery=document.querySelector('#violence-cards');
   const extraCards=galleryIds.map(id=>items.find(e=>e.id===id)).map(e=>`<button class="violence-card d-card" data-event="${e.event||e.id}"><span class="v-card-top"><span>${esc(e.person)} / ${esc(e.category)}</span><span class="v-status">${esc(e.status)}</span></span>${art(e)}<span class="v-card-body"><span class="v-subtitle">${esc(e.relation)}</span><strong>${esc(e.title)}</strong><span class="v-question">${esc(e.primary)}</span><span class="v-card-link">展开事件与深层原因 <span aria-hidden="true">↗</span></span></span></button>`).join('');
   gallery.insertAdjacentHTML('beforeend',extraCards);
   const cards=[...gallery.children];
-  const order=[0,1,6,7,2,10,3,13,4,8,5,9,11,12,14,15];
+  const order=[0,1,7,8,2,11,3,14,4,9,6,10,12,13,15,5];
   order.forEach(i=>gallery.append(cards[i]));
   [...gallery.children].forEach((card,i)=>{const label=card.querySelector('.v-card-top > span');label.textContent=String(i+1).padStart(2,'0')+' / '+label.textContent.replace(/^\d+ \/ /,'');});
   const observer=new IntersectionObserver(entries=>entries.forEach(x=>x.target.classList.toggle('d-visible',x.isIntersecting)),{rootMargin:'50px'});
