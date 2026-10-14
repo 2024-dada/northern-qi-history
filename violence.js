@@ -58,14 +58,19 @@
   window.RESEARCH.visualArtwork=artwork;
   const cards=document.querySelector('#violence-cards');
   cards.innerHTML=entries.map((e,i)=>`<button class="violence-card" type="button" data-event="${e.event}" data-visual="${e.key}" aria-label="${esc(e.tag)}：展开${esc(e.title)}"><span class="v-card-top"><span>${String(i+1).padStart(2,'0')} / ${esc(e.tag)}</span><span class="v-status">${esc(e.status)}</span></span>${artwork(e,'archive-'+i)}<span class="v-card-body"><span class="v-subtitle">${esc(e.subtitle)}</span><strong>${esc(e.title)}</strong><span class="v-question">${esc(e.question)}</span><span class="v-card-link">展开事件与深层原因 <span aria-hidden="true">↗</span></span></span></button>`).join('');
+  const preferences={read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}},write(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{}}};
   const bloodToggle=document.querySelector('#violence-blood');
+  const bloodEnabled=preferences.read('qi-blood-enabled',true)!==false;
+  document.documentElement.classList.toggle('blood-disabled',!bloodEnabled);
+  bloodToggle.setAttribute('aria-pressed',String(bloodEnabled));bloodToggle.textContent=bloodEnabled?'血色特效：开启':'血色特效：关闭';
   bloodToggle.addEventListener('click',()=>{
     const off=document.documentElement.classList.toggle('blood-disabled');
-    bloodToggle.setAttribute('aria-pressed',String(!off));
+    bloodToggle.setAttribute('aria-pressed',String(!off));preferences.write('qi-blood-enabled',!off);
     bloodToggle.textContent=off?'血色特效：关闭':'血色特效：开启';
   });
   const reduce=matchMedia('(prefers-reduced-motion: reduce)'), toggle=document.querySelector('#violence-motion');
-  let paused=reduce.matches, tracked=[], previous=null, speed=1;
+  let paused=reduce.matches, tracked=[], previous=null, speed=preferences.read('qi-animation-speed',1)===.55?.55:1;
+  function updateSpeed(){document.documentElement.classList.toggle('scene-slow',speed!==1);const button=document.querySelector('#violence-speed');button.textContent=speed===1?'速度：正常':'速度：慢放';button.setAttribute('aria-pressed',String(speed!==1));}updateSpeed();
   const poses={
     behead:[[0,0,-4,-65,8],[.17,-5,-9,-92,25],[.31,-4,-8,-94,22],[.36,0,-2,-69,10],[.43,18,12,-25,2],[.49,19,10,28,6],[.64,10,2,48,9],[.88,10,2,48,9],[1,10,2,48,9]],
     slash:[[0,0,-4,-65,8],[.17,-5,-9,-92,25],[.31,-4,-8,-94,22],[.36,0,-2,-69,10],[.43,18,12,-6,4],[.49,19,10,28,6],[.64,10,2,48,9],[.88,10,2,48,9],[1,10,2,48,9]],
@@ -104,7 +109,11 @@
   }
   function drawScene(scene){
     const {svg,key,actor,victim}=scene,p=(scene.elapsed%cycleFor(key))/cycleFor(key),strike=['slash','behead'].includes(key)?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
-    if(svg.closest('.detail-visual')){const slider=document.querySelector('[data-scene-progress]');if(slider)slider.value=String(Math.round(p*100));const output=document.querySelector('[data-scene-time]');if(output)output.textContent=Math.round(p*100)+'%';}
+    if(svg.closest('.detail-visual')){const slider=document.querySelector('[data-scene-progress]');if(slider)slider.value=String(Math.round(p*100));const output=document.querySelector('[data-scene-time]');if(output)output.textContent=Math.round(p*100)+'%';
+      const phaseIndex=p<.32?0:p<.55?1:2,buttons=[...document.querySelectorAll('[data-scene-jump]')];
+      buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===phaseIndex)));
+      if(slider)slider.setAttribute('aria-valuetext',`${Math.round(p*100)}%，${buttons[phaseIndex]?.textContent||'动作阶段'}`);
+    }
     const actorPose=poseAt(key,p);actorPose[1]+=Math.sin(p*Math.PI*2)*.45;const hand=rigPose(actor,actorPose);
     const fatal=['slash','rear','poison','behead'].includes(key);
     let victimPose=[impact*4,-impact*15,65-impact*13,18+impact*9],drop=impact*5;
@@ -171,17 +180,28 @@
     }
   }
   function collect(){const old=new Map(tracked.map(item=>[item.svg,item]));tracked=[...document.querySelectorAll('.v-art')].map(svg=>old.get(svg)||{svg,key:entries.find(e=>svg.classList.contains('v-'+e.key)).key,actor:svg.querySelector('.rig-actor'),victim:svg.querySelector('.rig-victim'),elapsed:reduce.matches?2900:0});tracked.forEach(drawScene);}
-  const update=()=>{toggle.setAttribute('aria-pressed',String(paused));toggle.textContent=paused?'播放卡片动画 ▷':'暂停卡片动画 Ⅱ';};
-  document.querySelector('#violence-speed')?.addEventListener('click',()=>{speed=speed===1?.55:1;document.documentElement.classList.toggle('scene-slow',speed!==1);const button=document.querySelector('#violence-speed');button.textContent=speed===1?'速度：正常':'速度：慢放';button.setAttribute('aria-pressed',String(speed!==1));});
-  document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.elapsed=reduce.matches?2900:0;drawScene(scene);});document.dispatchEvent(new Event('archive-replay'));});
+  const update=()=>{toggle.setAttribute('aria-pressed',String(paused));toggle.textContent=paused?'播放卡片动画 ▷':'暂停卡片动画 Ⅱ';document.querySelectorAll('[data-animation-action=motion]').forEach(button=>button.textContent=toggle.textContent);};
+  document.querySelector('#violence-speed')?.addEventListener('click',()=>{speed=speed===1?.55:1;preferences.write('qi-animation-speed',speed);updateSpeed();});
+  document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.once=false;scene.elapsed=reduce.matches?2900:0;drawScene(scene);});document.dispatchEvent(new Event('archive-replay'));});
   toggle.addEventListener('click',()=>{paused=!paused;update();});
-  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);scene.trail=[];drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent;});
-  reduce.addEventListener('change',()=>{paused=reduce.matches;tracked.forEach(item=>{item.elapsed=reduce.matches?2900:0;drawScene(item);});update();});
+  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=false;scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);scene.trail=[];drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent;});
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('[data-scene-once],[data-scene-nudge],[data-expand-scene]');if(!button)return;
+    const dialog=document.querySelector('#detail-dialog');
+    if(button.hasAttribute('data-expand-scene')){const expanded=dialog.classList.toggle('scene-expanded');button.setAttribute('aria-pressed',String(expanded));button.textContent=expanded?'恢复画面 ⤡':'放大画面 ⤢';return;}
+    if(button.hasAttribute('data-scene-nudge')){const slider=dialog.querySelector('[data-scene-progress]');slider.value=String(Math.max(0,Math.min(100,Number(slider.value)+Number(button.dataset.sceneNudge))));slider.dispatchEvent(new Event('input',{bubbles:true}));dialog.querySelector('[data-scene-state]').textContent='已暂停，可用进度条或 ±1% 查看细节';return;}
+    tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=true;scene.elapsed=0;drawScene(scene);});
+    paused=false;update();dialog.querySelector('[data-scene-state]').textContent='正在单次播放，结束后停在结果画面';
+  });
+  document.addEventListener('visibilitychange',()=>{previous=null;});
+  reduce.addEventListener('change' ,()=>{paused=reduce.matches;tracked.forEach(item=>{item.elapsed=reduce.matches?2900:0;drawScene(item);});update();});
   const observer=new IntersectionObserver(items=>items.forEach(item=>item.target.classList.toggle('in-view',item.isIntersecting)),{threshold:.1});
   cards.querySelectorAll('.violence-card').forEach(card=>observer.observe(card));
   new MutationObserver(collect).observe(document.querySelector('#dialog-body'),{childList:true});
   function frame(now){const dt=previous===null?0:Math.min(now-previous,50);previous=now;const dialogOpen=document.querySelector('#detail-dialog').open;
-    tracked.forEach(scene=>{const modal=!!scene.svg.closest('.detail-visual');const visible=modal?dialogOpen:!dialogOpen&&scene.svg.closest('.violence-card').classList.contains('in-view');if(visible&&!document.hidden&&!paused){scene.elapsed+=dt*speed;drawScene(scene);}});
+    tracked.forEach(scene=>{const modal=!!scene.svg.closest('.detail-visual');const visible=modal?dialogOpen:!dialogOpen&&scene.svg.closest('.violence-card').classList.contains('in-view');if(visible&&!document.hidden&&!paused){scene.elapsed+=dt*speed;
+      if(modal&&scene.once&&scene.elapsed>=cycleFor(scene.key)*.9){scene.elapsed=cycleFor(scene.key)*.9;scene.once=false;paused=true;update();document.querySelector('[data-scene-state]').textContent='单次播放结束 · 已停在结果画面';}
+      drawScene(scene);}});
     requestAnimationFrame(frame);
   }
   collect();update();requestAnimationFrame(frame);
