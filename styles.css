@@ -101,3 +101,42 @@ html{scroll-padding-top:calc(var(--header-height,100px) + 18px)}.chapter{scroll-
 @media(max-width:900px){.visit-guide ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.hero-subtitle{font-size:23px}.hero-description{font-size:14px}.visit-guide{padding-top:26px;padding-bottom:26px}.visit-guide h2{font-size:25px}.visit-guide ol{grid-template-columns:1fr;gap:10px}.visit-guide li a{padding:14px 16px;display:grid;grid-template-columns:25px 1fr;gap:2px 12px}.visit-guide li span{grid-row:1 / span 2;padding-top:4px}.visit-guide li strong{margin:0}.visit-guide li small{grid-column:2}.section-task{padding:12px 14px;font-size:13px}.case-summary-grid{grid-template-columns:1fr;gap:12px}.case-summary-grid article{padding:18px}.case-summary-grid dd{font-size:14px}.violence-intro>p{font-size:13px}.reading-large .section-task,.reading-large .case-summary-grid dd{font-size:16px}.orientation-content>p>span{font-size:13px}.chapter-rail nav a{font-size:11px}.scene-heading{align-items:start}.scene-heading h3{font-size:20px}}
 @media print{.visit-guide{display:none!important}.case-summary-grid{display:block}.case-summary-grid article{break-inside:avoid;background:white;margin-bottom:16px}}
+
+/* Reading mode covers the whole reading journey, including dynamically opened evidence.
+   Keep SVG labels in their drawing coordinates and retain the compact print layout. */
+@media screen {
+  .reading-large :is(.hero-description,.visit-guide>p:not(.eyebrow),.violence-intro>p,.orientation-content>p>span,.section-intro,.section-task,.interpretation,.takeaways p,.network-detail>p:not(.eyebrow),.timeline-panel p:not(.eyebrow),.comparison article>p:not(.eyebrow),.case-summary-grid dd,.reading-conclusion,.explore-heading>p,.sources>p:not(.eyebrow),dialog p,dialog li){font-size:20px;line-height:1.95}
+  .reading-large :is(.visit-guide li small,.family small,.reading-note,.small-note,.diagram-caption,.conclusion-note,.analysis-note,.view-note,.violence-boundary,.visual-boundary,.v-question,.v-subtitle,.v-relation-note,.dossier-intro,.event-row .event-meta,.event-row .event-year,.event-row .event-ruler,.sources li,.sources li button,.sources li small,.research-status p,.research-status strong,.source-link,dialog .source-state,dialog .dialog-links a,dialog .related-source,.scene-relation-text){font-size:16px;line-height:1.85}
+  .reading-large :is(.visit-guide li strong,.family span,.event-row strong,.case-summary-grid h3,.takeaways h3){font-size:24px;line-height:1.6}
+  .reading-large :is(.chapter h2,.exploration h2,.sources h2,.visit-guide h2){font-size:38px;line-height:1.5}
+  .reading-large .hero-subtitle{font-size:34px}
+  .reading-large :is(.timeline-panel h3,.network-detail h3,.scene-heading h3,dialog h3){font-size:26px;line-height:1.6}
+  .reading-large dialog h2{font-size:34px}
+  .reading-large dialog blockquote{font-size:26px;line-height:1.8}
+  .reading-large .site-header nav{font-size:15px;flex-wrap:wrap;white-space:normal}
+  .reading-large .site-header{flex-wrap:wrap}
+  .reading-large .chapter-rail nav a{font-size:15px;line-height:1.8}
+  .reading-large .chapter-rail nav b{font-size:12px}
+  .reading-large :is(.hero-actions a,.filters button,.search-box input,.explore-views button,.detail-contents button,.event-actions button,.event-actions a,.source-tools button,.source-tools a,.source-related button){font-size:16px;line-height:1.7}
+  .reading-large .event-row{grid-template-columns:45px 85px minmax(0,1fr) 145px 22px}
+  .reading-large .source-related>p,.reading-large .keyboard-help p{font-size:16px!important}
+  .reading-large .site-header [data-text-size][aria-pressed=true]{background:#dfd2b7;border-radius:4px;padding:4px 10px}
+  .reading-large .timeline-panel{min-height:0}
+  .reading-large .source-related button span{font-size:14px}
+  .reading-large .search-box{min-width:0}
+}
+@media screen and (max-width:650px){
+  .reading-large :is(.hero-description,.visit-guide>p:not(.eyebrow),.violence-intro>p,.orientation-content>p>span,.section-intro,.section-task,.interpretation,.takeaways p,.network-detail>p:not(.eyebrow),.timeline-panel p:not(.eyebrow),.comparison article>p:not(.eyebrow),.case-summary-grid dd,.reading-conclusion,.explore-heading>p,.sources>p:not(.eyebrow),dialog p,dialog li){font-size:18px}
+  .reading-large :is(.chapter h2,.exploration h2,.sources h2,.visit-guide h2){font-size:34px}
+  .reading-large .hero-subtitle{font-size:28px}
+  .reading-large dialog h2{font-size:29px}
+  .reading-large .event-row{grid-template-columns:25px minmax(0,1fr) 15px}
+  .reading-large .chapter-rail nav{max-height:100px}
+  .reading-large .site-header nav{gap:6px 14px}
+}
+@media screen {
+  .reading-large :is(.v-card-body strong,.d-card-copy strong){font-size:28px;line-height:1.6}
+  .reading-large :is(.v-card-top,.v-card-link,.d-card-head,.d-card-copy small,.d-card-copy>span,.d-card-copy em,.archive-shortcuts,.archive-shortcuts button,.archive-toolbar button,.violence-intro button,.d-filters button,.d-control){font-size:16px;line-height:1.8}
+  .reading-large :is(.d-heading>p,.d-critique p,.d-bibliography p){font-size:20px;line-height:1.95}
+}
+@media screen and (max-width:650px){.reading-large :is(.d-heading>p,.d-critique p,.d-bibliography p){font-size:18px}}
