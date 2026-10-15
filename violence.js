@@ -118,6 +118,7 @@
     const fatal=['slash','rear','poison','behead'].includes(key);
     let victimPose=[impact*4,-impact*15,65-impact*13,18+impact*9],drop=impact*5;
     if(key==='behead'){const reaction=smooth((p-strike)/.09);victimPose=[reaction*4,-reaction*15,65-reaction*13,18+reaction*9];drop=reaction*5;}
+    if(key==='slash'){const recoil=wave(p,strike,strike+.12,.82,.97);victimPose=[recoil*9,-recoil*42,65-recoil*20,18+recoil*16];drop=recoil*18;}
     if(key==='punish'){victimPose=[impact*7,-impact*20,70,15];drop=impact*8;}
     if(['poison','drink'].includes(key)){const sip=wave(p,.34,.47,.63,.83);victimPose=[0,-sip*7,25-sip*80,15+sip*38];}
     const otherHand=rigPose(victim,victimPose,drop);

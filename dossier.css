@@ -12,3 +12,36 @@
 @media(prefers-reduced-motion:reduce){.d-art *{animation:none!important}.d-clock-line{transform:scaleX(.45)}.d-phase{opacity:.6}}@media(max-width:650px){.d-art .d-person-name{font-size:15px}.d-art .d-relation{font-size:11px}}
 
 :root{--archive-cycle:5.6s}.scene-slow{--archive-cycle:10.18s}.d-art .d-phase-1{animation-delay:calc(var(--archive-cycle)*-.66)}.d-art .d-phase-2{animation-delay:calc(var(--archive-cycle)*-.33)}.d-art .d-clock-line{transform-origin:left center}
+
+/* One shared cycle keeps anticipation, action and response aligned. */
+.d-art :is(.d-scorpion-crawl,.d-tail-small,.d-tail-raise,.d-scorpion-legs,.d-alarm,.d-bow-string,.d-bow-limb,.d-arrow-flight,.d-arrow-impact,.d-fall-dust){animation-duration:var(--archive-cycle);animation-iteration-count:infinite;animation-timing-function:linear;animation-play-state:paused}
+.d-art .d-scorpions{animation:none}
+.d-art .d-scorpion-crawl{animation-name:d-crawl;transform-box:fill-box;transform-origin:center}
+.d-art .d-tail-small{animation-name:d-tail;transform-origin:0 -3px}
+.d-art .d-tail-raise{animation-name:d-tail;transform-origin:0 -4px}
+.d-art .d-scorpion-legs{animation-name:d-legs;transform-origin:center}
+.d-art .d-alarm{animation-name:d-startle;opacity:0}
+.d-scorpion .d-figure-move{animation-name:d-fear;animation-timing-function:linear}
+.d-art .d-bow-string{animation-name:d-bowstring}
+.d-art .d-bow-limb{animation-name:d-bowflex;transform-origin:163px 146px}
+.d-art .d-arrow-flight{animation-name:d-projectile;opacity:0}
+.d-art .d-arrow-impact{animation-name:d-arrow-contact;opacity:0}
+.d-arrow .rig-victim .rig-head{transform:rotate(5deg);transform-origin:0 -82px}
+.d-arrow .rig-victim .rig-shoulder{animation:d-brace var(--archive-cycle) linear infinite;animation-play-state:paused}
+.d-arrow .d-person:has(.rig-victim) .d-figure-move{animation-name:d-stagger-fall;animation-timing-function:linear;transform-box:view-box;transform-origin:0 0}
+.d-art .d-fall-dust{animation-name:d-ground-dust;opacity:0;transform-origin:307px 204px}
+@keyframes d-crawl{0%,12%,100%{transform:translate(-3px,1px)}30%{transform:translate(1px,-1px)}48%,76%{transform:translate(5px,0)}90%{transform:translate(-1px,1px)}}
+@keyframes d-tail{0%,18%,88%,100%{transform:rotate(12deg)}32%,42%{transform:rotate(-24deg)}47%{transform:rotate(24deg)}53%{transform:rotate(-12deg)}63%,73%{transform:rotate(15deg)}}
+@keyframes d-legs{0%,100%{transform:scaleX(1)}28%,40%,52%,66%{transform:scaleX(.9)}34%,46%,60%,73%{transform:scaleX(1.1)}}
+@keyframes d-startle{0%,43%,62%,100%{opacity:0}46%,55%{opacity:.8}}
+@keyframes d-fear{0%,30%,96%,100%{transform:rotate(0)}40%{transform:rotate(-5deg) translateY(-2px)}48%{transform:rotate(7deg) translateY(-3px)}54%{transform:rotate(-8deg)}61%{transform:rotate(4deg)}72%,85%{transform:rotate(-4deg) translateY(1px)}}
+@keyframes d-bowstring{0%,8%,95%,100%{d:path('M163 110L161 146L163 182')}27%,35%{d:path('M163 110L139 146L163 182')}38%{d:path('M163 110L170 146L163 182')}41%{d:path('M163 110L158 146L163 182')}45%,85%{d:path('M163 110L163 146L163 182')}}
+@keyframes d-bowflex{0%,100%{transform:scaleX(1)}27%,35%{transform:scaleX(.86)}38%{transform:scaleX(1.1)}42%,88%{transform:scaleX(1)}}
+@keyframes d-projectile{0%,7%{transform:translate(178px,132px);opacity:0}8%{opacity:1}27%,35%{transform:translate(155px,132px);opacity:1}45%{transform:translate(257px,132px);opacity:1}46%,100%{transform:translate(257px,132px);opacity:0}}
+@keyframes d-arrow-contact{0%,44%,52%,100%{opacity:0}46%,48%{opacity:.85}}
+@keyframes d-brace{0%,43%,100%{transform:rotate(62deg)}50%{transform:rotate(90deg)}62%,88%{transform:rotate(112deg)}}
+@keyframes d-stagger-fall{0%,44%{transform:translate(0,0) rotate(0);opacity:1}49%{transform:translate(7px,0) rotate(8deg)}56%{transform:translate(11px,2px) rotate(23deg)}64%{transform:translate(6px,0) rotate(65deg)}69%{transform:translate(4px,-3px) rotate(80deg)}74%,90%{transform:translate(4px,-3px) rotate(78deg);opacity:1}94%{transform:translate(4px,-3px) rotate(78deg);opacity:0}95%{transform:translate(0,0) rotate(0);opacity:0}100%{transform:translate(0,0) rotate(0);opacity:1}}
+@keyframes d-ground-dust{0%,65%,85%,100%{opacity:0;transform:scale(.5)}70%{opacity:.6;transform:scale(1)}80%{opacity:0;transform:scale(1.5)}}
+@media(prefers-reduced-motion:reduce){.d-art *{animation:none!important}.d-arrow-flight{transform:translate(182px,132px);opacity:1}.d-bow-string{d:path('M163 110L142 146L163 182')}}
+
+.d-art .d-bow-rig{transform:translateY(-14px)}
