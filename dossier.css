@@ -61,3 +61,17 @@
 @keyframes s-cover{0%,25%,100%{transform:rotate(0)}42%,57%{transform:rotate(-7deg)}74%{transform:rotate(-3deg)}}
 @keyframes s-turn-away{0%,28%,100%{transform:rotate(0)}44%,60%{transform:rotate(7deg)}77%{transform:rotate(3deg)}}
 @media(prefers-reduced-motion:reduce){.d-scorpion *{animation:none!important}}
+
+/* Contact is occluded; the small mark stays on fabric, without wound detail. */
+.d-scorpion :is(.s-contact-mask,.s-shirt-mark){animation-duration:var(--archive-cycle);animation-iteration-count:infinite;animation-timing-function:linear;animation-play-state:paused;opacity:0}
+.d-scorpion .s-contact-mask{animation-name:s-mask-contact}
+.d-scorpion .s-shirt-mark{animation-name:s-fabric-mark}
+.d-scorpion .s-contact-scorpion *{--s-delay:0s}
+.d-scorpion .s-contact-scorpion .s-tail{animation-name:s-tail-lower}
+.d-scorpion .s-prone-person{animation-name:s-contact-recoil}
+@keyframes s-tail-lower{0%,22%,100%{transform:rotate(6deg)}34%,41%{transform:rotate(-20deg)}46%,49%{transform:rotate(31deg)}57%,76%{transform:rotate(-9deg)}90%{transform:rotate(5deg)}}
+@keyframes s-mask-contact{0%,40%,59%,100%{opacity:0}43%,52%{opacity:1}}
+@keyframes s-fabric-mark{0%,52%,100%{opacity:0}57%,88%{opacity:.8}96%{opacity:0}}
+@keyframes s-contact-recoil{0%,43%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(-8px,-5px) rotate(-4deg)}56%{transform:translate(-5px,-2px) rotate(2deg)}65%,83%{transform:translate(-5px,-2px) rotate(-2deg)}93%{transform:translate(-2px,0) rotate(-1deg)}}
+.blood-disabled .s-shirt-mark{display:none}
+@media(prefers-reduced-motion:reduce){.d-scorpion *{animation:none!important}.s-contact-mask,.s-shirt-mark{opacity:0}}
