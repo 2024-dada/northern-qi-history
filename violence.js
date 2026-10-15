@@ -179,16 +179,29 @@
       });
     }
   }
-  function collect(){const old=new Map(tracked.map(item=>[item.svg,item]));tracked=[...document.querySelectorAll('.v-art')].map(svg=>old.get(svg)||{svg,key:entries.find(e=>svg.classList.contains('v-'+e.key)).key,actor:svg.querySelector('.rig-actor'),victim:svg.querySelector('.rig-victim'),elapsed:reduce.matches?2900:0});tracked.forEach(drawScene);}
-  const update=()=>{toggle.setAttribute('aria-pressed',String(paused));toggle.textContent=paused?'播放卡片动画 ▷':'暂停卡片动画 Ⅱ';document.querySelectorAll('[data-animation-action=motion]').forEach(button=>button.textContent=toggle.textContent);};
+  const detailPositions=new Map();
+  function collect(){
+    const old=new Map(tracked.map(item=>[item.svg,item]));
+    tracked.filter(item=>item.svg.closest('.detail-visual')).forEach(item=>detailPositions.set(item.key,item.elapsed));
+    let restored=false;
+    tracked=[...document.querySelectorAll('.v-art')].map(svg=>{
+      if(old.has(svg))return old.get(svg);
+      const key=entries.find(entry=>svg.classList.contains('v-'+entry.key)).key;
+      const resume=svg.closest('.detail-visual')&&detailPositions.has(key);restored=restored||resume;
+      return {svg,key,actor:svg.querySelector('.rig-actor'),victim:svg.querySelector('.rig-victim'),elapsed:resume?detailPositions.get(key):reduce.matches?2900:0};
+    });
+    if(restored){paused=true;update();const status=document.querySelector('[data-scene-state]');if(status)status.textContent='已恢复本次浏览的进度，点击播放继续';}
+    tracked.forEach(drawScene);
+  }
+  const update=()=>{toggle.setAttribute('aria-pressed',String(paused));toggle.textContent=paused?'播放卡片动画 ▷':'暂停卡片动画 Ⅱ';document.querySelectorAll('[data-animation-action=motion]').forEach(button=>button.textContent=toggle.textContent.replace('卡片',''));};
   document.querySelector('#violence-speed')?.addEventListener('click',()=>{speed=speed===1?.55:1;preferences.write('qi-animation-speed',speed);updateSpeed();});
   document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.once=false;scene.elapsed=reduce.matches?2900:0;drawScene(scene);});const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已回到开始，点击播放查看';document.dispatchEvent(new Event('archive-replay'));});
   toggle.addEventListener('click',()=>{paused=!paused;update();});
-  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=false;scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);scene.trail=[];drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent;const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已暂停，可拖动进度查看细节';});
+  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=false;scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);scene.trail=[];drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent.replace('卡片','');const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已暂停，可拖动进度查看细节';});
   document.addEventListener('click',event=>{
     const button=event.target.closest('[data-scene-once],[data-scene-nudge],[data-expand-scene]');if(!button)return;
     const dialog=document.querySelector('#detail-dialog');
-    if(button.hasAttribute('data-expand-scene')){const expanded=dialog.classList.toggle('scene-expanded');button.setAttribute('aria-pressed',String(expanded));button.textContent=expanded?'恢复画面 ⤡':'放大画面 ⤢';return;}
+    if(button.hasAttribute('data-expand-scene')){const expanded=dialog.classList.toggle('scene-expanded');button.setAttribute('aria-pressed',String(expanded));button.textContent=expanded?'恢复画面 ⤡':'放大画面 ⤢';requestAnimationFrame(()=>dialog.querySelector('.scene-workbench').scrollIntoView({block:'start',behavior:'instant'}));return;}
     if(button.hasAttribute('data-scene-nudge')){const slider=dialog.querySelector('[data-scene-progress]');slider.value=String(Math.max(0,Math.min(100,Number(slider.value)+Number(button.dataset.sceneNudge))));slider.dispatchEvent(new Event('input',{bubbles:true}));dialog.querySelector('[data-scene-state]').textContent='已暂停，可用进度条或 ±1% 查看细节';return;}
     tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=true;scene.elapsed=0;drawScene(scene);});
     paused=false;update();dialog.querySelector('[data-scene-state]').textContent='正在单次播放，结束后停在结果画面';
