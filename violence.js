@@ -1,13 +1,13 @@
 (() => {
   'use strict';
   const entries = [
-    {key:'slash',event:'E02',tag:'挥砍 · 处斩',status:'致死记载',title:'刀落之前，冲突已久。',subtitle:'高洋 → 高德政及妻、子 · 559年',quote:'遂曳出斩之。',boundary:'原文记处斩；刀具、姿势和落刀动作仅为象征，不指认最终执行者。',question:'一位参与开国的旧臣，为什么连家人也未能幸免？'},
-    {key:'thrust',event:'E02',tag:'突刺 · 先行伤害',status:'此刻尚未致死',title:'“治病”，变成了伤害。',subtitle:'高洋 → 高德政 · 559年',quote:'亲以刀子刺之。',boundary:'对应此前刺伤阶段，不是一次独立刺杀；与次日处斩分开。部位与动作轨迹为设计示意。',question:'从亲自伤害到下令处斩，暴力怎样逐步升级？'},
-    {key:'rear',event:'E08',tag:'召见 · 从后杀害',status:'致死记载',title:'走进宫门，已无归路。',subtitle:'高纬下令 / 刘桃枝等执行 · 572年',quote:'桃枝自后拉而杀之。',boundary:'只示意从后接近与死亡结果，不把“拉”扩写为确定的扼颈或绞杀技法。',question:'谣言、近臣与君主之间，谁把猜忌变成了命令？'},
-    {key:'punish',event:'E06',tag:'受刑 · 折胫致死',status:'致死记载',title:'一声“叔”，触到了皇权。',subtitle:'高湛（太上皇）→ 高孝琬 · 566年',quote:'上皇愈怒，折其两胫而死。',boundary:'腿部朱色标记表示史书所述损伤，不复原工具、具体施刑动作；最后执行者未详。',question:'宗族里的叔侄，为什么不能再以叔侄相称？'},
-    {key:'poison',event:'E09',tag:'遣使 · 赐毒',status:'致死记载',title:'送来的，是不能拒绝的结局。',subtitle:'高纬下令 / 徐之范送药 · 573年',quote:'帝使徐之范饮以毒药。',boundary:'药器为视觉符号；原文未明确药物成分、剂量与器物样式。',question:'军事声望与宗室身份，怎样从功劳变成威胁？'},
-    {key:'behead',event:'E04',tag:'斩首 · 断离与落地',status:'斩首记载 · 过程有分歧',title:'断离之后，还要回到文字。',subtitle:'高洋 → 薛嫔 · 天保年间',quote:'无故斩首。',boundary:'本纪明确记斩首，直接执行者尚未核定；断离、落点、反弹与刀具均为简化美术示意，不补造现场。后妃传记生产后遇害，时间过程仍须并读。',question:'同一次死亡，为什么在不同篇章中呈现不同的时间与情绪？'},
-    {key:'drink',event:'E05',tag:'强饮 · 押送后死亡',status:'方式有分歧',title:'最后一杯之后，两种记载。',subtitle:'高湛 → 高孝瑜 · 563年',quote:'槛之于车 / 鸩之于车',boundary:'两条线代表不同文本描述，不合并成确定毒杀。“槛／鸩”关键字仍待影印核验。',question:'一个字的不同，会怎样改变对死亡方式与杀意的判断？'}
+    {key:'slash',event:'E02',tag:'挥砍 · 处斩',status:'致死记载',title:'高德政及妻、子被处斩',subtitle:'高洋 → 高德政及妻、子 · 559年',quote:'遂曳出斩之。',boundary:'原文记处斩；刀具、姿势和落刀动作仅为象征，不指认最终执行者。',question:'高洋与高德政的冲突，为何波及妻子和儿子？'},
+    {key:'thrust',event:'E02',tag:'突刺 · 先行伤害',status:'此刻尚未致死',title:'高德政被刺伤，次日被处斩',subtitle:'高洋 → 高德政 · 559年',quote:'亲以刀子刺之。',boundary:'对应此前刺伤阶段，不是一次独立刺杀；与次日处斩分开。部位与动作轨迹为设计示意。',question:'从亲自伤害到下令处斩，暴力怎样逐步升级？'},
+    {key:'rear',event:'E08',tag:'召见 · 从后杀害',status:'致死记载',title:'高纬召见斛律光并下令杀害',subtitle:'高纬下令 / 刘桃枝等执行 · 572年',quote:'桃枝自后拉而杀之。',boundary:'只示意从后接近与死亡结果，不把“拉”扩写为确定的扼颈或绞杀技法。',question:'谣言、近臣与君主之间，谁把猜忌变成了命令？'},
+    {key:'punish',event:'E06',tag:'受刑 · 折胫致死',status:'致死记载',title:'高孝琬遭折胫后死亡',subtitle:'高湛（太上皇）→ 高孝琬 · 566年',quote:'上皇愈怒，折其两胫而死。',boundary:'腿部朱色标记表示史书所述损伤，不复原工具、具体施刑动作；最后执行者未详。',question:'宗族里的叔侄，为什么不能再以叔侄相称？'},
+    {key:'poison',event:'E09',tag:'遣使 · 赐毒',status:'致死记载',title:'高纬派人送毒药给兰陵王',subtitle:'高纬下令 / 徐之范送药 · 573年',quote:'帝使徐之范饮以毒药。',boundary:'药器为视觉符号；原文未明确药物成分、剂量与器物样式。',question:'军功与宗室身份，为什么会引起君主猜忌？'},
+    {key:'behead',event:'E04',tag:'斩首 · 断离与落地',status:'斩首记载 · 过程有分歧',title:'薛嫔被杀：斩首与时间记载有分歧',subtitle:'高洋 → 薛嫔 · 天保年间',quote:'无故斩首。',boundary:'本纪明确记斩首，直接执行者尚未核定；断离、落点、反弹与刀具均为简化美术示意，不补造现场。后妃传记生产后遇害，时间过程仍须并读。',question:'同一次死亡，为什么在不同篇章中呈现不同的时间与情绪？'},
+    {key:'drink',event:'E05',tag:'强饮 · 押送后死亡',status:'方式有分歧',title:'高孝瑜强饮后死亡：致死方式有分歧',subtitle:'高湛 → 高孝瑜 · 563年',quote:'槛之于车 / 鸩之于车',boundary:'两条线代表不同文本描述，不合并成确定毒杀。“槛／鸩”关键字仍待影印核验。',question:'一个字的不同，会怎样改变对死亡方式与杀意的判断？'}
   ];
   const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const scenes = {
@@ -57,7 +57,7 @@
   window.RESEARCH.visuals=entries;
   window.RESEARCH.visualArtwork=artwork;
   const cards=document.querySelector('#violence-cards');
-  cards.innerHTML=entries.map((e,i)=>`<button class="violence-card" type="button" data-event="${e.event}" data-visual="${e.key}" aria-label="${esc(e.tag)}：展开${esc(e.title)}"><span class="v-card-top"><span>${String(i+1).padStart(2,'0')} / ${esc(e.tag)}</span><span class="v-status">${esc(e.status)}</span></span>${artwork(e,'archive-'+i)}<span class="v-card-body"><span class="v-subtitle">${esc(e.subtitle)}</span><strong>${esc(e.title)}</strong><span class="v-question">${esc(e.question)}</span><span class="v-card-link">展开事件与深层原因 <span aria-hidden="true">↗</span></span></span></button>`).join('');
+  cards.innerHTML=entries.map((e,i)=>`<button class="violence-card" type="button" data-event="${e.event}" data-visual="${e.key}" aria-label="${esc(e.tag)}：展开${esc(e.title)}"><span class="v-card-top"><span>${String(i+1).padStart(2,'0')} / ${esc(e.tag)}</span><span class="v-status">${esc(e.status)}</span></span>${artwork(e,'archive-'+i)}<span class="v-card-body"><span class="v-subtitle">${esc(e.subtitle)}</span><strong>${esc(e.title)}</strong><span class="v-question">${esc(e.question)}</span><span class="v-card-link">查看事件经过与原因 <span aria-hidden="true">↗</span></span></span></button>`).join('');
   const preferences={read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}},write(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{}}};
   const bloodToggle=document.querySelector('#violence-blood');
   const bloodEnabled=preferences.read('qi-blood-enabled',true)!==false;

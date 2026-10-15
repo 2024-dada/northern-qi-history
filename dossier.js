@@ -92,7 +92,7 @@
   data.relatedEvents=related;
   const galleryIds=['D04','D18','D15','D23','D26','D31','D07','D11','D10'];
   const gallery=document.querySelector('#violence-cards');
-  const extraCards=galleryIds.map(id=>items.find(e=>e.id===id)).map(e=>`<button class="violence-card d-card" data-event="${e.event||e.id}"><span class="v-card-top"><span>${esc(e.person)} / ${esc(e.category)}</span><span class="v-status">${esc(e.status)}</span></span>${art(e)}<span class="v-card-body"><span class="v-subtitle">${esc(e.relation)}</span><strong>${esc(e.title)}</strong><span class="v-question">${esc(e.primary)}</span><span class="v-card-link">展开事件与深层原因 <span aria-hidden="true">↗</span></span></span></button>`).join('');
+  const extraCards=galleryIds.map(id=>items.find(e=>e.id===id)).map(e=>`<button class="violence-card d-card" data-event="${e.event||e.id}"><span class="v-card-top"><span>${esc(e.person)} / ${esc(e.category)}</span><span class="v-status">${esc(e.status)}</span></span>${art(e)}<span class="v-card-body"><span class="v-subtitle">${esc(e.relation)}</span><strong>${esc(e.title)}</strong><span class="v-question">${esc(e.primary)}</span><span class="v-card-link">查看事件经过与原因 <span aria-hidden="true">↗</span></span></span></button>`).join('');
   gallery.insertAdjacentHTML('beforeend',extraCards);
   const cards=[...gallery.children];
   const order=[0,1,7,8,2,11,3,14,4,9,6,10,12,13,15,5];
