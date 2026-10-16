@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>北齐高家皇室怪异史 · 族谱图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg-page: #1a1a1f;
+    --bg-card: #252530;
+    --text-primary: #f0f0f0;
+    --text-secondary: #b0b0b8;
+    --text-tertiary: #7a7a85;
+    --primary: #c0392b;
+    --primary-light: #e74c3c;
+    --border: #3a3a45;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(180deg, #1a1a1f 0%, #22151a 50%, #1a1a1f 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* ===== 顶部引导区 ===== */
+  .hero { padding: 56px 0 28px; text-align: center; }
+  .hero h1 { font-size: 40px; letter-spacing: 2px; line-height: 1.2; margin-bottom: 10px; }
+  .hero .subtitle {
+    font-size: 14px; color: var(--primary-light); font-weight: 500;
+    letter-spacing: 8px; margin-bottom: 26px;
+  }
+  .hero .desc {
+    text-align: left; font-size: 15px; color: var(--text-secondary);
+    background: rgba(192, 57, 43, 0.08);
+    border-left: 4px solid var(--primary);
+    padding: 18px 20px; border-radius: 6px; margin-bottom: 18px;
+  }
+  .feature-tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .feature-tag {
+    font-size: 12px; color: var(--primary-light);
+    background: rgba(192, 57, 43, 0.15);
+    border: 1px solid rgba(192, 57, 43, 0.3);
+    padding: 6px 16px; border-radius: 100px;
+  }
+
+  /* ===== 图例 ===== */
+  .legend {
+    background: var(--bg-card); border-radius: 12px;
+    padding: 22px 24px; margin: 32px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  .legend h3 { font-size: 16px; margin-bottom: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .legend-item:last-child { margin-bottom: 0; }
+  .legend-dot { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,.2); }
+  .legend-text { font-size: 14px; color: var(--text-secondary); flex: 1; }
+  .legend-value { font-size: 13px; color: var(--text-tertiary); font-weight: 500; }
+
+  /* ===== 族谱 ===== */
+  .generation { margin-bottom: 12px; }
+  .gen-divider { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; gap: 14px; }
+  .gen-divider .line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+  .gen-divider .label { font-size: 15px; font-weight: 600; letter-spacing: 2px; white-space: nowrap; }
+  .node-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 10px; }
+  .connector { width: 2px; height: 34px; background: var(--border); margin: 6px auto 18px; }
+
+  .node {
+    display: flex; flex-direction: column; align-items: center;
+    width: 150px; padding: 14px 8px; cursor: pointer;
+    border-radius: 12px; transition: transform .2s, background .2s;
+  }
+  .node:hover { background: rgba(255,255,255,.04); transform: translateY(-3px); }
+  .node:active { transform: scale(.96); }
+  .avatar {
+    width: 84px; height: 84px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid rgba(255,255,255,.25);
+    box-shadow: 0 4px 18px rgba(139,0,0,.3);
+    margin-bottom: 10px; transition: border-color .2s;
+  }
+  .avatar span { font-size: 32px; font-weight: 700; }
+  .node .name { font-size: 16px; font-weight: 600; line-height: 1.2; }
+  .node .courtesy { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+  .node .title-text {
+    font-size: 11px; color: var(--text-tertiary); text-align: center;
+    margin-top: 4px; line-height: 1.35; min-height: 30px;
+  }
+  .tag-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .level-tag { font-size: 10px; padding: 2px 10px; border-radius: 100px; white-space: nowrap; }
+  .level-num { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
+
+  .footer-note {
+    text-align: center; font-size: 12px; color: var(--text-tertiary);
+    margin-top: 28px; line-height: 1.8;
+  }
+
+  /* ===== 弹窗 ===== */
+  .modal-mask {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.65); z-index: 100;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-mask.show { display: flex; }
+  .modal {
+    background: var(--bg-card); border-radius: 16px;
+    max-width: 480px; width: 100%; padding: 32px 28px;
+    position: relative; max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 12px 48px rgba(0,0,0,.6);
+    border: 1px solid var(--border);
+  }
+  .modal-close {
+    position: absolute; top: 14px; right: 18px;
+    background: none; border: none; color: var(--text-tertiary);
+    font-size: 26px; cursor: pointer; line-height: 1;
+  }
+  .modal-close:hover { color: var(--text-primary); }
+  .modal-header { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .modal-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid rgba(255,255,255,.25); flex-shrink: 0;
+  }
+  .modal-avatar span { font-size: 26px; font-weight: 700; }
+  .modal-header h2 { font-size: 22px; }
+  .modal-header .m-title { font-size: 13px; color: var(--text-tertiary); margin-top: 2px; }
+  .modal-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .modal-meta .m-tag {
+    font-size: 12px; padding: 3px 12px; border-radius: 100px;
+    background: rgba(255,255,255,.08); color: var(--text-secondary);
+  }
+  .modal-summary { font-size: 15px; color: var(--text-secondary); line-height: 1.9; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* ===== 高澄故事流 ===== */
+  .story-overlay {
+    position: fixed; inset: 0; z-index: 300; display: none;
+    background: rgba(8,6,8,.86); backdrop-filter: blur(5px);
+    align-items: center; justify-content: center; padding: 16px;
+  }
+  .story-overlay.show { display: flex; }
+  .story-card {
+    width: 100%; max-width: 520px; height: min(92vh, 880px);
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 18px; display: flex; flex-direction: column;
+    overflow: hidden; position: relative;
+    box-shadow: 0 24px 70px rgba(0,0,0,.75);
+    animation: cardIn .3s ease;
+  }
+  @keyframes cardIn { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .story-top { height: 4px; background: rgba(255,255,255,.07); flex-shrink: 0; }
+  .story-top-fill { height: 100%; width: 33.3%; background: linear-gradient(90deg,#8b0000,#e74c3c); transition: width .35s ease; }
+  .story-close {
+    position: absolute; top: 10px; right: 14px; z-index: 5;
+    background: none; border: none; color: var(--text-tertiary);
+    font-size: 26px; cursor: pointer; line-height: 1; padding: 4px 8px;
+  }
+  .story-close:hover { color: #fff; }
+  .story-pages { flex: 1; position: relative; overflow: hidden; }
+  .story-page {
+    position: absolute; inset: 0; overflow-y: auto;
+    padding: 30px 30px 22px;
+    opacity: 0; transform: translateX(30px);
+    transition: opacity .32s ease, transform .32s ease;
+    pointer-events: none;
+  }
+  .story-page.active { opacity: 1; transform: none; pointer-events: auto; }
+  .story-page.back { transform: translateX(-30px); }
+  .s-kicker { font-size: 12px; color: var(--primary-light); letter-spacing: 3px; font-weight: 600; margin-bottom: 8px; }
+  .s-title { font-size: 25px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+  .s-time { font-size: 12.5px; color: var(--text-tertiary); margin-bottom: 20px; }
+  .s-block { margin-bottom: 17px; }
+  .s-block-h { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 700; color: #e74c3c; margin-bottom: 9px; }
+  .s-block-h::before { content: ''; width: 3px; height: 14px; background: #c0392b; border-radius: 2px; }
+  .s-block p { font-size: 14.5px; color: var(--text-secondary); line-height: 2; margin-bottom: 10px; text-align: justify; }
+  .s-quote { background: rgba(139,0,0,.12); border: 1px solid rgba(192,57,43,.3); border-radius: 10px; padding: 16px 18px; margin: 4px 0 12px; }
+  .s-quote .q-text { font-size: 18px; color: #f5b7b1; font-weight: 700; text-align: center; letter-spacing: 2px; margin-bottom: 8px; }
+  .s-quote .q-note { font-size: 12.5px; color: var(--text-tertiary); line-height: 1.8; }
+  .s-source { margin-top: 18px; padding-top: 13px; border-top: 1px dashed var(--border); font-size: 12px; color: var(--text-tertiary); line-height: 1.8; }
+  .story-nav {
+    flex-shrink: 0; border-top: 1px solid var(--border);
+    padding: 13px 22px; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; background: rgba(0,0,0,.18);
+  }
+  .s-btn {
+    font-size: 14px; padding: 10px 22px; border-radius: 100px;
+    cursor: pointer; border: 1px solid var(--border);
+    background: transparent; color: var(--text-secondary);
+    transition: all .2s; min-width: 98px;
+  }
+  .s-btn:hover { border-color: var(--primary); color: #fff; }
+  .s-btn-primary { background: linear-gradient(135deg,#a93226,#c0392b); border-color: transparent; color: #fff; font-weight: 600; }
+  .s-btn-primary:hover { background: linear-gradient(135deg,#c0392b,#e74c3c); color: #fff; }
+  .s-btn[disabled] { visibility: hidden; }
+  .s-dots { display: flex; gap: 8px; align-items: center; }
+  .s-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.2); transition: all .3s; }
+  .s-dot.active { background: #e74c3c; width: 20px; border-radius: 100px; }
+
+  /* 雷达图 */
+  .radar-note { font-size: 11.5px; color: var(--text-tertiary); text-align: center; margin: -2px 0 14px; line-height: 1.7; }
+  .radar-wrap { width: 100%; max-width: 380px; margin: 0 auto 14px; }
+  .radar-wrap svg { width: 100%; height: auto; display: block; }
+  .radar-group { transform-origin: 200px 178px; animation: radarIn .9s cubic-bezier(.2,.8,.3,1) both; }
+  @keyframes radarIn { from { transform: scale(.15); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .sin-list { display: flex; flex-direction: column; gap: 11px; }
+  .sin-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .sin-name { font-size: 14px; font-weight: 600; }
+  .sin-score { font-size: 13px; color: #e74c3c; font-weight: 700; }
+  .sin-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; margin-bottom: 3px; }
+  .sin-bar i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg,#c0392b,#e74c3c); }
+  .sin-note { font-size: 12px; color: var(--text-tertiary); line-height: 1.7; }
+
+  /* ===== MBTI 结果页 ===== */
+  .mt-card { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-card); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .mt-hero { position: relative; padding: 26px 20px 20px; text-align: center; background: var(--role); overflow: hidden; }
+  .mt-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255,255,255,.16), rgba(0,0,0,.3)); }
+  .mt-hero > * { position: relative; z-index: 1; }
+  .mt-badges { display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; }
+  .mt-badge { font-size: 11px; letter-spacing: 1px; padding: 3px 10px; border-radius: 100px; background: rgba(0,0,0,.24); color: #fff; }
+  .mt-code { font-size: 44px; font-weight: 800; letter-spacing: 3px; line-height: 1; color: #fff; margin-bottom: 10px; }
+  .mt-nick { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 2px; }
+  .mt-nick-en { font-size: 11.5px; letter-spacing: 3px; color: rgba(255,255,255,.78); margin-top: 4px; text-transform: uppercase; }
+  .mt-tagline { padding: 15px 20px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.9; text-align: center; border-bottom: 1px solid var(--border); }
+  .mt-dims { padding: 16px 20px 8px; display: flex; flex-direction: column; gap: 15px; }
+  .mt-dim-title { font-size: 10.5px; letter-spacing: 2px; color: var(--text-tertiary); margin-bottom: 7px; }
+  .mt-dim-track { display: flex; align-items: center; gap: 10px; }
+  .mt-dim-side { flex: 0 0 64px; font-size: 11.5px; color: var(--text-tertiary); }
+  .mt-dim-side.win { color: #fff; font-weight: 700; }
+  .mt-dim-l { text-align: left; }
+  .mt-dim-r { text-align: right; }
+  .mt-dim-bar { flex: 1; height: 8px; border-radius: 100px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .mt-dim-bar i { display: block; height: 100%; border-radius: 100px; background: var(--role); }
+  .mt-foot { padding: 12px 20px 16px; font-size: 11px; color: var(--text-tertiary); text-align: center; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 顶部引导区 -->
+  <header class="hero">
+    <h1>北齐高家皇室</h1>
+    <div class="subtitle">禽 兽 王 朝 · 异 行 录</div>
+    <p class="desc">
+      北齐（550—577）立国仅27年，历六帝，却被后世史家称为“禽兽王朝”。
+      这个王朝的皇室高氏家族，仿佛被某种诅咒笼罩——
+      几乎每一代都上演着荒淫、暴虐、乱伦、嗜杀的荒诞戏码。
+      本图谱以“变态程度”为色阶，将高家三代核心成员的诡异行为可视化呈现。
+    </p>
+    <div class="feature-tags">
+      <span class="feature-tag">27年国祚</span>
+      <span class="feature-tag">6任皇帝</span>
+      <span class="feature-tag">无一人活过40岁</span>
+      <span class="feature-tag">世代嗜杀</span>
+      <span class="feature-tag">乱伦成风</span>
+    </div>
+  </header>
+
+  <!-- 颜色图例 -->
+  <section class="legend">
+    <h3>变态程度色阶说明</h3>
+    <div id="legend-list"></div>
+  </section>
+
+  <!-- 族谱区 -->
+  <main id="tree"></main>
+
+  <p class="footer-note">
+    点击任一人物头像，可查看其简介<br>
+    史料来源：《北齐书》《北史》等正史记载
+  </p>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-mask" id="modal-mask">
+  <div class="modal">
+    <button class="modal-close" id="modal-close" aria-label="关闭">×</button>
+    <div class="modal-header">
+      <div class="modal-avatar" id="m-avatar"><span id="m-avatar-text"></span></div>
+      <div>
+        <h2 id="m-name"></h2>
+        <div class="m-title" id="m-title"></div>
+      </div>
+    </div>
+    <div class="modal-meta" id="m-meta"></div>
+    <p class="modal-summary" id="m-summary"></p>
+  </div>
+</div>
+
+<!-- 高澄故事流浮层 -->
+<div class="story-overlay" id="story-overlay">
+  <div class="story-card">
+    <div class="story-top"><div class="story-top-fill" id="story-progress"></div></div>
+    <button class="story-close" id="story-close" aria-label="关闭">×</button>
+    <div class="story-pages" id="story-pages"></div>
+    <div class="story-nav">
+      <button class="s-btn" id="story-prev">上一页</button>
+      <div class="s-dots" id="story-dots"></div>
+      <button class="s-btn s-btn-primary" id="story-next">下一页</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const familyMembers = [
+  { id:'gaohuan', name:'高欢', courtesyName:'贺六浑', title:'神武帝（追尊）· 北齐奠基人', generation:0, lifespan:'496-547', abnormalLevel:15,
+    summary:'东魏权臣，北齐王朝奠基人。雄才大略，善于用人，虽为乱世枭雄，但行为相对正常，奠定了高家的权力基础。',
+    tags:['枭雄','奠基者','相对正常'] },
+  { id:'gaocheng', name:'高澄', courtesyName:'子惠', title:'文襄帝（追尊）· 高欢长子', generation:1, lifespan:'521-549', abnormalLevel:70,
+    summary:'高欢长子，美姿容但荒淫无道。烝父妾郑大车，凌辱弟媳李祖娥，殴打东魏孝静帝并骂其“狗脚朕”。篡位前夕被厨奴兰京刺杀。',
+    tags:['烝父妾','殴帝','乱伦'] },
+  { id:'gaoyang', name:'高洋', courtesyName:'子进', title:'文宣帝 · 北齐开国皇帝', generation:1, lifespan:'526-559', reign:'550-559在位', abnormalLevel:100,
+    summary:'北齐开国皇帝。前期励精图治被称“英雄天子”，后期酗酒疯癫：裸奔涂粉、肢解宠妃薛嫔取髀骨做琵琶、屠杀元氏三千人投漳水、杀弟烹食、醉殴母后。31岁暴毙。',
+    tags:['裸奔','肢解宠妃','屠族','嗜杀','酗酒疯癫'] },
+  { id:'gaoyan', name:'高演', courtesyName:'延安', title:'孝昭帝 · 北齐第三帝', generation:1, lifespan:'535-561', reign:'560-561在位', abnormalLevel:20,
+    summary:'北齐少有的仁德之君，在位期间整顿吏治、轻徭薄赋。但违背诺言毒杀废帝高殷后终日幻觉疑神见鬼，坠马重伤，在位仅一年余即死。',
+    tags:['杀侄','幻觉','相对仁德'] },
+  { id:'gaozhan', name:'高湛', courtesyName:'步落稽', title:'武成帝 · 北齐第四帝', generation:1, lifespan:'537-568', reign:'561-565在位', abnormalLevel:90,
+    summary:'逼淫皇嫂李祖娥并虐杀其亲子；连杀四个亲侄子（高绍德、高百年、高孝瑜、高孝琬）；母死不哀，饮酒作乐；宠信和士开“一日快活敌千年”，29岁禅位专事淫乐，32岁酒色过度而死。',
+    tags:['逼淫皇嫂','杀四侄','母死不哀','酒色过度'] },
+  { id:'gaoyin', name:'高殷', courtesyName:'正道', title:'废帝 · 北齐第二帝', generation:2, lifespan:'545-561', reign:'559-560在位', abnormalLevel:5,
+    summary:'高洋嫡长子，性格温和好学。即位后重用汉臣改革，被叔父高演废黜。17岁时被高演派人毒杀，是北齐皇室中少有的“正常人”。',
+    tags:['温和','被废杀','正常'] },
+  { id:'gaoshaode', name:'高绍德', title:'太原王 · 高洋次子', generation:2, lifespan:'?-562', abnormalLevel:5,
+    summary:'高洋与李祖娥之子。高湛逼淫李祖娥后，因李祖娥羞愧生女不养，高湛怒而当着李祖娥的面用刀环将其击杀，亲埋于游豫园。',
+    tags:['被叔父杀','无辜','正常'] },
+  { id:'gaobainian', name:'高百年', title:'乐陵王 · 高演太子', generation:2, lifespan:'约556-564', abnormalLevel:5,
+    summary:'高演之子，原定太子。因写了几个“敕”字被诬告谋逆，被叔父高湛乱捶拖打，血溅遍地，哀求“愿与阿叔作奴”仍被斩首弃池，池水尽赤。年仅约9岁。',
+    tags:['被虐杀','幼童','正常'] },
+  { id:'gaochuo', name:'高绰', courtesyName:'仁通', title:'南阳王 · 高湛庶长子', generation:2, lifespan:'556-574', abnormalLevel:95,
+    summary:'高湛庶长子，与高纬同日生。好裸人使为兽状纵波斯狗吞噬；夺路人婴儿喂狗，狗不食则涂儿血诱之；发明蝎盆酷刑。后被高纬借相扑之名扼杀。',
+    tags:['纵狗食人','夺婴喂狗','蝎盆酷刑','变态'] },
+  { id:'gaowei', name:'高纬', courtesyName:'仁纲', title:'后主 · 北齐第五帝', generation:2, lifespan:'556-577', reign:'565-577在位', abnormalLevel:95,
+    summary:'集高家荒淫残暴之大成。扮乞丐、给马狗鸡封官、蝎蜇活人取乐、自毁长城杀斛律光与兰陵王、宠冯小怜致亡国。被俘后只求归还冯小怜，被周武帝赐死。',
+    tags:['扮乞丐','畜牲封官','杀忠臣','亡国','蝎蜇活人'] },
+  { id:'gaoyan2', name:'高俨', courtesyName:'仁威', title:'琅邪王 · 高湛第三子', generation:2, lifespan:'558-571', abnormalLevel:40,
+    summary:'高湛第三子，性格果敢。矫诏诛杀佞臣和士开，大快人心。后被高纬忌恨，14岁时被刘桃枝反接其手扼杀，死后追尊为楚帝。',
+    tags:['诛佞臣','被兄杀','少年'] },
+];
+
+const familyGenerations = [
+  { generation:0, label:'第一代 · 奠基者', memberIds:['gaohuan'] },
+  { generation:1, label:'第二代 · 诸帝', memberIds:['gaocheng','gaoyang','gaoyan','gaozhan'] },
+  { generation:2, label:'第三代 · 末路', memberIds:['gaoyin','gaoshaode','gaobainian','gaochuo','gaowei','gaoyan2'] },
+];
+
+function getAbnormalColor(level){
+  if (level >= 90) return '#8b0000';
+  if (level >= 70) return '#c0392b';
+  if (level >= 40) return '#e67e22';
+  if (level >= 15) return '#f5b7b1';
+  return 'rgba(255,255,255,0.15)';
+}
+function getAbnormalLabel(level){
+  if (level >= 90) return '极度变态';
+  if (level >= 70) return '非常变态';
+  if (level >= 40) return '中度变态';
+  if (level >= 15) return '轻度变态';
+  return '几乎正常';
+}
+
+// 图例
+const legendData = [
+  { color:'rgba(139,0,0,0.95)', label:'极度变态', value:'90-100 分' },
+  { color:'rgba(192,57,43,0.80)', label:'非常变态', value:'70-89 分' },
+  { color:'rgba(230,126,34,0.55)', label:'中度变态', value:'40-69 分' },
+  { color:'rgba(245,183,177,0.25)', label:'轻度变态', value:'15-39 分' },
+  { color:'rgba(255,255,255,0.15)', label:'几乎正常', value:'0-14 分' },
+];
+document.getElementById('legend-list').innerHTML = legendData.map(d => `
+  <div class="legend-item">
+    <div class="legend-dot" style="background:${d.color}"></div>
+    <div class="legend-text">${d.label}</div>
+    <div class="legend-value">${d.value}</div>
+  </div>`).join('');
+
+// 族谱
+const tree = document.getElementById('tree');
+tree.innerHTML = familyGenerations.map((gen, gi) => {
+  const nodes = gen.memberIds.map(id => familyMembers.find(m => m.id === id)).map(m => {
+    const opacity = Math.max(0.15, m.abnormalLevel / 100);
+    const isDark = m.abnormalLevel >= 40;
+    return `
+    <div class="node" data-id="${m.id}">
+      <div class="avatar" style="background:rgba(139,0,0,${opacity});border-color:${isDark ? getAbnormalColor(m.abnormalLevel) : 'rgba(255,255,255,.3)'}">
+        <span style="color:${isDark ? '#fff' : '#b0b0b8'}">${m.name.slice(-1)}</span>
+      </div>
+      <div class="name">${m.name}</div>
+      ${m.courtesyName ? `<div class="courtesy">字 ${m.courtesyName}</div>` : ''}
+      <div class="title-text">${m.title}</div>
+      <div class="tag-row">
+        <span class="level-tag" style="background:rgba(139,0,0,${opacity});color:${isDark ? '#fff' : '#b0b0b8'}">${getAbnormalLabel(m.abnormalLevel)}</span>
+        <span class="level-num">${m.abnormalLevel}</span>
+      </div>
+    </div>`;
+  }).join('');
+  const connector = gi < familyGenerations.length - 1 ? '<div class="connector"></div>' : '';
+  return `
+    <section class="generation">
+      <div class="gen-divider">
+        <div class="line"></div><div class="label">${gen.label}</div><div class="line"></div>
+      </div>
+      <div class="node-row">${nodes}</div>
+      ${connector}
+    </section>`;
+}).join('');
+
+// 弹窗
+const mask = document.getElementById('modal-mask');
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    const m = familyMembers.find(x => x.id === n.dataset.id);
+    if (!m) return;
+    if (personBooks[m.id]) { openStory(m.id); return; }
+    const opacity = Math.max(0.15, m.abnormalLevel / 100);
+    const isDark = m.abnormalLevel >= 40;
+    document.getElementById('m-avatar-text').textContent = m.name.slice(-1);
+    const av = document.getElementById('m-avatar');
+    av.style.background = `rgba(139,0,0,${opacity})`;
+    av.style.borderColor = isDark ? getAbnormalColor(m.abnormalLevel) : 'rgba(255,255,255,.3)';
+    document.getElementById('m-avatar-text').style.color = isDark ? '#fff' : '#b0b0b8';
+    document.getElementById('m-name').textContent = m.name;
+    document.getElementById('m-title').textContent = m.title;
+    const meta = [];
+    if (m.courtesyName) meta.push(`字 ${m.courtesyName}`);
+    meta.push(m.lifespan);
+    if (m.reign) meta.push(m.reign);
+    meta.push(`${getAbnormalLabel(m.abnormalLevel)} · ${m.abnormalLevel}分`);
+    document.getElementById('m-meta').innerHTML =
+      meta.map(t => `<span class="m-tag">${t}</span>`).join('') +
+      m.tags.map(t => `<span class="m-tag" style="background:rgba(192,57,43,.15);color:#e74c3c">${t}</span>`).join('');
+    document.getElementById('m-summary').textContent = m.summary;
+    mask.classList.add('show');
+  });
+});
+document.getElementById('modal-close').addEventListener('click', () => mask.classList.remove('show'));
+mask.addEventListener('click', e => { if (e.target === mask) mask.classList.remove('show'); });
+
+/* ================= 人物猎奇故事库 ================= */
+const storyOverlay = document.getElementById('story-overlay');
+const storyPagesEl = document.getElementById('story-pages');
+const storyDotsEl = document.getElementById('story-dots');
+const storyProgress = document.getElementById('story-progress');
+const btnPrev = document.getElementById('story-prev');
+const btnNext = document.getElementById('story-next');
+let currentBook = null;
+let storyIndex = 0;
+
+function block(h, ...ps){
+  return `<div class="s-block"><div class="s-block-h">${h}</div>${ps.map(p => `<p>${p}</p>`).join('')}</div>`;
+}
+function quoteBlock(text, note){
+  return `<div class="s-block"><div class="s-block-h">铁证</div><div class="s-quote"><div class="q-text">“${text}”</div><div class="q-note">${note}</div></div></div>`;
+}
+
+const personBooks = {
+
+/* ---------- 高澄 ---------- */
+gaocheng: {
+  name:'高澄',
+  stories:[
+    { no:'之一', title:'烝淫庶母郑大车', time:'东魏天平二年（535年）· 晋阳',
+      blocks:[
+        { h:'背景', ps:['郑大车是高欢最宠爱的妃子，容貌极美，史称“宠冠后庭”。高欢常年统兵在外征战，府中由年少的世子高澄主事。'] },
+        { h:'经过', ps:['父亲出征期间，少年高澄与这位受宠的庶母私通。高欢回府后事情败露，勃然大怒。'] },
+        { h:'两人的惩罚', ps:['高澄被杖责一百棍后幽禁起来，世子之位险些被废；生母娄昭君也被牵连，遭丈夫隔绝，不得相见。','郑大车则没有被追究，后来还生下了儿子高润。'] },
+        { h:'结局', ps:['幸得大臣司马子如出面说情，将案子翻了过来，父子夫妻和好如初，高澄保住了世子之位。只是丑闻的阴影并未散去——郑大车所生的高润，长到十四五岁仍与母亲同寝，史书留下“有秽杂之声”的记载。'] },
+      ],
+      source:'史料出处：《北史》卷十四《后妃传下·冯翊太妃郑氏》；《北齐书》卷十《冯翊王润传》。“烝”指与母辈私通。' },
+    { no:'之二', title:'奸污弟媳李祖娥', time:'约在东魏末年（547—549年高澄执政期间）',
+      blocks:[
+        { h:'背景', ps:['高欢次子高洋深沉有城府，表面却装傻扮拙，最受大哥高澄轻视。而高洋的妻子李祖娥出身名门，才貌双全，史称“容德甚美”。'] },
+        { h:'经过', ps:['高澄觊觎这位弟媳，在执政期间奸污了李祖娥。','此事正史没有正面记载，却是被多年之后高洋的一句复仇宣言坐实的。'] },
+        { quote:{ text:'吾兄昔奸我妇，我今须报。', note:'555年（北齐天保六年），已登基的高洋逼淫高澄遗孀元皇后时，亲口说出的报复理由。' } },
+        { h:'后果', ps:['高洋以牙还牙，登基后逼淫了皇嫂元皇后；乱伦与报复并未到此为止——后来高湛即位，又逼淫已成太后的李祖娥，并当着她的面杀死了她的儿子高绍德。这场兄淫弟妇、弟淫兄嫂的闹剧，像诅咒一样在高家代代传递。'] },
+      ],
+      source:'史料出处：《北史》卷十四《文襄敬皇后元氏传》《文宣皇后李氏传》；《北齐书》卷九。' },
+  ],
+  sins:[
+    { name:'色欲', value:96, note:'烝淫庶母郑大车、奸污弟媳李祖娥；途中偶遇家妓元玉仪便纳为公主，连她已嫁人的姐姐也一并宠幸。' },
+    { name:'傲慢', value:88, note:'对庶母、弟妇、尊长全无尊卑顾忌，权势所至，即是规矩。' },
+    { name:'暴怒', value:75, note:'铁腕立威，镇压朝臣政变，荀济等人被烹杀于市。' },
+    { name:'贪婪', value:62, note:'查抄宗室府库、强取珍玩，对幸臣宠姬赏赐无度。' },
+    { name:'嫉妒', value:55, note:'嫉恨才貌双全的弟妇，对胞弟夫妇百般轻侮刁难。' },
+    { name:'暴食', value:40, note:'耽于酣宴声色，以酒色为日常。' },
+    { name:'怠惰', value:15, note:'执政两年雷厉风行：整顿铨选、击溃侯景、拓地淮南，这一宗最不成立。' },
+  ],
+  sinsSource:'依据《北史》《北齐书》文襄帝本纪及《后妃传》《琅邪公主传》等相关列传综合评估。',
+  mbti:{
+    code:'ENTJ-A', nick:'指挥官', nickEn:'Commander', role:'分析家', strategy:'人脉掌控', theme:'#88619A',
+    tagline:'大胆、富有想象力、意志强大，总能找到或开辟一条道路。',
+    dims:[
+      { name:'精力 · Energy', l:'外向', r:'内向', p:68 },
+      { name:'心智 · Mind', l:'直觉', r:'观察', p:62 },
+      { name:'本性 · Nature', l:'理智', r:'情感', p:78 },
+      { name:'对策 · Tactics', l:'判断', r:'探索', p:71 },
+      { name:'身份 · Identity', l:'自信', r:'起伏', p:64 },
+    ]
+  }
+},
+
+/* ---------- 高洋 ---------- */
+gaoyang: {
+  name:'高洋',
+  stories:[
+    { no:'之一', title:'刳腹分食路晖礼', time:'北齐天保五年（554年）· 石楼之战',
+      blocks:[
+        { h:'背景', ps:['高洋亲征山胡，攻破自北魏以来从未被征服的绝险之地石楼，下令十二岁以上男子全部斩首。'] },
+        { h:'经过', ps:['战斗中一名都督受伤，他的什长路晖礼没能相救。高洋竟下令剖开路晖礼的五脏，命九人分食，连肉带污秽全部吃尽。'] },
+        { h:'后果', ps:['《北史》特别记下一笔：高洋的威虐之行，就是从此开始的。'] },
+      ],
+      source:'史料出处：《北史》卷七《齐本纪中》。' },
+    { no:'之二', title:'薛嫔髀骨琵琶', time:'天保末年 · 邺城东山',
+      blocks:[
+        { h:'背景', ps:['薛嫔本是歌妓出身，才色双全，极受高洋宠爱。'] },
+        { h:'经过', ps:['高洋忽然疑心她早年与堂叔高岳有染，无故将她斩首，把人头藏在怀里去东山赴宴。酒酣时突然掏出人头扔在食盘上，又肢解尸体，取出她的髀骨做成琵琶弹奏，满座宾客无不魂飞丧胆。'] },
+        { h:'结局', ps:['随后他却收起骨头，对着它流泪叹唱“佳人难再得”，又披头散发、步行痛哭着为她送葬。'] },
+      ],
+      source:'史料出处：《北史》卷七《齐本纪中》。' },
+    { no:'之三', title:'铁笼火焚两个亲弟', time:'天保九年（558年）· 北城地牢',
+      blocks:[
+        { h:'背景', ps:['永安王高浚、上党王高涣都是高洋的同父弟弟，二人有雄才大略，深得诸王信服，高洋深为忌惮。'] },
+        { h:'经过', ps:['他把两个弟弟关进铁笼，囚在地牢深处，饮食便溺同在一处。后来亲到地牢，先挺槊刺伤高涣，又令壮士刘桃枝朝笼中乱刺；两兄弟号哭呼天，徒手把刺进来的槊一根根拉折。'] },
+        { h:'结局', ps:['高洋又下令往笼中乱扔火把，将二人活活烧死，再填上土石。后来挖出尸体时，皮发都已烧尽，尸身色如黑炭，天下人为之痛心。'] },
+      ],
+      source:'史料出处：《北齐书》卷十《永安王浚传》。' },
+    { no:'之四', title:'屠元氏 投尸漳水', time:'天保十年（559年）· 邺城',
+      blocks:[
+        { h:'背景', ps:['高洋决意对前朝元魏皇室斩草除根，元氏宗族无论少长全部被判处死。'] },
+        { h:'经过', ps:['行刑时，婴儿被抛到空中用槊尖承接；尸体尽数投入漳水。前后死难七百二十一人，一说三千余人。'] },
+        { h:'后果', ps:['此后邺城人剖开鱼腹，常常发现人的指甲，邺城因此很久没有人敢吃鱼。'] },
+      ],
+      source:'史料出处：《北史》卷七《齐本纪中》；《资治通鉴》。' },
+    { no:'之五', title:'朝堂上的刀锯鼎镬', time:'天保末年 · 宫中三台',
+      blocks:[
+        { h:'背景', ps:['高洋晚年终日酗酒，醉后必杀人，左右侍从动辄得咎。'] },
+        { h:'经过', ps:['他在宫殿上常备大锅、长锯、锉、碓等刑具，每醉就亲手杀人，或肢解、或火焚、或水淹，以此为戏：都督穆嵩在大光殿上被他用锯子活活锯死，官员尉子耀被他随手掷槊刺死。'] },
+        { h:'后果', ps:['大臣杨愔无可奈何，只好把判了死罪的囚犯备在宫中随驾，号称“供御囚”，专供他醉后泄愤。'] },
+      ],
+      source:'史料出处：《北史》卷七《齐本纪中》。' },
+    { no:'之六', title:'祈雨不灵 怒毁西门豹祠', time:'天保九年（558年）大旱',
+      blocks:[
+        { h:'背景', ps:['这一年天下大旱，高洋亲自到西门豹祠祈雨，却始终没有灵验。'] },
+        { h:'经过', ps:['他勃然大怒，认为西门豹身为河伯、享一方香火，竟不能兴云致雨，于是拆毁祠堂，又掘开西门豹的坟墓。'] },
+        { h:'后果', ps:['连民间信仰千年的神祗都敢毁坟掘冢，晚年的高洋已是无所忌惮。'] },
+      ],
+      source:'史料出处：《北史》卷七《齐本纪中》。' },
+    { no:'之七', title:'报复皇嫂 聚众淫乱', time:'天保六年（555年）',
+      blocks:[
+        { h:'背景', ps:['称帝五六年后，高洋渐趋昏狂，开始对当年轻视、欺侮过自己的人逐一报复，名单里包括大哥高澄。'] },
+        { h:'经过', ps:['他以“吾兄昔奸我妇，我今须报”为名，逼淫了高澄的遗孀元皇后；又把高家女眷不论亲疏全部召来，令左右当众凌辱，自己还裸露身体向群臣展示。'] },
+        { h:'后果', ps:['这场报复没有终结任何仇恨，反而给弟弟高湛立下了最恶劣的榜样——十几年后，李祖娥将承受同样的命运。'] },
+      ],
+      source:'史料出处：《北史》卷十四《文襄敬皇后元氏传》；《北齐书》卷九。' },
+    { no:'之八', title:'酗酒疯癫与暴崩', time:'天保五年至十年（554—559年）',
+      blocks:[
+        { h:'背景', ps:['自认功业已成之后，高洋彻底沉湎酒色，行为全面失控。'] },
+        { h:'经过', ps:['他有时亲自击鼓歌舞，通宵达旦；有时赤身裸体、涂脂抹粉、披散头发穿胡服游走街市；无论酷暑寒冬都不穿衣，骑鹿、白象、骆驼甚至驴，连鞍鞯都不要。生母娄太后出言劝诫，他醉中失手连人带床一起摔伤。'] },
+        { h:'结局', ps:['长年酗酒彻底摧毁了他的身体，天保十年（559年）暴崩于晋阳宫，年仅三十一岁。'] },
+      ],
+      source:'史料出处：《北史》卷七《齐本纪中》。' },
+  ],
+  sins:[
+    { name:'暴怒', value:98, note:'锯杀大臣、火焚亲弟、屠元氏一族，醉后以杀人为常课。' },
+    { name:'暴食', value:92, note:'终日酗酒，从旦通宵，最终饮酒过度暴毙。' },
+    { name:'色欲', value:85, note:'逼淫皇嫂、当众裸呈、裸奔游行，全无纲常。' },
+    { name:'傲慢', value:80, note:'毁神祠、掘古墓、伤生母，眼中已无可敬之物。' },
+    { name:'怠惰', value:52, note:'前期勤政英明有“英雄天子”之誉，后期才不视朝务。' },
+    { name:'贪婪', value:50, note:'查抄宗室府库，强索无度。' },
+    { name:'嫉妒', value:48, note:'忌惮兄弟雄略，除之而后快。' },
+  ],
+  sinsSource:'依据《北史》卷七《齐本纪中》及《北齐书》相关列传综合评估。',
+  mbti:{
+    code:'ESTP-T', nick:'企业家', nickEn:'Entrepreneur', role:'探险家', strategy:'社会参与', theme:'#E4AE3A',
+    tagline:'聪明、精力充沛、善于感知，真心享受活在边缘的感觉。',
+    dims:[
+      { name:'精力 · Energy', l:'外向', r:'内向', p:74 },
+      { name:'心智 · Mind', l:'观察', r:'直觉', p:70 },
+      { name:'本性 · Nature', l:'理智', r:'情感', p:58 },
+      { name:'对策 · Tactics', l:'探索', r:'判断', p:76 },
+      { name:'身份 · Identity', l:'起伏', r:'自信', p:72 },
+    ]
+  }
+},
+
+/* ---------- 高湛 ---------- */
+gaozhan: {
+  name:'高湛',
+  stories:[
+    { no:'之一', title:'逼淫皇嫂李祖娥', time:'大宁、河清年间（561年以后）',
+      blocks:[
+        { h:'背景', ps:['李祖娥是高洋的皇后，容貌德行俱美。高湛即位后，对这位皇嫂垂涎已久。'] },
+        { h:'经过', ps:['他以“不答应就杀你儿子”相威胁逼淫了李祖娥。李祖娥怀孕后羞愧得不敢见儿子高绍德；生下女婴又不肯抚养，高湛大怒，当着她的面用刀环把高绍德活活打死。'] },
+        { h:'结局', ps:['李祖娥失声痛哭，高湛更加暴怒，将她剥光衣服毒打，装进绢袋扔进渠水，捞起时鲜血淋漓。她苏醒后被牛车送往尼寺出家，直到隋朝才得以返回故乡。'] },
+      ],
+      source:'史料出处：《北齐书》卷九《文宣皇后李氏传》。' },
+    { no:'之二', title:'残杀九岁太子高百年', time:'河清三年（564年）',
+      blocks:[
+        { h:'背景', ps:['高百年是孝昭帝高演的太子。高演夺位时本许诺传位于他，临终前改传弟弟高湛，只求保全儿子性命。'] },
+        { h:'经过', ps:['高百年习字时写了几个只有皇帝才能用的“敕”字，被老师告发。高湛命人把他拖在堂上边走边打，所过之处血溅遍地；孩子哀求“愿与阿叔作奴”，仍被斩首，尸体扔进池中，池水尽赤。'] },
+        { h:'结局', ps:['王妃斛律氏握着高百年留下的玉玦绝食哀号而死，玉玦紧握手中，拳头再也掰不开。'] },
+      ],
+      source:'史料出处：《北齐书》卷十二《乐陵王百年传》。' },
+    { no:'之三', title:'鸩杀高孝瑜 折胫杀高孝琬', time:'河清二年至天统二年（563—566年）',
+      blocks:[
+        { h:'背景', ps:['高孝瑜、高孝琬是高澄的两个儿子，高湛的亲侄，都因不附佞臣而被忌恨。'] },
+        { h:'经过', ps:['河南王高孝瑜被高湛逼着连饮三十七杯酒，又被人在车上灌下毒酒，行至西华门时烦热躁闷，投水而死。','河间王高孝琬为兄长之死怨愤，被诬告谋反，高湛命人把他倒吊起来用鞭抽打，当场打断两条腿胫骨而死。'] },
+        { h:'后果', ps:['即位不过数年，高湛已连杀高绍德、高百年、高孝瑜、高孝琬四个亲侄。'] },
+      ],
+      source:'史料出处：《北齐书》卷十一《河南王孝瑜传》《河间王孝琬传》。' },
+    { no:'之四', title:'母丧不哀 登台作乐', time:'大宁二年（562年）',
+      blocks:[
+        { h:'背景', ps:['娄太后是高湛生母，也是高家真正的定海神针，这一年病逝。'] },
+        { h:'经过', ps:['高湛毫无悲色，照旧身穿红袍；不久还登上三台，置酒奏乐。女儿送来白色孝服，被他怒掷台下；宠臣和士开请他停止音乐，反被他鞭打。'] },
+        { h:'后果', ps:['与生母的生养死葬之恩相比，他更在意眼前的丝竹美酒。'] },
+      ],
+      source:'史料出处：《北齐书》卷九《武明娄皇后传》。' },
+    { no:'之五', title:'一日快活敌千年', time:'河清四年（565年）禅位',
+      blocks:[
+        { h:'背景', ps:['和士开是高湛最宠信的佞臣，常劝他人生苦短、及时行乐。'] },
+        { h:'经过', ps:['和士开说自古帝王死后都成灰土，尧舜与桀纣并无分别，应当趁少壮之年恣意享乐，“一日快活敌千年”，国事尽可交给大臣。高湛深以为然，后来三四天才上一次朝，提笔敷衍几个字便罢。'] },
+        { h:'结局', ps:['河清四年，二十九岁的他干脆禅位给九岁的儿子高纬，自任太上皇专心淫乐；三年后便因酒色过度病死，年仅三十二岁。'] },
+      ],
+      source:'史料出处：《北齐书》卷五十《恩幸传·和士开》；《北史》卷八。' },
+  ],
+  sins:[
+    { name:'色欲', value:95, note:'逼淫皇嫂、杀子灭口，乱伦之行与高洋如出一辙。' },
+    { name:'暴怒', value:88, note:'四年之内连杀四个亲侄，手段一个比一个酷烈。' },
+    { name:'怠惰', value:85, note:'听信“一日快活敌千年”，禅位弃政，专心享乐。' },
+    { name:'暴食', value:78, note:'溺于酒色，三十二岁即因此丧命。' },
+    { name:'嫉妒', value:62, note:'忌惮侄子名分与才略，必欲除尽。' },
+    { name:'傲慢', value:60, note:'母丧期间绯袍作乐，全无为人子之礼。' },
+    { name:'贪婪', value:42, note:'宠幸佞臣、滥施恩赏，朝政因贿赂而成。' },
+  ],
+  sinsSource:'依据《北齐书》卷七、卷九、卷十一、卷十二及《北史》卷八综合评估。',
+  mbti:{
+    code:'ESFP-A', nick:'表演者', nickEn:'Entertainer', role:'探险家', strategy:'人脉掌控', theme:'#E4AE3A',
+    tagline:'自发、热情、精力充沛，身边永远不会无聊。',
+    dims:[
+      { name:'精力 · Energy', l:'外向', r:'内向', p:78 },
+      { name:'心智 · Mind', l:'观察', r:'直觉', p:73 },
+      { name:'本性 · Nature', l:'情感', r:'理智', p:64 },
+      { name:'对策 · Tactics', l:'探索', r:'判断', p:81 },
+      { name:'身份 · Identity', l:'自信', r:'起伏', p:60 },
+    ]
+  }
+},
+
+/* ---------- 高纬 ---------- */
+gaowei: {
+  name:'高纬',
+  stories:[
+    { no:'之一', title:'皇宫里的乞丐皇帝', time:'武平年间 · 华林园',
+      blocks:[
+        { h:'背景', ps:['高纬身为帝王，对民间穷苦生出一套荒唐的“角色扮演”嗜好。'] },
+        { h:'经过', ps:['他在华林园建起贫儿村，亲自穿上破衣烂衫在村里挨门行乞；又设穷儿之市，自己在其中叫卖交易，以此为乐。'] },
+        { h:'后果', ps:['帝王以行乞为戏，朝政却无人打理。'] },
+      ],
+      source:'史料出处：《北史》卷八《齐本纪下》。' },
+    { no:'之二', title:'模拟攻城 真箭杀人', time:'武平年间 · 宫苑',
+      blocks:[
+        { h:'背景', ps:['行乞游戏玩腻了，高纬又在宫苑里仿造西部边城，玩起战争游戏。'] },
+        { h:'经过', ps:['他让侍从穿上黑衣假扮羌兵擂鼓攻城，自己率宦官“守城”，却假戏真做，真的弯弓搭箭朝“敌军”射击，一次就射死数百人。'] },
+        { h:'后果', ps:['身边人的性命，不过是他游戏里的道具。'] },
+      ],
+      source:'史料出处：《北史》卷八《齐本纪下》。' },
+    { no:'之三', title:'犬马斗鸡都有官爵', time:'武平年间',
+      blocks:[
+        { h:'背景', ps:['高纬对待宠物的态度，比对待大臣还要优厚。'] },
+        { h:'经过', ps:['他的爱马被封为赤彪仪同、逍遥郡君、凌霄郡君，斗鸡也有“开府”的封号，犬马鹰鸡都有官号、吃国家俸禄；他养的狗出门要骑在马上，垫着褥子由人抱着。'] },
+        { h:'后果', ps:['名器滥赏至此，真正为国家卖命的将士反倒不如一只斗鸡。'] },
+      ],
+      source:'史料出处：《北史》卷八《齐本纪下》。' },
+    { no:'之四', title:'蝎盆取乐', time:'武平年间',
+      blocks:[
+        { h:'背景', ps:['南阳王高绰因骇人暴行被押到邺城，高纬不问罪，反而向他请教什么游戏最刺激。'] },
+        { h:'经过', ps:['高绰说，把活人扔进蝎子堆里最好看。高纬连夜命人搜来一斗蝎子倒进浴盆，把一个赤裸的人扔进去，那人被群蝎蜇得翻滚哀号，兄弟二人在旁边看得哈哈大笑。'] },
+        { h:'后果', ps:['高纬还责怪高绰：这么快乐的事，为什么不早一点奏报？'] },
+      ],
+      source:'史料出处：《北齐书》卷十二《南阳王绰传》。' },
+    { no:'之五', title:'强征少女 活剥人皮', time:'武平七年（576年）',
+      blocks:[
+        { h:'背景', ps:['高纬性情残忍，把人命视同草芥。'] },
+        { h:'经过', ps:['他下诏强征十四岁以上、二十岁以下的民女，隐匿不报者，家长处以死刑。史书还记载，他有时杀人之后剥下人脸皮，拿在手里端详。'] },
+        { h:'后果', ps:['民间惊惧，朝野离心。'] },
+      ],
+      source:'史料出处：《北史》卷八《齐本纪下》。' },
+    { no:'之六', title:'自毁长城', time:'武平年间',
+      blocks:[
+        { h:'背景', ps:['名将斛律光军功盖世，兰陵王高长恭是宗室屏障，二人都被北周深深忌惮。'] },
+        { h:'经过', ps:['高纬却听信反间与谗言，以谋反罪将斛律光满门抄斩；又因猜忌，用毒酒鸩杀了在邙山大捷中威震三军的兰陵王。'] },
+        { h:'后果', ps:['北周武帝听说斛律光死讯大喜，后来攻入邺城还追封他为上柱国。等到北周大军真的压境，北齐已无可用之将。'] },
+      ],
+      source:'史料出处：《北史》卷八《齐本纪下》；《北齐书·斛律光传》《兰陵王传》。' },
+    { no:'之七', title:'冯小怜与亡国', time:'武平七年（576年）· 平阳、晋州',
+      blocks:[
+        { h:'背景', ps:['冯小怜本是皇后侍女，聪慧美艳、能歌善舞，高纬对她宠爱无双，坐则同席、出则并马。'] },
+        { h:'经过', ps:['北周大军猛攻平阳，高纬正陪她在三堆打猎，告急文书从早到晚送来三次都被压下；等平阳陷落，他要回师，冯小怜却请求“再杀一围”，他竟答应。反攻晋州时城墙已轰开十余步，将士正要冲入，他又下令暂停，要召冯小怜一同观看；等她梳妆完毕，周人已把缺口堵死。'] },
+        { h:'结局', ps:['北齐就此亡国。被俘到长安后，高纬唯一的请求竟是把冯小怜还给他。后世“玉体横陈”的说法出自唐代诗人演绎，正史并无裸身供大臣观看的记载。'] },
+      ],
+      source:'史料出处：《北史》卷十四《冯淑妃传》；《北齐书》卷八。' },
+  ],
+  sins:[
+    { name:'怠惰', value:96, note:'言语涩讷、不喜见朝士，将军国大事尽付佞臣与宦官。' },
+    { name:'暴怒', value:82, note:'蝎蜇活人、剥人面皮、强征少女，杀斛律光与兰陵王不眨眼。' },
+    { name:'色欲', value:84, note:'专宠冯小怜，亡国之际仍在围猎，被俘后只求还妃。' },
+    { name:'贪婪', value:72, note:'官由财进、狱以贿成，犬马斗鸡皆食国家俸禄。' },
+    { name:'傲慢', value:70, note:'将国家名器封给禽兽，视朝章制度如儿戏。' },
+    { name:'暴食', value:55, note:'耽于嬉游宴乐，与冯小怜昼夜歌舞，号“无愁天子”。' },
+    { name:'嫉妒', value:48, note:'忌宗亲功高，先杀琅琊王高俨，再除兰陵王。' },
+  ],
+  sinsSource:'依据《北史》卷八《齐本纪下》、卷十四《冯淑妃传》及《北齐书》相关列传综合评估。',
+  mbti:{
+    code:'INFP-T', nick:'调停者', nickEn:'Mediator', role:'外交家', strategy:'持续精进', theme:'#33A474',
+    tagline:'安静、敏感、富有想象，总在内心世界寻找意义与安宁。',
+    dims:[
+      { name:'精力 · Energy', l:'内向', r:'外向', p:63 },
+      { name:'心智 · Mind', l:'直觉', r:'观察', p:66 },
+      { name:'本性 · Nature', l:'情感', r:'理智', p:71 },
+      { name:'对策 · Tactics', l:'探索', r:'判断', p:68 },
+      { name:'身份 · Identity', l:'起伏', r:'自信', p:74 },
+    ]
+  }
+},
+
+/* ---------- 高绰 ---------- */
+gaochuo: {
+  name:'高绰',
+  stories:[
+    { no:'之一', title:'纵波斯狗噬裸人', time:'任定州刺史期间',
+      blocks:[
+        { h:'背景', ps:['高绰是高湛的庶长子，与高纬同日出生，性情极其残忍，最爱豢养凶猛的波斯狗。'] },
+        { h:'经过', ps:['他喜欢把人的衣服剥光，逼对方蜷伏成野兽的形状，然后放出波斯狗扑上去撕咬吞食。'] },
+        { h:'结局', ps:['长史尉破胡多次劝谏，高绰当场把几只狗乱刀砍死，碎肉狼藉一地，尉破胡吓得逃走，从此再不敢说话。'] },
+      ],
+      source:'史料出处：《北齐书》卷十二《南阳王绰传》。' },
+    { no:'之二', title:'夺婴喂狗', time:'任定州刺史期间',
+      blocks:[
+        { h:'背景', ps:['一次高绰外出巡行，路上遇见一个抱着婴儿的妇人。'] },
+        { h:'经过', ps:['妇人见他来，吓得抱着孩子躲进草丛。高绰竟夺过婴儿喂给自己的波斯狗，妇人伏地号哭。高绰大怒，又放狗咬她；狗刚吃饱婴儿不肯扑，他便把婴儿的血涂在妇人身上，狗这才扑上去将她吃掉。'] },
+        { h:'后果', ps:['暴行终于被人告发，他被用囚车押往邺城。'] },
+      ],
+      source:'史料出处：《北齐书》卷十二《南阳王绰传》。' },
+    { no:'之三', title:'蝎盆酷刑的发明者', time:'武平年间 · 邺城',
+      blocks:[
+        { h:'背景', ps:['高绰被押到皇帝高纬面前，没有受到任何审问，高纬只问他在定州什么事最开心。'] },
+        { h:'经过', ps:['高绰答道：多捉些蝎子，和蛆混在一起，看人被咬最是快乐。于是就有了连夜索蝎一斗、把活人扔进浴盆、兄弟二人围观取乐的著名酷刑。'] },
+        { h:'后果', ps:['一场重罪告发，竟变成两个暴君交流“玩法”的契机，高绰随即被拜为大将军，朝夕陪侍皇帝。'] },
+      ],
+      source:'史料出处：《北齐书》卷十二《南阳王绰传》。' },
+    { no:'之四', title:'相扑扼杀', time:'武平五年（574年）',
+      blocks:[
+        { h:'背景', ps:['高绰的残暴终究惹得天怒人怨，他又与权臣韩长鸾结怨，被诬告谋反。'] },
+        { h:'经过', ps:['高纬不愿公开处决这位兄长，便让宠臣何猥萨与高绰徒手相扑。何猥萨趁势把高绰活活掐死。'] },
+        { h:'结局', ps:['尸体草草掩埋在佛寺之下，四百多天后才改葬。史载入殓时，他的面容、毛发都还像活人一样。'] },
+      ],
+      source:'史料出处：《北齐书》卷十二《南阳王绰传》。' },
+  ],
+  sins:[
+    { name:'暴怒', value:97, note:'纵狗噬人、夺婴喂狗，视人命如喂狗之肉。' },
+    { name:'傲慢', value:72, note:'亲王之尊滥施酷刑，拒谏杀狗以示威。' },
+    { name:'暴食', value:55, note:'沉迷纵狗、蝎蜇等嗜血之乐，追求感官刺激。' },
+    { name:'怠惰', value:48, note:'身为地方长官，政务不理，专事残虐游戏。' },
+    { name:'色欲', value:40, note:'正史所记其暴行集中于虐杀，少见荒淫之载。' },
+    { name:'贪婪', value:30, note:'为恶多出于残忍天性，而非聚敛货财。' },
+    { name:'嫉妒', value:25, note:'其恶不在嫉恨他人，而在以他人痛苦为乐。' },
+  ],
+  sinsSource:'依据《北齐书》卷十二《南阳王绰传》综合评估。',
+  mbti:{
+    code:'ENTP-A', nick:'辩论家', nickEn:'Debater', role:'分析家', strategy:'人脉掌控', theme:'#88619A',
+    tagline:'聪明好奇的思想者，无法抗拒智力上的挑战。',
+    dims:[
+      { name:'精力 · Energy', l:'外向', r:'内向', p:66 },
+      { name:'心智 · Mind', l:'直觉', r:'观察', p:72 },
+      { name:'本性 · Nature', l:'理智', r:'情感', p:69 },
+      { name:'对策 · Tactics', l:'探索', r:'判断', p:77 },
+      { name:'身份 · Identity', l:'自信', r:'起伏', p:62 },
+    ]
+  }
+},
+
+};
+
+function buildRadar(sins){
+  const cx = 200, cy = 178, R = 120, n = sins.length;
+  const ang = i => -90 + i * 360 / n;
+  const pt = (deg, r) => {
+    const rad = deg * Math.PI / 180;
+    return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+  };
+  const ring = k => sins.map((_, i) => pt(ang(i), R * k).map(v => v.toFixed(1)).join(',')).join(' ');
+  let grids = '', axes = '';
+  [0.25, 0.5, 0.75, 1].forEach(k => {
+    grids += `<polygon points="${ring(k)}" fill="none" stroke="rgba(255,255,255,${k === 1 ? .18 : .08})" stroke-width="1"/>`;
+  });
+  sins.forEach((_, i) => {
+    const [x, y] = pt(ang(i), R);
+    axes += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.1)"/>`;
+  });
+  let ticks = '';
+  [25, 50, 75, 100].forEach(t => {
+    const [x, y] = pt(ang(0), R * t / 100);
+    ticks += `<text x="${(x - 7).toFixed(1)}" y="${(y - 4).toFixed(1)}" font-size="9" fill="rgba(255,255,255,.35)" text-anchor="end">${t}</text>`;
+  });
+  let labels = '';
+  sins.forEach((s, i) => {
+    const [x, y] = pt(ang(i), R + 27);
+    const c = Math.cos(ang(i) * Math.PI / 180);
+    const anchor = c > 0.3 ? 'start' : c < -0.3 ? 'end' : 'middle';
+    labels += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="15" font-weight="700" fill="#f0f0f0" text-anchor="${anchor}" dominant-baseline="middle">${s.name}</text>`;
+  });
+  const dataPts = sins.map((s, i) => pt(ang(i), R * s.value / 100));
+  const dataPoly = dataPts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ');
+  let dots = '';
+  dataPts.forEach(([x, y], i) => {
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#e74c3c" stroke="#fff" stroke-width="1"/>`;
+    dots += `<text x="${x.toFixed(1)}" y="${(y - 9).toFixed(1)}" font-size="11" font-weight="700" fill="#e74c3c" text-anchor="middle">${sins[i].value}</text>`;
+  });
+  return `<svg viewBox="0 0 400 370" xmlns="http://www.w3.org/2000/svg">
+    <g class="radar-group">
+      ${grids}${axes}${ticks}
+      <polygon points="${dataPoly}" fill="rgba(192,57,43,.32)" stroke="#c0392b" stroke-width="2" stroke-linejoin="round"/>
+      ${dots}${labels}
+    </g>
+  </svg>`;
+}
+
+function renderRadarPage(book){
+  const sins = book.sins;
+  return `
+  <div class="s-kicker">${book.name}猎奇 · 七宗罪</div>
+  <div class="s-title">${book.name}的七宗罪</div>
+  <div class="s-time">罪性画像</div>
+  <div class="radar-note">借天主教“七宗罪”框架，依据正史所载行为打分画像，<br>趣味呈现，非历史定论。</div>
+  <div class="radar-wrap">${buildRadar(sins)}</div>
+  <div class="sin-list">
+    ${sins.map(s => `
+      <div class="sin-item">
+        <div class="sin-row"><span class="sin-name">${s.name}</span><span class="sin-score">${s.value} 分</span></div>
+        <div class="sin-bar"><i style="width:${s.value}%"></i></div>
+        <div class="sin-note">${s.note}</div>
+      </div>`).join('')}
+  </div>
+  <div class="s-source">${book.sinsSource}</div>
+  `;
+}
+
+function renderMbtiPage(book){
+  const m = book.mbti;
+  const dims = m.dims.map(d => {
+    const lWin = d.p >= 50;
+    return `<div class="mt-dim">
+      <div class="mt-dim-title">${d.name}</div>
+      <div class="mt-dim-track">
+        <span class="mt-dim-side mt-dim-l${lWin ? ' win' : ''}">${d.l} ${d.p}%</span>
+        <div class="mt-dim-bar"><i style="width:${d.p}%"></i></div>
+        <span class="mt-dim-side mt-dim-r${lWin ? '' : ' win'}">${100 - d.p}% ${d.r}</span>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="s-kicker">${book.name}猎奇 · 终页</div>
+  <div class="s-title">${book.name}的 MBTI 人格</div>
+  <div class="s-time">性格类型 · 终页</div>
+  <div class="mt-card" style="--role:${m.theme}">
+    <div class="mt-hero">
+      <div class="mt-badges"><span class="mt-badge">${m.role}</span><span class="mt-badge">${m.strategy}</span></div>
+      <div class="mt-code">${m.code}</div>
+      <div class="mt-nick">${m.nick}</div>
+      <div class="mt-nick-en">${m.nickEn}</div>
+    </div>
+    <div class="mt-tagline">“${m.tagline}”</div>
+    <div class="mt-dims">${dims}</div>
+    <div class="mt-foot">※ 依据本项目对其史载行为的归纳所作趣味推断，非正式心理测评。</div>
+  </div>
+  <div class="s-source">性格标签为趣味演绎，仅供娱乐，不构成心理诊断。</div>`;
+}
+
+function renderStoryPageHTML(book, idx){
+  if (idx < book.stories.length) {
+    const s = book.stories[idx];
+    const blocksHTML = s.blocks.map(b => b.quote
+      ? quoteBlock(b.quote.text, b.quote.note)
+      : block(b.h, ...b.ps)).join('');
+    return `
+      <div class="s-kicker">${book.name}猎奇${s.no}</div>
+      <div class="s-title">${s.title}</div>
+      <div class="s-time">${s.time}</div>
+      ${blocksHTML}
+      <div class="s-source">${s.source}</div>`;
+  }
+  if (idx === book.stories.length) return renderRadarPage(book);
+  return renderMbtiPage(book);
+}
+
+function totalPages(){
+  return currentBook.stories.length + 2;
+}
+
+function showStoryPage(i){
+  storyIndex = i;
+  storyPagesEl.querySelectorAll('.story-page').forEach((el, idx) => {
+    el.className = 'story-page' + (idx === i ? ' active' : idx < i ? ' back' : '');
+  });
+  storyDotsEl.querySelectorAll('.s-dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
+  storyProgress.style.width = ((i + 1) / totalPages() * 100) + '%';
+  btnPrev.disabled = i === 0;
+  btnNext.textContent = i === totalPages() - 1 ? '返回族谱' : '下一页';
+  storyPagesEl.querySelector('.story-page.active').scrollTop = 0;
+}
+
+function openStory(id){
+  currentBook = personBooks[id];
+  const pages = [];
+  for (let i = 0; i < totalPages(); i++) pages.push(renderStoryPageHTML(currentBook, i));
+  storyPagesEl.innerHTML = pages.map(h => `<div class="story-page">${h}</div>`).join('');
+  storyDotsEl.innerHTML = pages.map(() => '<span class="s-dot"></span>').join('');
+  storyOverlay.classList.add('show');
+  showStoryPage(0);
+}
+
+btnNext.addEventListener('click', () => {
+  if (storyIndex === totalPages() - 1) storyOverlay.classList.remove('show');
+  else showStoryPage(storyIndex + 1);
+});
+btnPrev.addEventListener('click', () => { if (storyIndex > 0) showStoryPage(storyIndex - 1); });
+document.getElementById('story-close').addEventListener('click', () => storyOverlay.classList.remove('show'));
+storyOverlay.addEventListener('click', e => { if (e.target === storyOverlay) storyOverlay.classList.remove('show'); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { mask.classList.remove('show'); storyOverlay.classList.remove('show'); }
+});
+</script>
+</body>
+</html>
