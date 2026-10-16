@@ -52,7 +52,7 @@
 
 ## 源码结构
 
-网页10个文件直接放在仓库根目录。
+主站源码直接放在仓库根目录；人物族谱与故事扩展页位于 `webpage/index.html`。
 
 | 文件 | 用途 |
 | --- | --- |
@@ -124,3 +124,8 @@ PR中简述改了什么，附截图、史料出处或检查结果。等待2024-d
 保留出处编号、人物施事关系与不确定性说明。增加动画前核对材料；斩首、刺伤、受刑和死后处置分别呈现。代码修改后检查相应入口、移动布局与浏览器错误；更新资源版本避免缓存旧脚本。
 
 GitHub官方说明：[同步Fork](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/syncing-a-fork)、[查看仓库活动](https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/using-the-activity-view-to-see-changes-to-a-repository)。
+
+
+## 2026-10-16 人物故事入口
+
+首页主导航、首屏和“扩展探索”板块均可进入 `webpage/index.html`，使用人物族谱、故事翻页、七宗罪雷达与 MBTI 趣味解读。扩展页提供返回主站、四案主线及史料核验说明的链接。两页保持独立文档与样式/脚本作用域，避免通用类名和交互全局变量互相覆盖。趣味画像与原典核验分开说明；本次只接入入口，未新增史料核验。
