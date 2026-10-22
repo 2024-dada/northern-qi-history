@@ -9,10 +9,36 @@
   const readValues=memory.read('qi-read-events',[]);
   const readEvents=new Set(Array.isArray(readValues)?readValues.filter(id=>data.events.some(e=>e.id===id)):[]);
   let searchWords=[];
+  const normalize=value=>String(value??'').normalize('NFKC').toLowerCase();
+  const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh-CN',{granularity:'grapheme'}):null;
+  function mappedSearchText(value){
+    const text=String(value),spans=[];let normalized='',offset=0;
+    const segments=segmenter?segmenter.segment(text):Array.from(text).map(segment=>({segment}));
+    for(const {segment} of segments){const chunk=normalize(segment);for(let i=0;i<chunk.length;i++)spans.push([offset,offset+segment.length]);normalized+=chunk;offset+=segment.length;}
+    return {text,normalized,spans};
+  }
   function highlighted(value){
     if(!searchWords.length)return escape(value);
     const pattern=new RegExp('('+searchWords.map(word=>word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','giu');
-    return String(value).split(pattern).map((part,i)=>i%2?`<mark>${escape(part)}</mark>`:escape(part)).join('');
+    const {text,normalized,spans}=mappedSearchText(value),ranges=[];
+    for(const match of normalized.matchAll(pattern)){
+      const start=spans[match.index][0],end=spans[match.index+match[0].length-1][1],previous=ranges.at(-1);
+      if(previous&&start<=previous[1])previous[1]=Math.max(previous[1],end);else ranges.push([start,end]);
+    }
+    let html='',cursor=0;for(const [start,end] of ranges){html+=escape(text.slice(cursor,start))+'<mark>'+escape(text.slice(start,end))+'</mark>';cursor=end;}
+    return html+escape(text.slice(cursor));
+  }
+  function searchSnippet(event){
+    if(!searchWords.length)return '';
+    const fields=[['原因分析（暂定）',event.primary],['促成因素',event.secondary],['责任关系',event.agency],['事件背景',event.context],['别名',event.aliases],['核验说明',event.status]];
+    for(const [label,value] of fields){
+      if(!value)continue;
+      const {text,normalized,spans}=mappedSearchText(value),word=searchWords.find(word=>normalized.includes(word));
+      if(!word)continue;
+      const match=normalized.indexOf(word),start=Math.max(0,spans[match][0]-24),end=Math.min(text.length,Math.max(start+100,spans[match+word.length-1][1]));
+      return `<span class="event-snippet" id="event-match-${escape(event.id)}">${escape(label)} · ${start?'…':''}${highlighted(text.slice(start,end))}${end<text.length?'…':''}</span>`;
+    }
+    return '';
   }
   async function copyText(text,feedback,success){
     try{await navigator.clipboard.writeText(text);feedback.textContent=success;}
@@ -69,7 +95,7 @@
     if(key==='behead'){const slider=body.querySelector('[data-scene-progress]');if(slider){slider.value=String(progress*100);slider.dispatchEvent(new Event('input',{bubbles:true}));}}
     else{const motion=document.querySelector('#violence-motion');if(motion.getAttribute('aria-pressed')!=='true')motion.click();body.querySelector('.d-scorpion').getAnimations({subtree:true}).forEach(animation=>{animation.currentTime=progress*Number(animation.effect.getTiming().duration);});updateSceneNote(key,progress);}
   });
-  function eventDetail(id,visualKey=null){const e=data.events.find(x=>x.id===id);if(!e)return;if(!browsingIds?.includes(id)){const visible=[...document.querySelectorAll('#event-list [data-event]')].map(b=>b.dataset.event);browsingIds=visible.includes(id)?visible:data.events.map(e=>e.id);}activeEvent=id;readEvents.add(id);memory.write('qi-read-events',[...readEvents]);parentEvent=null;const s=data.sources[e.source];const visual=data.visuals?.find(v=>v.key===visualKey&&v.event===id)||data.visuals?.find(v=>v.event===id);parentVisual=visual?.key;const dossier=e.dossier||data.dossierForEvent?.[id];const related=(data.relatedEvents?.[id]||[]).map(key=>data.events.find(x=>x.id===key)).filter(Boolean);const controls=(visual||dossier)?`<div class="scene-detail-controls">${['motion','speed','replay'].map(action=>`<button type="button" data-animation-action="${action}">${escape((document.querySelector('#violence-'+action)?.textContent||({motion:'播放／暂停',speed:'速度切换',replay:'重播'})[action]).replace('卡片',''))}</button>`).join('')}${visual?'<label class="scene-scrub-label">动作进度<input type="range" min="0" max="100" step="1" value="0" data-scene-progress aria-label="场景动作进度"><output data-scene-time>0%</output></label>':''}</div>`:'';const extra=dossier?`<section class="detail-visual"><p class="visual-label">${escape(dossier.status)}</p><p class="scene-relation-text">${escape(dossier.relation)}</p>${data.dossierArtwork(dossier,true)}${dossier.scene==='scorpion'?sceneNoteHTML(id,'scorpion'):''}${e.dossier?"":`<p>${escape(dossier.account)}</p>`}<p class="visual-boundary">${escape(dossier.boundary)}</p></section>`:'';const visualPanel=visual?`<section class="detail-visual" aria-label="暴力方式与史料边界"><p class="visual-label">${escape(visual.tag)} · ${escape(visual.status)}</p><p class="scene-relation-text">${escape(visual.subtitle)}</p>${data.visualArtwork(visual,"detail-"+visual.key)}${visual.key==='behead'?sceneNoteHTML(id,'behead'):''}<blockquote>${escape(visual.quote)}</blockquote><p class="visual-boundary">${escape(visual.boundary)}</p><p><strong>需要解释的问题：</strong>${escape(visual.question)}</p></section>`:"";show(`<p class="eyebrow">${escape(e.id)} / ${escape(e.ruler)} / ${escape(e.year)}</p><h2 id="dialog-title">${escape(e.name)}</h2><p>${escape(e.type)}</p><div class="event-actions"><a href="#event=${escape(e.id)}${visual?`&visual=${escape(visual.key)}`:""}" data-event-permalink>此事件的独立链接 ↗</a><button type="button" data-copy-event>复制链接</button><button type="button" data-save-event="${escape(e.id)}" aria-pressed="${saved.has(e.id)}">${saved.has(e.id)?'★ 已收藏':'☆ 收藏材料'}</button><span class="event-feedback" role="status" aria-live="polite"></span></div>${visual?'<div class="scene-workbench"><div class="scene-controls-panel">':''}${controls}${visual?'<div class="scene-inspection"><button type="button" data-scene-once>单次播放</button><button type="button" data-scene-nudge="-1" aria-label="动画进度后退百分之一">−1%</button><button type="button" data-scene-nudge="1" aria-label="动画进度前进百分之一">+1%</button><button type="button" data-expand-scene aria-pressed="false">放大画面 ⤢</button><span data-scene-state role="status" aria-live="polite">可拖动进度，逐步查看动作</span></div><div class="scene-jumps" role="group" aria-label="动画关键帧"><span>逐步看动作</span><button type="button" data-scene-jump="20">① 蓄势</button><button type="button" data-scene-jump="45">② 接触</button><button type="button" data-scene-jump="75">③ 后果</button></div>':""}${visual?'</div>':''}${visualPanel}${visual?'</div>':''}${extra}<h3>事件经过与背景</h3><p>${escape(e.context)}</p><h3>谁推动、谁下令、谁执行</h3><p>${escape(e.agency)}</p>${s.quote?`<blockquote>${escape(s.quote).replace(/\n/g,'<br>')}</blockquote>`:''}${e.boundary?`<div class="source-state">${escape(e.status)}<br>${escape(e.boundary)}</div>`:''}<h3>为什么发生：原因分析（暂定）</h3><p class="analysis-note">以下是项目依据现有记载提出的解释。主要原因是目前较有依据的解释；促成因素是可能推动事件的条件，两者都需要进一步核验。</p><p><strong>主要原因（暂定）：</strong>${escape(e.primary)}</p><p><strong>促成因素或其他解释：</strong>${escape(e.secondary)}</p><div class="source-state">${escape(s.status)}<br>原因排序是本项目初析，未完成现代学术研究核验。</div><button class="related-source" data-event-source="${e.source}" data-parent-event="${e.id}">展开出处 [${s.number}] ↗</button><div class="dialog-links">${links(s)}</div>${related.length?`<h3>可继续比较的相关事件</h3>${related.map(x=>`<button class="related-source" data-event="${x.id}">${escape(x.name)} ↗</button>`).join(" ")}`:""}`);}
+  function eventDetail(id,visualKey=null){const e=data.events.find(x=>x.id===id);if(!e)return;if(!browsingIds?.includes(id)){const visible=[...document.querySelectorAll('#event-list [data-event]')].map(b=>b.dataset.event);browsingIds=visible.includes(id)?visible:data.events.map(e=>e.id);}activeEvent=id;readEvents.add(id);memory.write('qi-read-events',[...readEvents]);parentEvent=null;const s=data.sources[e.source];const visual=data.visuals?.find(v=>v.key===visualKey&&v.event===id)||data.visuals?.find(v=>v.event===id);parentVisual=visual?.key;const dossier=e.dossier||data.dossierForEvent?.[id];const related=(data.relatedEvents?.[id]||[]).map(key=>data.events.find(x=>x.id===key)).filter(Boolean);const controls=(visual||dossier)?`<div class="scene-detail-controls">${['motion','speed','replay'].map(action=>`<button type="button" data-animation-action="${action}">${escape((document.querySelector('#violence-'+action)?.textContent||({motion:'播放／暂停',speed:'速度切换',replay:'重播'})[action]).replace('卡片',''))}</button>`).join('')}${visual?'<label class="scene-scrub-label">动作进度<input type="range" min="0" max="100" step="1" value="0" data-scene-progress aria-label="场景动作进度"><output data-scene-time>0%</output></label>':''}</div>`:'';const extra=dossier?`<section class="detail-visual"><p class="visual-label">${escape(dossier.status)}</p><p class="scene-relation-text">${escape(dossier.relation)}</p>${data.dossierArtwork(dossier,true)}${dossier.scene==='scorpion'?sceneNoteHTML(id,'scorpion'):''}${e.dossier?"":`<p>${escape(dossier.account)}</p>`}<p class="visual-boundary">${escape(dossier.boundary)}</p></section>`:'';const visualPanel=visual?`<section class="detail-visual" aria-label="暴力方式与史料边界"><p class="visual-label">${escape(visual.tag)} · ${escape(visual.status)}</p><p class="scene-relation-text">${escape(visual.subtitle)}</p>${data.visualArtwork(visual,"detail-"+visual.key)}${visual.key==='behead'?sceneNoteHTML(id,'behead'):''}<blockquote>${escape(visual.quote)}</blockquote><p class="visual-boundary">${escape(visual.boundary)}</p><p><strong>需要解释的问题：</strong>${escape(visual.question)}</p></section>`:"";show(`<p class="eyebrow">${escape(e.id)} / ${escape(e.ruler)} / ${escape(e.year)}</p><h2 id="dialog-title">${escape(e.name)}</h2><p>${escape(e.type)}</p><div class="event-actions"><a href="#event=${escape(e.id)}${visual?`&visual=${escape(visual.key)}`:""}" data-event-permalink>此事件的独立链接 ↗</a><button type="button" data-copy-event>复制链接</button><button type="button" data-save-event="${escape(e.id)}" aria-pressed="${saved.has(e.id)}">${saved.has(e.id)?'★ 已收藏':'☆ 收藏材料'}</button><button type="button" data-read-event="${escape(e.id)}">标为未读</button><span class="event-feedback" role="status" aria-live="polite"></span></div>${visual?'<div class="scene-workbench"><div class="scene-controls-panel">':''}${controls}${visual?'<div class="scene-inspection"><button type="button" data-scene-once>单次播放</button><button type="button" data-scene-nudge="-1" aria-label="动画进度后退百分之一">−1%</button><button type="button" data-scene-nudge="1" aria-label="动画进度前进百分之一">+1%</button><button type="button" data-expand-scene aria-pressed="false">放大画面 ⤢</button><span data-scene-state role="status" aria-live="polite">可拖动进度，逐步查看动作</span></div><div class="scene-jumps" role="group" aria-label="动画关键帧"><span>逐步看动作</span><button type="button" data-scene-jump="20">① 蓄势</button><button type="button" data-scene-jump="45">② 接触</button><button type="button" data-scene-jump="75">③ 后果</button></div>':""}${visual?'</div>':''}${visualPanel}${visual?'</div>':''}${extra}<h3>事件经过与背景</h3><p>${escape(e.context)}</p><h3>谁推动、谁下令、谁执行</h3><p>${escape(e.agency)}</p>${s.quote?`<blockquote>${escape(s.quote).replace(/\n/g,'<br>')}</blockquote>`:''}${e.boundary?`<div class="source-state">${escape(e.status)}<br>${escape(e.boundary)}</div>`:''}<h3>为什么发生：原因分析（暂定）</h3><p class="analysis-note">以下是项目依据现有记载提出的解释。主要原因是目前较有依据的解释；促成因素是可能推动事件的条件，两者都需要进一步核验。</p><p><strong>主要原因（暂定）：</strong>${escape(e.primary)}</p><p><strong>促成因素或其他解释：</strong>${escape(e.secondary)}</p><div class="source-state">${escape(s.status)}<br>原因排序是本项目初析，未完成现代学术研究核验。</div><button class="related-source" data-event-source="${e.source}" data-parent-event="${e.id}">展开出处 [${s.number}] ↗</button><div class="dialog-links">${links(s)}</div>${related.length?`<h3>可继续比较的相关事件</h3>${related.map(x=>`<button class="related-source" data-event="${x.id}">${escape(x.name)} ↗</button>`).join(" ")}`:""}`);}
   function methodDetail(){activeEvent=null;parentEvent=null;show('<p class="eyebrow">关于史料</p><h2 id="dialog-title">怎样使用史料和分析原因</h2><p>本页先介绍四个案例，再汇总更多事件和比较材料。阅读时应依次区分事件经过、下令与执行关系、原因解释，以及尚待核实的问题。条目数量不是死亡人数，也不用于给人物的残暴程度排名。</p><h3>我们怎样区分材料</h3><ul><li>事件与记载分开：同一次死亡在多书出现，不重复计数。</li><li>分清谁推动、谁下令、谁亲自实施。事件发生在哪位皇帝的年号下，不代表就是这位皇帝下令。</li><li>原文、白话、史臣评价和项目解释分开。</li><li>字词、日期或叙述有分歧时，保留分歧，回到影印核字。</li></ul><h3>为什么多来源还要检查文本关系</h3><p>《四库全书总目》指出，今天传下来的《北齐书》有部分内容取自《北史》，用于补充缺失篇章。因此，两部书出现相似记载，可能是沿用同一段文字，不能直接算作两份独立证据。</p><div class="dialog-links"><a href="https://www.shidianguji.com/book/SK0000A/chapter/1kgsnkeqjizoo" target="_blank" rel="noopener noreferrer">识典 · 北齐书提要 ↗</a></div><h3>当前核验状态</h3><p>已做原典录文初对照；关键句影印核字、版本关系和现代学术解释仍待完成。示意图只帮助理解，不能充当历史现场证据。</p><div class="source-state">人物对话为史书所述，不标作现场逐字录音；宫阙、人物与位置图均为示意。</div>');}
   dialog.querySelector('.dialog-close').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
@@ -93,7 +119,7 @@
   };
   data.events.forEach(e=>{if(!classifications[e.id])classifications[e.id]={date:e.date??null,method:e.method||e.type,disputed:/待核|线索|分歧|推断/.test(e.status||'')};e.category=e.category||'暴力事件';});
   const viewNotes={person:'按人物与材料类型查找，点开可见事件经过、人物责任、原因分析和史料来源。',time:'按已定位的年份排列；具体年份未定的事件单列，不强行补入时间顺序。',method:'依据方式或行为类型分组；伤害、死亡与宫廷生活分别标注。方式未明的单列，具体器物与操作不补造。',difference:'查看日期、方式或篇章叙述有分歧，以及尚待核验的材料，点开详情核对相应来源。'};
-  function eventRow(e){return `<button class="event-row${readEvents.has(e.id)?' event-read':''}" data-event="${e.id}" aria-label="展开${escape(e.name)}"><span class="event-id">${String(data.events.indexOf(e)+1).padStart(2,"0")}</span><span class="event-ruler">${escape(e.ruler)}</span><span class="event-content"><strong>${highlighted(e.name)}${saved.has(e.id)?'<span class="event-saved" aria-label="已收藏"> ★</span>':''}</strong><span class="event-meta">${highlighted(e.type)}${readEvents.has(e.id)?'<span class="read-badge">已读</span>':''}</span></span><span class="event-year">${escape(e.year)}</span><span class="event-arrow" aria-hidden="true">↗</span></button>`;}
+  function eventRow(e){const snippet=searchSnippet(e);return `<button class="event-row${readEvents.has(e.id)?' event-read':''}" data-event="${e.id}" aria-label="展开${escape(e.name)}"${snippet?` aria-describedby="event-match-${escape(e.id)}"`:''}><span class="event-id">${String(data.events.indexOf(e)+1).padStart(2,"0")}</span><span class="event-ruler">${escape(e.ruler)}</span><span class="event-content"><strong>${highlighted(e.name)}${saved.has(e.id)?'<span class="event-saved" aria-label="已收藏"> ★</span>':''}</strong><span class="event-meta">${highlighted(e.type)}${readEvents.has(e.id)?'<span class="read-badge">已读</span>':''}</span>${snippet}</span><span class="event-year">${escape(e.year)}</span><span class="event-arrow" aria-hidden="true">↗</span></button>`;}
   function explorationLink(){
     const url=new URL(location.pathname,location.origin);
     if(filter!=='全部')url.searchParams.set('ruler',filter);
@@ -103,9 +129,9 @@
     url.hash='explore';return url.href;
   }
   function renderEvents(){
-    const normalize=value=>String(value).normalize('NFKC').toLowerCase();const words=normalize(document.querySelector('#event-search').value.trim()).split(/\s+/).filter(Boolean);
+    const words=normalize(document.querySelector('#event-search').value.trim()).split(/\s+/).filter(Boolean);
     searchWords=words;
-    let events=data.events.filter(e=>(!onlySaved||saved.has(e.id))&&(readStatus==='all'||readEvents.has(e.id)===(readStatus==='read'))&&(filter==='全部'||e.ruler.includes(filter))&&(topic==='全部'||e.category===topic)&&words.every(word=>normalize([e.name,e.ruler,e.aliases,e.type,e.year,e.context,e.status,classifications[e.id].method].join(' ')).includes(word)));
+    let events=data.events.filter(e=>(!onlySaved||saved.has(e.id))&&(readStatus==='all'||readEvents.has(e.id)===(readStatus==='read'))&&(filter==='全部'||e.ruler.includes(filter))&&(topic==='全部'||e.category===topic)&&words.every(word=>normalize([e.name,e.ruler,e.aliases,e.type,e.year,e.context,e.agency,e.primary,e.secondary,e.status,classifications[e.id].method].join(' ')).includes(word)));
     if(view==='difference')events=events.filter(e=>classifications[e.id].disputed);
     if(view==='person')events.sort((a,b)=>['高澄','高洋','高湛','高纬','高绰','高演','胡太后'].indexOf(a.ruler.split('、')[0])-['高澄','高洋','高湛','高纬','高绰','高演','胡太后'].indexOf(b.ruler.split('、')[0]));
     if(view==='time')events.sort((a,b)=>(classifications[a.id].date??Infinity)-(classifications[b.id].date??Infinity));
@@ -197,14 +223,33 @@
   window.addEventListener('resize',updateProgress,{passive:true});
 
   function updateSavedCount(){document.querySelector('#saved-only').textContent=`只看收藏 · ${saved.size}`;}
+  function updateRecordActions(){
+    body.querySelectorAll('[data-save-event]').forEach(button=>{const isSaved=saved.has(button.dataset.saveEvent);button.setAttribute('aria-pressed',String(isSaved));button.textContent=isSaved?'★ 已收藏':'☆ 收藏材料';});
+    body.querySelectorAll('[data-read-event]').forEach(button=>{button.textContent=readEvents.has(button.dataset.readEvent)?'标为未读':'标为已读';});
+  }
+  // Other tabs update only record controls, leaving an open scene and its progress intact.
+  window.addEventListener('storage',event=>{
+    if(![null,'qi-saved-events','qi-read-events'].includes(event.key))return;
+    try{if(event.storageArea!==localStorage)return;}catch{return;}
+    const records=event.key===null?[['qi-saved-events',saved],['qi-read-events',readEvents]]:event.key==='qi-saved-events'?[['qi-saved-events',saved]]:[['qi-read-events',readEvents]];
+    for(const [key,set] of records){
+      const values=memory.read(key,[]);if(!Array.isArray(values))continue;
+      set.clear();values.filter(id=>data.events.some(e=>e.id===id)).forEach(id=>set.add(id));
+    }
+    updateSavedCount();updateRecordActions();renderEvents();
+  });
   updateSavedCount();
   document.querySelector('#saved-only').addEventListener('click',()=>{onlySaved=!onlySaved;document.querySelector('#saved-only').setAttribute('aria-pressed',String(onlySaved));renderEvents();});
   document.addEventListener('click',async event=>{
-    const button=event.target.closest('[data-save-event],[data-copy-event],[data-scene-jump]');if(!button)return;
+    const button=event.target.closest('[data-save-event],[data-read-event],[data-copy-event],[data-scene-jump]');if(!button)return;
     if(button.hasAttribute('data-save-event')){
       const id=button.dataset.saveEvent;if(saved.has(id))saved.delete(id);else saved.add(id);
       const persisted=memory.write('qi-saved-events',[...saved]);button.setAttribute('aria-pressed',String(saved.has(id)));button.textContent=saved.has(id)?'★ 已收藏':'☆ 收藏材料';updateSavedCount();renderEvents();
       body.querySelector('.event-feedback').textContent=persisted?(saved.has(id)?'已保存，可在“全部材料”中选择“只看收藏”查看。':'已取消收藏。'):'已暂存本次浏览；浏览器未允许持久保存。';
+    }else if(button.hasAttribute('data-read-event')){
+      const id=button.dataset.readEvent;if(readEvents.has(id))readEvents.delete(id);else readEvents.add(id);
+      const persisted=memory.write('qi-read-events',[...readEvents]);updateRecordActions();renderEvents();
+      body.querySelector('.event-feedback').textContent=(readEvents.has(id)?'已标为已读。':'已标为未读，可在“未读”筛选中回看；再次打开后会标为已读。')+(persisted?'':' 当前浏览器无法保存，此次更改仅本页有效。');
     }else if(button.hasAttribute('data-copy-event')){
       const url=new URL(body.querySelector('[data-event-permalink]').getAttribute('href'),location.href).href;
       await copyText(url,body.querySelector('.event-feedback'),'链接已复制。');

@@ -164,3 +164,8 @@ html{scroll-padding-top:calc(var(--header-height,100px) + 18px)}.chapter{scroll-
 .reading-large .family-stories .primary-button{font-size:18px}
 @media(max-width:800px){.family-stories{grid-template-columns:1fr;gap:20px}.family-stories h2{font-size:32px}.family-stories-intro>p:not(.eyebrow){max-width:none}}
 @media(max-width:650px){.family-stories{gap:14px}.family-stories h2{font-size:30px}.family-stories-intro>p:not(.eyebrow){font-size:14px}.family-stories-features h3{font-size:19px}.family-stories .primary-button{font-size:14px;padding:14px 18px}.reading-large .family-stories h2{font-size:35px}.reading-large .family-stories-intro>p:not(.eyebrow),.reading-large .family-stories-features li p{font-size:18px}}
+
+/* Search explanations stay readable across all four themes. */
+.event-snippet{display:block;margin-top:6px;font-size:12px;font-weight:400;line-height:1.85;color:var(--ui-explore-muted,#c4cbb7);overflow-wrap:anywhere}
+.search-help{font-size:12px;line-height:1.85;color:var(--ui-explore-muted,#c4cbb7);margin:10px 0 0}
+@media screen{.reading-large :is(.event-snippet,.search-help){font-size:18px;line-height:1.9}}
