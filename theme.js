@@ -21,12 +21,13 @@
       let saved=true;if(persist){try{localStorage.setItem(key,id);}catch{saved=false;}}
       panel.querySelector('.ui-settings-status').textContent=persist?(saved?'已应用并保存，下次打开将继续使用。':'已应用，但当前浏览器无法保存；刷新后可能恢复默认。'):'';
     };
-    document.querySelectorAll('[data-ui-settings]').forEach(button=>{button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>{opener=button;sync();panel.showModal();panel.querySelector('input:checked').focus();});});
+    function notifyOpen(open){root.classList.toggle('ui-settings-open',open);document.dispatchEvent(new CustomEvent('ui-settings-toggle',{detail:{open}}));}
+    document.querySelectorAll('[data-ui-settings]').forEach(button=>{button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>{opener=button;sync();panel.showModal();notifyOpen(true);panel.querySelector('input:checked').focus();});});
     panel.addEventListener('change',event=>{if(event.target.matches('input[name="qi-ui-theme"]'))apply(event.target.value);});
     panel.querySelector('.ui-settings-close').addEventListener('click',()=>panel.close());
     panel.querySelector('[data-ui-done]').addEventListener('click',()=>panel.close());
     panel.querySelector('[data-ui-reset]').addEventListener('click',()=>apply('paper'));
-    panel.addEventListener('close',()=>opener?.isConnected&&opener.focus({preventScroll:true}));
+    panel.addEventListener('close',()=>{notifyOpen(false);if(opener?.isConnected)opener.focus({preventScroll:true});});
     panel.addEventListener('click',event=>{if(event.target!==panel)return;const r=panel.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)panel.close();});
     document.addEventListener('keydown',event=>{if(panel.open)event.stopPropagation();},true);
     window.addEventListener('storage',event=>{if(event.key===key)apply(themes.some(t=>t.id===event.newValue)?event.newValue:'paper',false);});

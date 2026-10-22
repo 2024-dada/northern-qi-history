@@ -1,0 +1,19 @@
+/* Scoped to the separate family-story document. */
+body.reader-open{overflow:hidden}
+.modal-mask,.story-overlay{width:100%;height:100dvh;max-width:none;max-height:none;margin:0;border:0;color:var(--text-primary);overscroll-behavior:contain}
+.modal-mask:not([open]),.story-overlay:not([open]){display:none}
+.story-card{height:min(92dvh,880px);min-height:0}
+.story-pages{min-height:0}
+.story-page{overscroll-behavior:contain;scrollbar-gutter:stable}
+.node:focus-visible,.story-page:focus-visible,.story-nav :focus-visible,.modal-close:focus-visible,.story-close:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.story-page:focus-visible{outline-offset:-4px}
+.story-reader-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.story-position{min-width:0;flex:1;display:grid;gap:5px;text-align:center}
+.story-position p{font-size:12px;color:var(--text-secondary)}
+.story-position select{width:100%;min-width:0;max-width:100%;font:inherit;font-size:12px;padding:6px;border:1px solid var(--border);border-radius:5px;background:var(--bg-card);color:var(--text-primary);text-overflow:ellipsis}
+.story-position .s-dots{justify-content:center;gap:4px;flex-wrap:wrap;min-height:7px}
+.story-position .s-dot{width:5px;height:5px}.story-position .s-dot.active{width:14px}
+.story-keyboard-help{flex-shrink:0;padding:7px 12px;text-align:center;font-size:11px;line-height:1.6;color:var(--text-secondary);border-top:1px solid var(--border)}
+.story-nav .s-btn:disabled{visibility:visible;opacity:.45;cursor:default}
+@media(max-width:540px){.story-nav{padding:10px;gap:8px}.story-nav .s-btn{min-width:72px;padding:10px 8px;font-size:13px}.story-overlay{padding:10px}.story-card{height:calc(100dvh - 20px);max-height:880px}.story-page{padding:34px 20px 20px}}
+@media(prefers-reduced-motion:reduce){.story-card,.modal,.node,.story-page,.s-dot,.story-top-fill{animation:none!important;transition:none!important}.node:hover{transform:none}}

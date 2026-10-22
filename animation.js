@@ -85,6 +85,7 @@
   }));
   scrub.addEventListener('input', () => { const target = Number(scrub.value); stop(); time = target; render(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && running) stop(); });
+  document.addEventListener('ui-settings-toggle', event => { if (event.detail.open && running) stop(); });
   // Do not keep advancing the film beneath an open source dialog.
   new MutationObserver(() => {
     if (document.querySelector('#detail-dialog').open && running) stop();

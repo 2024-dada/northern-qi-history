@@ -49,6 +49,7 @@ html[data-ui-theme] body.qi-companion{background:var(--ui-bg);color:var(--ui-ink
 .qi-companion .radar-wrap{background:#252530;border-radius:10px;padding:8px}
 .qi-companion .node:hover{background:var(--ui-tint)}
 body:has(#ui-settings[open]){overflow:hidden}
+.ui-settings-open .d-art *{animation-play-state:paused!important}
 html[data-ui-theme] .chapter-rail{background:var(--ui-bg)}
 @media print{html[data-ui-theme]{--ui-bg:#fff;--ui-surface:#fff;--ui-tint:#f5f5f5;--ui-ink:#111;--ui-muted:#444;--ui-line:#bbb;--ui-accent:#633e30;color-scheme:light}}
 
