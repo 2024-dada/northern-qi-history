@@ -30,7 +30,11 @@
     panel.addEventListener('close',()=>{notifyOpen(false);if(opener?.isConnected)opener.focus({preventScroll:true});});
     panel.addEventListener('click',event=>{if(event.target!==panel)return;const r=panel.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)panel.close();});
     document.addEventListener('keydown',event=>{if(panel.open)event.stopPropagation();},true);
-    window.addEventListener('storage',event=>{if(event.key===key)apply(themes.some(t=>t.id===event.newValue)?event.newValue:'paper',false);});
+    window.addEventListener('storage',event=>{
+      if(event.key!==key&&event.key!==null)return;
+      try{if(event.storageArea!==localStorage)return;}catch{return;}
+      apply(themes.some(t=>t.id===event.newValue)?event.newValue:'paper',false);
+    });
     sync();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();

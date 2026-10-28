@@ -45,6 +45,7 @@
     catch{feedback.textContent='自动复制不可用，可选中下方文字手动复制。';const field=document.createElement('textarea');field.className='copy-fallback';field.readOnly=true;field.value=text;field.setAttribute('aria-label','可手动复制的内容');feedback.append(field);field.focus();field.select();}
   }
   let onlySaved=false, lastChapter=null, readStatus='all', browsingIds=null;
+  let closingForNavigation=false;
   let returnFocus=null, returnHash='', eventScroll=0, eventSceneProgress=null, parentEvent=null, parentVisual=null, activeEvent=null;
   let largeText=memory.read('qi-large-text',false)===true;
   function updateTextSize(){document.documentElement.classList.toggle('reading-large',largeText);document.querySelectorAll('[data-text-size]').forEach(button=>{button.setAttribute('aria-pressed',String(largeText));button.textContent=largeText?'标准字号':'大字阅读';});}updateTextSize();
@@ -99,7 +100,7 @@
   function methodDetail(){activeEvent=null;parentEvent=null;show('<p class="eyebrow">关于史料</p><h2 id="dialog-title">怎样使用史料和分析原因</h2><p>本页先介绍四个案例，再汇总更多事件和比较材料。阅读时应依次区分事件经过、下令与执行关系、原因解释，以及尚待核实的问题。条目数量不是死亡人数，也不用于给人物的残暴程度排名。</p><h3>我们怎样区分材料</h3><ul><li>事件与记载分开：同一次死亡在多书出现，不重复计数。</li><li>分清谁推动、谁下令、谁亲自实施。事件发生在哪位皇帝的年号下，不代表就是这位皇帝下令。</li><li>原文、白话、史臣评价和项目解释分开。</li><li>字词、日期或叙述有分歧时，保留分歧，回到影印核字。</li></ul><h3>为什么多来源还要检查文本关系</h3><p>《四库全书总目》指出，今天传下来的《北齐书》有部分内容取自《北史》，用于补充缺失篇章。因此，两部书出现相似记载，可能是沿用同一段文字，不能直接算作两份独立证据。</p><div class="dialog-links"><a href="https://www.shidianguji.com/book/SK0000A/chapter/1kgsnkeqjizoo" target="_blank" rel="noopener noreferrer">识典 · 北齐书提要 ↗</a></div><h3>当前核验状态</h3><p>已做原典录文初对照；关键句影印核字、版本关系和现代学术解释仍待完成。示意图只帮助理解，不能充当历史现场证据。</p><div class="source-state">人物对话为史书所述，不标作现场逐字录音；宫阙、人物与位置图均为示意。</div>');}
   dialog.querySelector('.dialog-close').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
-  dialog.addEventListener('close',()=>{document.documentElement.classList.remove('detail-open');activeEvent=null;browsingIds=null;if(/^#(?:event|source)=/.test(location.hash))history.replaceState(null,'',location.pathname+location.search+(returnHash||'#explore'));const focus=returnFocus?.isConnected?returnFocus:(returnFocus?.dataset.event?document.querySelector('#event-list [data-event="'+returnFocus.dataset.event+'"]'):null);(focus||document.querySelector('#event-list .event-row')||document.querySelector('#event-search'))?.focus({preventScroll:true});parentEvent=null;});
+  dialog.addEventListener('close',()=>{document.documentElement.classList.remove('detail-open');activeEvent=null;browsingIds=null;if(!closingForNavigation&&/^#(?:event|source)=/.test(location.hash))history.replaceState(null,'',location.pathname+location.search+(returnHash||'#explore'));closingForNavigation=false;const focus=returnFocus?.isConnected?returnFocus:(returnFocus?.dataset.event?document.querySelector('#event-list [data-event="'+returnFocus.dataset.event+'"]'):null);(focus||document.querySelector('#event-list .event-row')||document.querySelector('#event-search'))?.focus({preventScroll:true});parentEvent=null;});
   document.addEventListener('click',event=>{const t=event.target.closest('[data-animation-action],[data-source],[data-event],[data-open-method],[data-event-source],[data-back-event]');if(!t)return;if(t.hasAttribute('data-animation-action')){document.querySelector('#violence-'+t.dataset.animationAction)?.click();dialog.querySelectorAll('[data-animation-action]').forEach(b=>b.textContent=document.querySelector('#violence-'+b.dataset.animationAction).textContent.replace('卡片',''));return;}if(t.hasAttribute('data-source'))sourceDetail(t.dataset.source);else if(t.hasAttribute('data-event'))eventDetail(t.dataset.event,t.dataset.visual);else if(t.hasAttribute('data-open-method'))methodDetail();else if(t.hasAttribute('data-event-source'))sourceDetail(t.dataset.eventSource,t.dataset.parentEvent);else if(t.hasAttribute('data-back-event')&&parentEvent){eventDetail(parentEvent,parentVisual,false);requestAnimationFrame(()=>{const slider=body.querySelector('[data-scene-progress]');if(slider&&eventSceneProgress!==null){slider.value=eventSceneProgress;slider.dispatchEvent(new Event('input',{bubbles:true}));}dialog.scrollTop=eventScroll;});}});
   const art={scroll:'<path d="M25 20h70v100H25zM25 20q-20 0-12 14h12M95 120q20 0 12-14H95"/><path d="M42 40h36M42 56h36M42 72h23M42 88h36"/>',network:'<circle cx="60" cy="55" r="16"/><circle cx="22" cy="105" r="10"/><circle cx="100" cy="105" r="10"/><path d="M50 70l-22 25M70 70l22 25M22 40h25M100 40H74"/>',command:'<path d="M20 25h80v45H20zM60 70v28M45 87l15 15 15-15M30 120h60"/><path d="M35 43h50M35 55h35"/>',seal:'<path d="M40 20h40v26H40zM25 46h70v28H25zM20 110h80v13H20z"/><path d="M40 92h40" stroke="#9d4236"/>'};
   function stage(index){const s=data.stages[index];document.querySelectorAll('[data-stage]').forEach(b=>{const active=Number(b.dataset.stage)===index;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});document.querySelector('#stage-index').textContent=String(index+1).padStart(2,'0');document.querySelector('#stage-kicker').textContent=s.kicker;document.querySelector('#stage-title').textContent=s.title;document.querySelector('#stage-text').textContent=s.text;document.querySelector('#stage-quote').textContent=s.quote;document.querySelector('#stage-quote-label').textContent=([0,3].includes(index)?'史书原文（已转简体）':'根据记载整理的说明');document.querySelector('#stage-art').innerHTML=`<svg viewBox="0 0 120 145" fill="none" stroke="#8b8f79" stroke-width="1.5">${art[s.symbol]}</svg>`;}
@@ -203,11 +204,14 @@
   const header=document.querySelector('.site-header'),rail=document.querySelector('.chapter-rail');
   const offsets=new ResizeObserver(()=>{document.documentElement.style.setProperty('--header-height',header.getBoundingClientRect().height+'px');document.documentElement.style.setProperty('--rail-height',window.innerWidth<=650?rail.getBoundingClientRect().height+'px':'0px');});offsets.observe(header);offsets.observe(rail);
   function openLinkedEvent(){
-    if(location.hash.startsWith('#source=')){const key=new URLSearchParams(location.hash.slice(1)).get('source');if(Object.hasOwn(data.sources,key))sourceDetail(key);return;}
-    if(!location.hash.startsWith('#event='))return;
-    const params=new URLSearchParams(location.hash.slice(1));
-    const id=params.get('event');
-    if(data.events.some(e=>e.id===id))eventDetail(id,params.get('visual'));
+    if(location.hash.startsWith('#source=')){
+      const key=new URLSearchParams(location.hash.slice(1)).get('source');
+      if(Object.hasOwn(data.sources,key)){sourceDetail(key);return;}
+    }else if(location.hash.startsWith('#event=')){
+      const params=new URLSearchParams(location.hash.slice(1)),id=params.get('event');
+      if(data.events.some(e=>e.id===id)){eventDetail(id,params.get('visual'));return;}
+    }
+    if(dialog.open){closingForNavigation=true;dialog.close();}
   }
   window.addEventListener('hashchange',openLinkedEvent);openLinkedEvent();
   document.addEventListener('keydown',event=>{
