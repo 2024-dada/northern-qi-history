@@ -16,7 +16,8 @@
     { title: '事件结果与尚待核实的问题', text: '斛律光遇害。结合上方关系图分析此前的指控、推动者与君主猜忌。具体传递环节和日期仍需核实，动画不能代替这些证据。', evidence: '核验边界｜572年；两书月份有分歧。关键句影印待核。' }
   ];
   const duration = 20000;
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reducedMotion = motionPreference.matches;
   let time = 0, running = false, lastTick = null, raf = null, previousPhase = -1;
   const clamp = value => Math.max(0, Math.min(1, value));
   const ease = value => { const x = clamp(value); return x * x * (3 - 2 * x); };
@@ -86,6 +87,11 @@
   scrub.addEventListener('input', () => { const target = Number(scrub.value); stop(); time = target; render(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && running) stop(); });
   document.addEventListener('ui-settings-toggle', event => { if (event.detail.open && running) stop(); });
+  motionPreference.addEventListener('change', event => {
+    reducedMotion = event.matches;
+    find('#scene-motion-note').hidden = !reducedMotion;
+    if (running) stop(); else render();
+  });
   // Do not keep advancing the film beneath an open source dialog.
   new MutationObserver(() => {
     if (document.querySelector('#detail-dialog').open && running) stop();
