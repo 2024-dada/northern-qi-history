@@ -242,6 +242,179 @@
   .companion-context strong{color:#ead5b7;font-weight:500}
   .companion-nav a:focus-visible,.companion-context a:focus-visible{outline:2px solid #e5c39b;outline-offset:5px}
   @media(max-width:600px){.companion-nav{padding:12px 20px;gap:4px 16px}.companion-nav div{gap:12px}.companion-context{font-size:13px}}
+
+  /* ===== 分页切换 ===== */
+  .page-nav { display: flex; gap: 8px; padding-top: 20px; }
+  .page-tab {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 10px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--border); background: rgba(255,255,255,.02);
+    color: var(--text-tertiary); font-family: inherit; font-size: 13px;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .page-tab b { font-size: 10px; letter-spacing: 1px; opacity: .65; font-weight: 700; }
+  .page-tab:hover { color: var(--text-secondary); border-color: rgba(192,57,43,.35); }
+  .page-tab.active { background: rgba(192,57,43,.14); border-color: rgba(192,57,43,.48); color: #fff; }
+  .page-tab.active b { color: var(--primary-light); opacity: 1; }
+  .page { display: none; }
+  .page.active { display: block; animation: pageIn .32s ease both; }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .page-pager {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--border);
+  }
+  .pager-btn {
+    font-family: inherit; font-size: 13px; padding: 10px 20px; border-radius: 100px;
+    border: 1px solid var(--border); background: transparent; color: var(--text-secondary);
+    cursor: pointer; transition: all .2s;
+  }
+  .pager-btn:hover { border-color: var(--primary); color: #fff; }
+  .pager-note { font-size: 11px; color: var(--text-tertiary); letter-spacing: 1px; }
+
+  /* ===== 第二页 · 家族时间轴 ===== */
+  .tl-hero { padding: 34px 0 20px; }
+  .tl-kicker { font-size: 12px; color: var(--primary-light); letter-spacing: 4px; font-weight: 600; margin-bottom: 10px; }
+  .tl-hero h1 { font-size: 32px; line-height: 1.3; letter-spacing: 1px; margin-bottom: 12px; }
+  .tl-desc { font-size: 14.5px; color: var(--text-secondary); line-height: 1.95; }
+  .tl-stats { display: flex; gap: 10px; margin-top: 18px; }
+  .tl-stat {
+    flex: 1; padding: 12px 10px 10px; border-radius: 10px;
+    background: rgba(192,57,43,.07); border: 1px solid rgba(192,57,43,.18); text-align: center;
+  }
+  .tl-stat b { display: block; font-size: 22px; line-height: 1.2; color: #fff; font-weight: 800; }
+  .tl-stat span { display: block; font-size: 10.5px; color: var(--text-tertiary); margin-top: 4px; line-height: 1.45; }
+  .tl-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 20px 0 12px; }
+  .tl-legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-tertiary); }
+  .lg-bar { width: 18px; height: 7px; border-radius: 4px; background: linear-gradient(90deg,#c0392b,#e74c3c); }
+  .lg-dot { width: 8px; height: 8px; border-radius: 50%; border: 2px solid #e74c3c; background: #1a1a1f; box-sizing: border-box; }
+  .lg-band { width: 18px; height: 12px; border-radius: 2px; background: rgba(192,57,43,.12); border-left: 1px dashed rgba(192,57,43,.5); border-right: 1px dashed rgba(192,57,43,.5); }
+  .lg-dash { width: 18px; height: 7px; border-radius: 4px; background: repeating-linear-gradient(90deg, rgba(231,84,128,.7) 0 5px, rgba(231,84,128,.15) 5px 10px); }
+  .tl-frame {
+    display: flex; border: 1px solid var(--border); border-radius: 14px;
+    background: var(--bg-card); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  .tl-left { flex: 0 0 112px; background: rgba(0,0,0,.18); border-right: 1px solid var(--border); }
+  .tl-left-head {
+    height: 54px; display: flex; align-items: flex-end; padding: 0 12px 9px;
+    font-size: 10.5px; letter-spacing: 2px; color: var(--text-tertiary);
+    border-bottom: 1px solid var(--border);
+  }
+  .tl-left-row {
+    height: 138px; padding: 10px 12px; display: flex; flex-direction: column;
+    justify-content: center; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,.055);
+    transition: background .2s;
+  }
+  .tl-left-row:last-child { border-bottom: none; }
+  .tl-left-row:hover { background: rgba(255,255,255,.035); }
+  .tl-p-dot { width: 7px; height: 7px; border-radius: 50%; margin-bottom: 8px; flex-shrink: 0; }
+  .tl-p-name { font-size: 16px; font-weight: 700; line-height: 1.25; }
+  .tl-p-life { font-size: 10px; color: var(--text-tertiary); margin-top: 3px; line-height: 1.5; }
+  .tl-p-link { font-size: 10px; color: var(--primary-light); margin-top: 7px; letter-spacing: .5px; }
+  .tl-scroll { flex: 1; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; }
+  .tl-scroll::-webkit-scrollbar { height: 6px; }
+  .tl-scroll::-webkit-scrollbar-track { background: transparent; }
+  .tl-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 3px; }
+  .tl-canvas { position: relative; }
+  .tl-ruler { position: relative; height: 54px; border-bottom: 1px solid var(--border); }
+  .tl-tick { position: absolute; bottom: 0; width: 1px; height: 4px; background: rgba(255,255,255,.1); }
+  .tl-tick.major { height: 9px; background: rgba(255,255,255,.22); }
+  .tl-year {
+    position: absolute; top: 6px; transform: translateX(-50%);
+    font-size: 9.5px; color: var(--text-tertiary); line-height: 1; white-space: nowrap;
+  }
+  .tl-year.major { color: var(--text-secondary); font-weight: 600; }
+  .tl-reign-cap {
+    position: absolute; top: 27px; transform: translateX(-50%);
+    font-size: 9px; letter-spacing: 2px; color: rgba(231,76,60,.75); white-space: nowrap;
+  }
+  .tl-body { position: relative; }
+  .tl-reign-band {
+    position: absolute; top: 0; bottom: 0; pointer-events: none;
+    background: rgba(192,57,43,.055);
+    border-left: 1px dashed rgba(192,57,43,.35);
+    border-right: 1px dashed rgba(192,57,43,.35);
+  }
+  .tl-vline { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.045); }
+  .tl-lane { position: relative; height: 138px; border-bottom: 1px solid rgba(255,255,255,.055); }
+  .tl-lane:last-child { border-bottom: none; }
+  .tl-bar { position: absolute; top: 42px; height: 12px; border-radius: 6px; box-shadow: 0 0 14px rgba(0,0,0,.35); }
+  .tl-bar::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,0) 65%);
+  }
+  .tl-bar.dashed {
+    background: repeating-linear-gradient(90deg, rgba(231,84,128,.65) 0 7px, rgba(231,84,128,.14) 7px 14px) !important;
+    border: 1px dashed rgba(231,84,128,.5);
+  }
+  .tl-endpoint {
+    position: absolute; top: 44px; width: 8px; height: 8px; border-radius: 50%;
+    transform: translateX(-50%); box-shadow: 0 0 0 2px rgba(26,26,31,.85);
+  }
+  .tl-endpoint.hollow { background: #1a1a1f !important; border: 1px solid rgba(231,84,128,.8); }
+  .tl-cap { position: absolute; top: 10px; font-size: 10.5px; color: var(--text-secondary); white-space: nowrap; line-height: 1.2; }
+  .tl-cap b { font-weight: 700; color: #fff; margin-right: 3px; }
+  .tl-cap.birth { transform: translateX(-2px); }
+  .tl-cap.death { transform: translateX(-100%); }
+  .tl-story-wrap { position: absolute; top: 0; width: 0; }
+  .tl-story-stem { position: absolute; left: 0; top: 52px; width: 1px; background: currentColor; opacity: .28; }
+  .tl-story {
+    position: absolute; left: 0; width: 16px; height: 16px; padding: 0;
+    transform: translateX(-50%); border-radius: 50%;
+    border: 2px solid currentColor; background: var(--bg-card); color: inherit;
+    font-family: inherit; font-size: 9px; font-weight: 700; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background .2s, color .2s, transform .2s;
+  }
+  .tl-story:hover { background: var(--c); color: #1a1a1f; transform: translateX(-50%) scale(1.12); }
+  .tl-swipe { text-align: center; font-size: 11px; color: var(--text-tertiary); margin-top: 12px; letter-spacing: .5px; }
+
+  /* 故事索引 */
+  .tl-index-wrap { margin-top: 28px; }
+  .tl-index-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .tl-index-head h2 { font-size: 18px; }
+  .tl-index-head span { font-size: 11px; color: var(--text-tertiary); }
+  .tl-index { column-count: 2; column-gap: 12px; }
+  .tl-index-card {
+    break-inside: avoid; margin-bottom: 12px; overflow: hidden;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  }
+  .tl-index-card-head {
+    display: flex; align-items: center; gap: 8px; padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,.06); font-size: 14px; font-weight: 700;
+  }
+  .tl-index-card-head .tl-p-dot { margin-bottom: 0; }
+  .tl-index-card-head .cnt { margin-left: auto; font-size: 10.5px; color: var(--text-tertiary); font-weight: 500; }
+  .tl-index-item {
+    display: flex; align-items: flex-start; gap: 9px; width: 100%; padding: 9px 12px;
+    border: 0; border-bottom: 1px solid rgba(255,255,255,.045);
+    background: transparent; color: inherit; font-family: inherit; text-align: left;
+    cursor: pointer; transition: background .2s;
+  }
+  .tl-index-item:last-child { border-bottom: 0; }
+  .tl-index-item:hover { background: rgba(255,255,255,.035); }
+  .tl-index-no {
+    flex: 0 0 18px; height: 18px; border-radius: 50%; border: 1px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; margin-top: 1px;
+  }
+  .tl-index-main { flex: 1; min-width: 0; }
+  .tl-index-title { display: block; font-size: 12.5px; line-height: 1.45; color: var(--text-secondary); }
+  .tl-index-time { display: block; font-size: 10px; color: var(--text-tertiary); margin-top: 2px; line-height: 1.5; }
+  .tl-index-arrow { color: var(--text-tertiary); font-size: 14px; line-height: 1; margin-top: 2px; }
+  @media (max-width: 560px) {
+    .tl-hero { padding-top: 26px; }
+    .tl-hero h1 { font-size: 25px; }
+    .tl-stat b { font-size: 19px; }
+    .tl-stat span { font-size: 10px; }
+    .tl-left { flex-basis: 88px; }
+    .tl-left-head { padding: 0 8px 9px; font-size: 9.5px; letter-spacing: 1px; }
+    .tl-left-row { padding: 8px; }
+    .tl-p-name { font-size: 14px; }
+    .tl-p-life { font-size: 9px; }
+    .tl-p-link { font-size: 9px; }
+    .tl-index { column-count: 1; }
+    .page-tab { font-size: 12px; padding: 10px 6px; }
+  }
 </style>
 <link rel="stylesheet" href="../theme.css?v=20261028b">
 <script src="../theme.js?v=20261028b"></script>
@@ -250,6 +423,12 @@
 <body class="qi-companion">
 <nav class="companion-nav" aria-label="主站与扩展页导航"><a href="../index.html?v=20261028b#family-stories">← 返回《帝怒之后》</a><div><button type="button" data-ui-settings>界面设置</button><a href="../index.html?v=20261028b#story">四个案例</a><a href="../index.html?v=20261028b#sources">史料与核验说明</a></div></nav>
 <div class="wrap">
+  <!-- 分页导航 -->
+  <nav class="page-nav" aria-label="页面切换">
+    <button class="page-tab active" data-page="page-1"><b>01</b>人物图谱</button>
+    <button class="page-tab" data-page="page-2"><b>02</b>家族时间轴</button>
+  </nav>
+  <section class="page active" id="page-1">
 <aside class="companion-context" aria-label="扩展页阅读说明"><strong>人物族谱与故事 · 协作扩展页</strong><br>本页保留故事、雷达图和 MBTI 等交互。趣味评分与类型不作为历史定论或心理诊断；具体史实与引文仍需核对原典。可随时返回主站比较事件、原因与<a href="../index.html?v=20261028b#sources">史料出处</a>。</aside>
 
   <!-- 顶部引导区 -->
@@ -284,6 +463,65 @@
     点击任一人物头像，可查看其简介<br>
     史料来源：《北齐书》《北史》等正史记载
   </p>
+
+    <div class="page-pager">
+      <span class="pager-note">第 1 / 2 页</span>
+      <button class="pager-btn" data-goto="page-2">家族时间轴 →</button>
+    </div>
+  </section>
+
+  <!-- ================= 第二页 · 家族时间轴 ================= -->
+  <section class="page" id="page-2">
+
+    <header class="tl-hero">
+      <div class="tl-kicker">第二页 · 家族时间轴</div>
+      <h1>五个人的一生，叠成一条下坠的曲线</h1>
+      <p class="tl-desc">
+        有专属故事页的五位主角，从高澄出生（521）到高纬被杀（577），
+        五条生命线正好覆盖北齐从崛起到灭亡的全程。它们彼此重叠——
+        一个人的暴行，常常正好落在另一个人的童年里。这条时间轴，
+        是接下来追问“为什么”的底稿。
+      </p>
+      <div class="tl-stats">
+        <div class="tl-stat"><b>56</b><span>年跨度<br>521—577</span></div>
+        <div class="tl-stat"><b>5</b><span>位主角<br>均有专属故事页</span></div>
+        <div class="tl-stat"><b>3</b><span>位在位皇帝<br>高洋·高湛·高纬</span></div>
+      </div>
+    </header>
+
+    <div class="tl-legend">
+      <span><i class="lg-bar"></i>生命线（横条＝寿命）</span>
+      <span><i class="lg-dot"></i>编号圆点＝个人故事（点击查看）</span>
+      <span><i class="lg-band"></i>北齐国祚 550—577</span>
+    </div>
+
+    <div class="tl-frame">
+      <div class="tl-left" id="tl-left"></div>
+      <div class="tl-scroll">
+        <div class="tl-canvas" id="tl-canvas"></div>
+      </div>
+    </div>
+
+    <p class="tl-swipe">← 左右滑动查看完整时间轴 · 点击编号打开对应故事 →</p>
+
+    <section class="tl-index-wrap">
+      <div class="tl-index-head">
+        <h2>故事索引</h2>
+        <span id="tl-index-count"></span>
+      </div>
+      <div class="tl-index" id="tl-index"></div>
+    </section>
+
+    <p class="footer-note">
+      编号圆点为该人物专属故事页中的全部故事，位置按发生年份就近落点<br>
+      原文时间为“年间”“末年”或跨年的，时间轴位置为推定值，索引中保留原文
+    </p>
+
+    <div class="page-pager">
+      <button class="pager-btn" data-goto="page-1">← 返回人物图谱</button>
+      <span class="pager-note">第 2 / 2 页</span>
+    </div>
+  </section>
 </div>
 
 <!-- 详情弹窗 -->
@@ -953,7 +1191,7 @@ function showStoryPage(i){
   if(storyOverlay.open)activePage.focus({preventScroll:true});
 }
 
-function openStory(id){
+function openStory(id, startPage = 0){
   currentBook = personBooks[id];
   const pages = [];
   for (let i = 0; i < totalPages(); i++) pages.push(renderStoryPageHTML(currentBook, i));
@@ -963,7 +1201,7 @@ function openStory(id){
   jump.replaceChildren(...pages.map((_,i)=>new Option(`${i+1}. ${storyPageLabel(i)}`,String(i))));
   document.getElementById('story-dialog-title').textContent=currentBook.name+'的人物故事';
   showReader(storyOverlay);
-  showStoryPage(0);
+  showStoryPage(startPage);
 }
 
 btnNext.addEventListener('click', () => {
@@ -979,6 +1217,182 @@ storyOverlay.addEventListener('keydown', e => {
   if(e.key==='ArrowLeft'&&storyIndex>0){e.preventDefault();showStoryPage(storyIndex-1);}
   if(e.key==='ArrowRight'&&storyIndex<totalPages()-1){e.preventDefault();showStoryPage(storyIndex+1);}
 });
+/* ================= 分页切换 ================= */
+const pageEls = document.querySelectorAll('.page');
+const pageTabs = document.querySelectorAll('.page-tab');
+
+function switchPage(id){
+  pageEls.forEach(p => p.classList.toggle('active', p.id === id));
+  pageTabs.forEach(t => t.classList.toggle('active', t.dataset.page === id));
+  window.scrollTo(0, 0);
+}
+pageTabs.forEach(t => t.addEventListener('click', () => switchPage(t.dataset.page)));
+document.querySelectorAll('[data-goto]').forEach(b => {
+  b.addEventListener('click', () => switchPage(b.dataset.goto));
+});
+
+
+
+/* ================= 第二页 · 家族生命时间轴 ================= */
+const TL_START = 521;
+const TL_END = 577;
+const TL_UNIT = 14;          // 每年像素
+const TL_PAD_L = 16;
+const TL_PAD_R = 104;
+const tlX = y => TL_PAD_L + (y - TL_START) * TL_UNIT;
+const TL_W = tlX(TL_END) + TL_PAD_R;
+
+// 每个故事在时间轴上的落点：[(年份, 是否为推定年份), ...]
+// 顺序与 personBooks 中各人物 stories 的顺序一致
+const STORY_PLOTS = {
+  gaocheng: [[535, false], [548, true]],
+  gaoyang: [[554, false], [559, true], [558, false], [559, false], [559, true], [558, false], [555, false], [557, true]],
+  gaozhan: [[562, true], [564, false], [564, true], [562, false], [565, false]],
+  gaowei: [[573, true], [573, true], [574, true], [573, true], [576, false], [572, true], [576, false]],
+  gaochuo: [[569, true], [570, true], [573, true], [574, false]],
+};
+
+const TIMELINE_META = [
+  { id:'gaocheng', name:'高澄', life:'521—549 · 被刺', color:'#e67e22', birth:521, death:549, deathLabel:'被刺' },
+  { id:'gaoyang',  name:'高洋', life:'526—559 · 暴崩', color:'#c0392b', birth:526, death:559, deathLabel:'暴崩' },
+  { id:'gaozhan',  name:'高湛', life:'537—568 · 病卒', color:'#d35400', birth:537, death:568, deathLabel:'病卒' },
+  { id:'gaowei',   name:'高纬', life:'556—577 · 被赐死', color:'#e74c3c', birth:556, death:577, deathLabel:'被赐死' },
+  { id:'gaochuo',  name:'高绰', life:'556—574 · 被扼杀', color:'#a93226', birth:556, death:574, deathLabel:'被扼杀' },
+];
+
+const timelinePeople = TIMELINE_META.map(p => ({
+  ...p,
+  stories: personBooks[p.id].stories.map((s, i) => {
+    const [year, approx] = STORY_PLOTS[p.id][i];
+    return { n: i + 1, idx: i, year, approx, title: s.title, time: s.time };
+  })
+}));
+
+// 同一人物、相邻年份的故事按行错开，避免圆点重叠
+function layoutStories(p){
+  const items = p.stories.map(s => ({ ...s, row: 0 }));
+  const rows = [];
+  items.slice().sort((a, b) => a.year - b.year).forEach(s => {
+    const x = tlX(s.year);
+    let r = 0;
+    while (rows[r] && rows[r].some(v => Math.abs(v - x) < 22)) r++;
+    if (!rows[r]) rows[r] = [];
+    rows[r].push(x);
+    s.row = r;
+  });
+  const maxRow = Math.max(0, rows.length - 1);
+  return { items, maxRow, laneH: 104 + maxRow * 20 };
+}
+timelinePeople.forEach(p => { p.layout = layoutStories(p); });
+
+function renderTimeline(){
+  const totalStories = timelinePeople.reduce((n, p) => n + p.stories.length, 0);
+
+  // 左侧固定人名栏
+  document.getElementById('tl-left').innerHTML = `
+    <div class="tl-left-head">人物</div>
+    ${timelinePeople.map(p => `
+      <div class="tl-left-row" style="height:${p.layout.laneH}px" data-id="${p.id}" title="查看${p.name}的猎奇故事">
+        <span class="tl-p-dot" style="background:${p.color}"></span>
+        <div class="tl-p-name">${p.name}</div>
+        <div class="tl-p-life">${p.life}</div>
+        <div class="tl-p-link">${p.stories.length} 个故事 ›</div>
+      </div>`).join('')}`;
+
+  // 年份刻度
+  let ruler = '';
+  for (let y = TL_START; y <= TL_END; y++) {
+    const major = y % 5 === 0;
+    ruler += `<span class="tl-tick${major ? ' major' : ''}" style="left:${tlX(y)}px"></span>`;
+    if (major || y === TL_START || y === TL_END) {
+      ruler += `<span class="tl-year${major ? ' major' : ''}" style="left:${tlX(y)}px">${y}</span>`;
+    }
+  }
+  const reignCap = `<span class="tl-reign-cap" style="left:${(tlX(550) + tlX(577)) / 2}px">北齐 · 550—577</span>`;
+
+  // 每五年一条竖向参考线
+  let grid = '';
+  for (let y = 525; y <= 575; y += 5) {
+    grid += `<span class="tl-vline" style="left:${tlX(y)}px"></span>`;
+  }
+
+  const band = `<span class="tl-reign-band" style="left:${tlX(550)}px;width:${tlX(577) - tlX(550)}px"></span>`;
+
+  // 生命线 + 全部故事编号
+  const lanes = timelinePeople.map(p => {
+    const unknown = p.birth == null;
+    const barStart = unknown ? p.start : p.birth;
+    const barEnd = unknown ? p.end : p.death;
+    const barL = tlX(barStart);
+    const barR = tlX(barEnd);
+    const birthCap = unknown ? '生年不详' : `<b>${p.birth}</b>生`;
+    const deathCap = unknown ? '此后卒于隋' : `<b>${p.death}</b>${p.deathLabel}`;
+    const storyMarks = p.layout.items.map(s => `
+      <span class="tl-story-wrap" style="left:${tlX(s.year)}px;--c:${p.color};color:${p.color}">
+        <i class="tl-story-stem" style="height:${16 + s.row * 20}px"></i>
+        <button class="tl-story" style="top:${68 + s.row * 20}px"
+          data-person="${p.id}" data-story="${s.idx}"
+          title="${s.year}年 · ${s.title}"
+          aria-label="${p.name}故事${s.n}：${s.title}">${s.n}</button>
+      </span>`).join('');
+    return `
+      <div class="tl-lane" style="height:${p.layout.laneH}px">
+        <span class="tl-bar${unknown ? ' dashed' : ''}" style="left:${barL}px;width:${barR - barL}px;background:linear-gradient(90deg,${p.color},${p.color}b3)"></span>
+        <span class="tl-endpoint${unknown ? ' hollow' : ''}" style="left:${barL}px;background:${p.color}"></span>
+        <span class="tl-endpoint${unknown ? ' hollow' : ''}" style="left:${barR}px;background:${p.color}"></span>
+        <span class="tl-cap birth" style="left:${barL}px">${birthCap}</span>
+        <span class="tl-cap death" style="left:${barR}px">${deathCap}</span>
+        ${storyMarks}
+      </div>`;
+  }).join('');
+
+  const bodyH = timelinePeople.reduce((n, p) => n + p.layout.laneH, 0);
+
+  document.getElementById('tl-canvas').innerHTML = `
+    <div class="tl-ruler" style="width:${TL_W}px">${ruler}${reignCap}</div>
+    <div class="tl-body" style="width:${TL_W}px;height:${bodyH}px">
+      ${band}${grid}${lanes}
+    </div>`;
+
+  // 故事索引
+  document.getElementById('tl-index').innerHTML = timelinePeople.map(p => `
+    <div class="tl-index-card">
+      <div class="tl-index-card-head">
+        <span class="tl-p-dot" style="background:${p.color}"></span>
+        ${p.name}
+        <span class="cnt">${p.stories.length} 个故事</span>
+      </div>
+      ${p.stories.map(s => `
+        <button class="tl-index-item" data-person="${p.id}" data-story="${s.idx}">
+          <span class="tl-index-no" style="color:${p.color}">${s.n}</span>
+          <span class="tl-index-main">
+            <span class="tl-index-title">${s.title}</span>
+            <span class="tl-index-time">${s.time}${s.approx ? `（约${s.year}年）` : ''}</span>
+          </span>
+          <span class="tl-index-arrow">›</span>
+        </button>`).join('')}
+    </div>`).join('');
+  document.getElementById('tl-index-count').textContent = `共 ${totalStories} 个 · 点击打开对应故事页`;
+
+  document.querySelectorAll('.tl-left-row').forEach(row => {
+    row.addEventListener('click', () => {
+      if (personBooks[row.dataset.id]) openStory(row.dataset.id);
+    });
+  });
+  document.querySelectorAll('.tl-story').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openStory(btn.dataset.person, Number(btn.dataset.story));
+    });
+  });
+  document.querySelectorAll('.tl-index-item').forEach(item => {
+    item.addEventListener('click', () => {
+      openStory(item.dataset.person, Number(item.dataset.story));
+    });
+  });
+}
+
+renderTimeline();
 </script>
 </body>
 </html>
