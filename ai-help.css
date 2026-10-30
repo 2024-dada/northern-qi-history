@@ -9,3 +9,4 @@
 @media screen{.reading-large .ai-help-log{font-size:18px}.reading-large .ai-help-form textarea{font-size:18px}}
 @media print{.ai-help-launch,.ai-help-dialog{display:none!important}}
 .ai-help-open .d-art *{animation-play-state:paused!important}
+.ai-help-direct{margin:0 20px 8px;color:var(--ui-accent);font-size:13px;text-decoration:underline;overflow-wrap:anywhere}.ai-help-direct[hidden]{display:none}
