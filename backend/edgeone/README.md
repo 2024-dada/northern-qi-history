@@ -8,7 +8,7 @@
 2. 从Git导入2024-dada/northern-qi-history，项目根目录选`backend/edgeone`；框架Other，构建`node build.mjs`，输出`public`。需要账号持有人按平台要求完成GitHub仓库授权。
 3. 构建从相邻`../worker.js`复制当前41条材料及独立聊天界面到`runtime/worker.mjs`；部署包同时编译`cloud-functions/`为Node服务端函数。不要把CloudBase ZIP上传到这里，也不要把未构建源码当静态产物上传。
 4. Cloud Functions最大时长在edgeone.json设60秒，内部模型请求45秒；使用Cloud Functions，不能误用CloudBase免费3秒函数。代码无第三方依赖。
-5. 在平台环境变量设置秘密`DEEPSEEK_API_KEY`及普通值`DEEPSEEK_MODEL=deepseek-flash`。不将密钥写入代码、构建日志、GitHub或前端。没有新密钥配置时健康检查configured=false，问答返回503。
+5. 在平台环境变量设置秘密`DEEPSEEK_API_KEY`及普通值`DEEPSEEK_MODEL=deepseek-flash`。将`PUBLIC_ORIGIN`设为平台实际HTTPS访问源站（仅协议和域名），让内部HTTP转发URL与浏览器同源判断一致；域名更换时同步更新。不将密钥写入代码、构建日志、GitHub或前端。没有新密钥配置时健康检查configured=false，问答返回503。
 6. 加速区域/域名以控制台实际权限为准。中国大陆节点自定义域名按平台要求完成备案；没有域名时先用官方预览入口验收。
 
 ## 免费边界与验收
