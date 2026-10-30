@@ -4,7 +4,12 @@
  // Public, temporary preview URL; this is NOT the DeepSeek API key.
  // Replace with a stable service origin when a permanent domain is available.
  const trial={origin:'https://northern-qi-ai-cfbok18l.edgeone.cool',query:'eo_token=de6e892c0514a2d7ef9c4a28c09deca5&eo_time=1793336163',expiresAt:(1793336163+10800)*1000};
- const endpoint=standalone?new URL('/api/chat',location.href).href:trial.origin+'/api/chat?'+trial.query;
+ const legacyOrigin='https://northern-qi-ai-help.bright-guppy-8139.chatgpt.site';
+ function trialExpired(now=Date.now()){return !standalone&&now>=trial.expiresAt;}
+ function endpointFor(now=Date.now()){
+  if(standalone)return new URL('/api/chat',location.href).href;
+  return trialExpired(now)?legacyOrigin+'/api/chat':trial.origin+'/api/chat?'+trial.query;
+ }
  const trialEnd=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(trial.expiresAt);
  const main=standalone?'https://2024-dada.github.io/northern-qi-history/index.html':document.body.classList.contains('qi-companion')?'../index.html':'index.html';
  const panel=document.createElement('dialog');panel.className='ai-help-dialog';panel.setAttribute('aria-labelledby','ai-help-title');
@@ -12,9 +17,9 @@
  document.body.append(panel);
  const serviceNotice=document.createElement('p');serviceNotice.className='ai-help-note';
  if(!standalone){panel.querySelector('.ai-help-note').after(serviceNotice);}
- function trialExpired(){return !standalone&&Date.now()>=trial.expiresAt;}
- function updateServiceNotice(){if(!standalone)serviceNotice.textContent=trialExpired()?'国内答疑临时入口已到期，等待维护者配置长期服务。':'国内答疑试用中：此入口有效至'+trialEnd+'（北京时间），长期入口尚未配置。';}
+ function updateServiceNotice(){if(!standalone)serviceNotice.textContent=trialExpired()?'国内临时入口已到期，已自动切回原答疑服务；部分国内网络可能需要 VPN。':'国内答疑试用中：此入口有效至'+trialEnd+'（北京时间），到期后将自动切回原答疑服务。';}
  updateServiceNotice();
+ if(!standalone&&!trialExpired())setTimeout(updateServiceNotice,Math.max(0,trial.expiresAt-Date.now()+50));
  const form=panel.querySelector('form'),input=panel.querySelector('textarea'),log=panel.querySelector('.ai-help-log'),status=panel.querySelector('.ai-help-status'),send=form.querySelector('[type=submit]');
  const direct=document.createElement('a');direct.className='ai-help-direct';direct.textContent='在独立答疑页继续（手机兼容入口） ↗';direct.target='_blank';direct.rel='noopener noreferrer';direct.hidden=true;status.after(direct);
  let history=[],reading={},controller=null,opener=null;
@@ -45,11 +50,11 @@
  panel.querySelector('[data-ai-clear]').onclick=()=>{controller?.abort();history=[];log.replaceChildren();direct.hidden=true;direct.removeAttribute('href');status.textContent='已清空本次对话。';};
  form.addEventListener('submit',async event=>{
   event.preventDefault();const question=input.value.trim();if(!question||controller)return;
-  if(trialExpired()){updateServiceNotice();direct.hidden=true;status.textContent='临时答疑入口已到期，请等待维护者更新长期服务。你的问题已保留。';return;}
+  updateServiceNotice();const requestEndpoint=endpointFor();
   const current=new AbortController();controller=current;send.disabled=true;status.textContent='正在查找材料并思考…';addEntry('user',question);input.value='';
   const timeout=setTimeout(()=>current.abort(),55000);
-  try{const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},signal:current.signal,body:JSON.stringify({question,history,context:panel.querySelector('[data-ai-context]').checked?reading:{}})});if(!response.headers.get('content-type')?.includes('application/json'))throw new TypeError('Unexpected service response');const result=await response.json();if(!response.ok)throw new Error(result.error||'服务暂时不可用');if(current.signal.aborted)return;direct.hidden=true;addEntry('assistant',result.answer,result.sources||[]);history.push({role:'user',content:question},{role:'assistant',content:result.answer});history=history.slice(-6);status.textContent=result.notice||'回答仅供参考，请核对原典。';}
-  catch(error){if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?(standalone?'当前网络无法连接答疑服务。请稍后重试，或更换网络后再试。':'浏览器未能连接答疑服务，可点击下方独立答疑页继续；若独立页也打不开，说明当前网络无法访问该服务。'):error.message);input.value=question;if(network&&!standalone){const fragment=new URLSearchParams({event:reading.event||'',title:reading.title||'',q:question});const fallback=new URL('/chat',endpoint);fallback.search=new URL(endpoint).search;direct.href=fallback.href+'#'+fragment.toString();direct.hidden=false;}}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}
+  try{const response=await fetch(requestEndpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},signal:current.signal,body:JSON.stringify({question,history,context:panel.querySelector('[data-ai-context]').checked?reading:{}})});if(!response.headers.get('content-type')?.includes('application/json'))throw new TypeError('Unexpected service response');const result=await response.json();if(!response.ok)throw new Error(result.error||'服务暂时不可用');if(current.signal.aborted)return;direct.hidden=true;addEntry('assistant',result.answer,result.sources||[]);history.push({role:'user',content:question},{role:'assistant',content:result.answer});history=history.slice(-6);status.textContent=result.notice||'回答仅供参考，请核对原典。';}
+  catch(error){if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?(standalone?'当前网络无法连接答疑服务。请稍后重试，或更换网络后再试。':'浏览器未能连接答疑服务，可点击下方独立答疑页继续；若独立页也打不开，说明当前网络可能无法访问答疑服务。'):error.message);input.value=question;if(network&&!standalone){const fragment=new URLSearchParams({event:reading.event||'',title:reading.title||'',q:question});const fallback=new URL('/chat',requestEndpoint);fallback.search=new URL(requestEndpoint).search;direct.href=fallback.href+'#'+fragment.toString();direct.hidden=false;}}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}
   finally{clearTimeout(timeout);controller=null;send.disabled=false;}
  });
  if(standalone){open(document.querySelector('[data-ai-help]'));input.value=(preset.get('q')||'').slice(0,1000);window.history.replaceState(null,'',location.pathname);}
