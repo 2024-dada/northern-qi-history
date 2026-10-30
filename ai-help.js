@@ -1,11 +1,20 @@
 (() => {
  'use strict';
  const standalone=document.body.hasAttribute('data-ai-standalone'),preset=new URLSearchParams(standalone?location.hash.slice(1):'');
- const endpoint=standalone?new URL('/api/chat',location.href).href:'https://northern-qi-ai-help.bright-guppy-8139.chatgpt.site/api/chat';
+ // Public, temporary preview URL; this is NOT the DeepSeek API key.
+ // Replace with a stable service origin when a permanent domain is available.
+ const trial={origin:'https://northern-qi-ai-cfbok18l.edgeone.cool',query:'eo_token=de6e892c0514a2d7ef9c4a28c09deca5&eo_time=1793336163',expiresAt:(1793336163+10800)*1000};
+ const endpoint=standalone?new URL('/api/chat',location.href).href:trial.origin+'/api/chat?'+trial.query;
+ const trialEnd=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(trial.expiresAt);
  const main=standalone?'https://2024-dada.github.io/northern-qi-history/index.html':document.body.classList.contains('qi-companion')?'../index.html':'index.html';
  const panel=document.createElement('dialog');panel.className='ai-help-dialog';panel.setAttribute('aria-labelledby','ai-help-title');
  panel.innerHTML='<header class="ai-help-header"><div><small>帝怒之后 · 阅读助手</small><h2 id="ai-help-title">AI答疑</h2></div><button type="button" data-ai-close aria-label="关闭AI答疑">×</button></header><p class="ai-help-note">可解读当前页面、查找站内材料或询问历史知识。AI可能出错；史料关键句仍待核，暂未启用实时联网搜索。</p><label class="ai-help-context"><input type="checkbox" checked data-ai-context>结合当前阅读内容 <span data-ai-reading></span></label><div class="ai-help-prompts"><button type="button" data-ai-prompt="请通俗解释当前页面的内容，并区分史料记载与项目解释。">解释这一页</button><button type="button" data-ai-prompt="当前事件有哪些史料依据？有什么分歧或待核问题？">查找史料依据</button><button type="button" data-ai-prompt="高欢与高洋分别是什么身份？北齐是谁建立的？">试问历史知识</button></div><div class="ai-help-log" role="log" aria-label="答疑记录" aria-live="polite" tabindex="0"></div><p class="ai-help-status" role="status" aria-live="polite"></p><form class="ai-help-form"><label for="ai-question">你的问题</label><textarea id="ai-question" maxlength="1000" rows="2" placeholder="例如：这个事件为什么不能只用暴怒解释？" required></textarea><div><button type="button" data-ai-clear>清空对话</button><button type="submit">发送问题 ↗</button></div></form>';
  document.body.append(panel);
+ const serviceNotice=document.createElement('p');serviceNotice.className='ai-help-note';
+ if(!standalone){panel.querySelector('.ai-help-note').after(serviceNotice);}
+ function trialExpired(){return !standalone&&Date.now()>=trial.expiresAt;}
+ function updateServiceNotice(){if(!standalone)serviceNotice.textContent=trialExpired()?'国内答疑临时入口已到期，等待维护者配置长期服务。':'国内答疑试用中：此入口有效至'+trialEnd+'（北京时间），长期入口尚未配置。';}
+ updateServiceNotice();
  const form=panel.querySelector('form'),input=panel.querySelector('textarea'),log=panel.querySelector('.ai-help-log'),status=panel.querySelector('.ai-help-status'),send=form.querySelector('[type=submit]');
  const direct=document.createElement('a');direct.className='ai-help-direct';direct.textContent='在独立答疑页继续（手机兼容入口） ↗';direct.target='_blank';direct.rel='noopener noreferrer';direct.hidden=true;status.after(direct);
  let history=[],reading={},controller=null,opener=null;
@@ -17,7 +26,7 @@
   const section=[...document.querySelectorAll('main section')].find(el=>{const r=el.getBoundingClientRect();return r.top<innerHeight*.5&&r.bottom>innerHeight*.5;});
   return {title:section?.querySelector('h2')?.textContent||document.title,text:section?.innerText.slice(0,3000)||document.querySelector('.companion-context')?.innerText||'北齐高氏历史课程网页'};
  }
- function open(button){opener=button;reading=context();panel.querySelector('[data-ai-reading]').textContent='· '+reading.title;panel.showModal();document.documentElement.classList.add('ai-help-open');document.dispatchEvent(new CustomEvent('ui-settings-toggle',{detail:{open:true}}));input.focus();}
+ function open(button){opener=button;reading=context();updateServiceNotice();panel.querySelector('[data-ai-reading]').textContent='· '+reading.title;panel.showModal();document.documentElement.classList.add('ai-help-open');document.dispatchEvent(new CustomEvent('ui-settings-toggle',{detail:{open:true}}));input.focus();}
  function addEntry(role,text,sources=[]){
   const entry=document.createElement('article');entry.className='ai-help-message ai-help-'+role;
   const label=document.createElement('strong');label.textContent=role==='user'?'你':'AI答疑';const content=document.createElement('div');content.textContent=text;entry.append(label,content);
@@ -36,10 +45,11 @@
  panel.querySelector('[data-ai-clear]').onclick=()=>{controller?.abort();history=[];log.replaceChildren();direct.hidden=true;direct.removeAttribute('href');status.textContent='已清空本次对话。';};
  form.addEventListener('submit',async event=>{
   event.preventDefault();const question=input.value.trim();if(!question||controller)return;
+  if(trialExpired()){updateServiceNotice();direct.hidden=true;status.textContent='临时答疑入口已到期，请等待维护者更新长期服务。你的问题已保留。';return;}
   const current=new AbortController();controller=current;send.disabled=true;status.textContent='正在查找材料并思考…';addEntry('user',question);input.value='';
   const timeout=setTimeout(()=>current.abort(),55000);
   try{const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},signal:current.signal,body:JSON.stringify({question,history,context:panel.querySelector('[data-ai-context]').checked?reading:{}})});if(!response.headers.get('content-type')?.includes('application/json'))throw new TypeError('Unexpected service response');const result=await response.json();if(!response.ok)throw new Error(result.error||'服务暂时不可用');if(current.signal.aborted)return;direct.hidden=true;addEntry('assistant',result.answer,result.sources||[]);history.push({role:'user',content:question},{role:'assistant',content:result.answer});history=history.slice(-6);status.textContent=result.notice||'回答仅供参考，请核对原典。';}
-  catch(error){if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?(standalone?'当前网络无法连接答疑服务。请稍后重试，或更换网络后再试。':'浏览器未能连接答疑服务，可点击下方独立答疑页继续；若独立页也打不开，说明当前网络无法访问该服务。'):error.message);input.value=question;if(network&&!standalone){const fragment=new URLSearchParams({event:reading.event||'',title:reading.title||'',q:question});direct.href=new URL('/chat',endpoint).href+'#'+fragment.toString();direct.hidden=false;}}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}
+  catch(error){if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?(standalone?'当前网络无法连接答疑服务。请稍后重试，或更换网络后再试。':'浏览器未能连接答疑服务，可点击下方独立答疑页继续；若独立页也打不开，说明当前网络无法访问该服务。'):error.message);input.value=question;if(network&&!standalone){const fragment=new URLSearchParams({event:reading.event||'',title:reading.title||'',q:question});const fallback=new URL('/chat',endpoint);fallback.search=new URL(endpoint).search;direct.href=fallback.href+'#'+fragment.toString();direct.hidden=false;}}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}
   finally{clearTimeout(timeout);controller=null;send.disabled=false;}
  });
  if(standalone){open(document.querySelector('[data-ai-help]'));input.value=(preset.get('q')||'').slice(0,1000);window.history.replaceState(null,'',location.pathname);}
