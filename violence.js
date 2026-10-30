@@ -202,7 +202,7 @@
   cards.querySelectorAll('.violence-card').forEach(card=>observer.observe(card));
   new MutationObserver(collect).observe(document.querySelector('#dialog-body'),{childList:true});
   function frame(now){const dt=previous===null?0:Math.min(now-previous,50);previous=now;const dialogOpen=document.querySelector('#detail-dialog').open;
-    if(document.documentElement.classList.contains('ui-settings-open')){requestAnimationFrame(frame);return;}
+    if(document.documentElement.classList.contains('ui-settings-open')||document.documentElement.classList.contains('ai-help-open')){requestAnimationFrame(frame);return;}
     tracked.forEach(scene=>{const modal=!!scene.svg.closest('.detail-visual');const visible=modal?dialogOpen:!dialogOpen&&scene.svg.closest('.violence-card').classList.contains('in-view');if(visible&&!document.hidden&&!paused){scene.elapsed+=dt*speed;
       if(modal&&scene.once&&scene.elapsed>=cycleFor(scene.key)*.9){scene.elapsed=cycleFor(scene.key)*.9;scene.once=false;paused=true;update();document.querySelector('[data-scene-state]').textContent='单次播放结束 · 已停在结果画面';}
       drawScene(scene);}});
