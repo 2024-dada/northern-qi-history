@@ -1,5 +1,9 @@
 # AI答疑服务
 
+当前选择的免费迁移方向为 [EdgeOne Makers](edgeone/README.md)：项目根目录`backend/edgeone`，构建`node build.mjs`，输出`public`，Cloud Functions上限60秒。代码已准备，尚未部署；原网站API地址暂未切换。
+
+国内网络迁移准备：参见 [腾讯云部署说明](cloudbase/README.md)。`node backend/build-cloudbase.mjs` 可生成不含密钥的 CloudBase 事件云函数部署包。尚未在腾讯云上线，主站仍使用下列原地址；必须完成国内手机实际问答验收后再切换。
+
 `worker.js` 是已部署服务的无密钥源码快照，包含41条站内材料的检索数据。它是服务端Cloudflare Worker代码，不能在浏览器中运行。
 
 - 服务地址：https://northern-qi-ai-help.bright-guppy-8139.chatgpt.site

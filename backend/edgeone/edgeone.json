@@ -1,0 +1,10 @@
+{
+  "name": "northern-qi-ai",
+  "buildCommand": "node build.mjs",
+  "outputDirectory": "public",
+  "cloudFunctions": {
+    "mainlandRegions": ["ap-shanghai"],
+    "overseasRegions": ["ap-hongkong"],
+    "nodejs": {"maxDuration": 60}
+  }
+}
