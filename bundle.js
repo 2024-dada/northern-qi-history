@@ -898,17 +898,17 @@ window.RESEARCH = {
     try {
       context = new AudioContextClass();
       master = context.createGain();
-      master.gain.value = (volume / 100) * 0.24;
+      master.gain.value = (volume / 100) * 0.32;
 
-      delay = context.createDelay(1.5);
-      delay.delayTime.value = 0.42;
+      delay = context.createDelay(0.8);
+      delay.delayTime.value = 0.24;
       const filter = context.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.value = 2600;
+      filter.frequency.value = 4200;
       feedback = context.createGain();
-      feedback.gain.value = 0.19;
+      feedback.gain.value = 0.13;
       const wet = context.createGain();
-      wet.gain.value = 0.2;
+      wet.gain.value = 0.12;
 
       delay.connect(filter);
       filter.connect(feedback);
@@ -924,7 +924,14 @@ window.RESEARCH = {
     }
   }
 
-  const notes = [62, null, 69, 74, null, 76, 74, null, 69, null, 67, 69, null, 74, 76, null];
+  // Original D major pentatonic phrases: bright plucked melody with a steady,
+  // gentle pulse. Each slot is an eighth note; two phrases make a longer loop.
+  const phrases = [
+    [74, null, 81, 78, 76, null, 74, 69, 71, null, 74, 76, 78, null, 76, 74],
+    [71, null, 74, 76, 81, null, 78, 76, 74, null, 76, 78, 81, 78, 76, null]
+  ];
+  const tempo = 108;
+  const stepDuration = 60 / tempo / 2;
   const toFrequency = midi => 440 * Math.pow(2, (midi - 69) / 12);
 
   function pluck(midi, at, strength = 1) {
@@ -933,32 +940,32 @@ window.RESEARCH = {
     const voice = context.createGain();
     const tone = context.createBiquadFilter();
     tone.type = 'lowpass';
-    tone.frequency.setValueAtTime(Math.min(5200, frequency * 7), at);
-    tone.Q.value = 0.7;
+    tone.frequency.setValueAtTime(Math.min(6800, frequency * 9), at);
+    tone.Q.value = 0.62;
     voice.gain.setValueAtTime(0.0001, at);
-    voice.gain.linearRampToValueAtTime(0.12 * strength, at + 0.012);
-    voice.gain.exponentialRampToValueAtTime(0.0001, at + 1.25);
+    voice.gain.linearRampToValueAtTime(0.12 * strength, at + 0.008);
+    voice.gain.exponentialRampToValueAtTime(0.0001, at + 0.82);
     tone.connect(voice);
     voice.connect(master);
     voice.connect(delay);
 
     const fundamental = context.createOscillator();
     fundamental.type = 'triangle';
-    fundamental.frequency.setValueAtTime(frequency, at);
-    fundamental.detune.setValueAtTime(-2, at);
+    fundamental.frequency.setValueAtTime(frequency * 1.008, at);
+    fundamental.frequency.exponentialRampToValueAtTime(frequency, at + 0.035);
     fundamental.connect(tone);
     fundamental.start(at);
-    fundamental.stop(at + 1.3);
+    fundamental.stop(at + 0.9);
 
     const overtone = context.createOscillator();
     overtone.type = 'sine';
-    overtone.frequency.setValueAtTime(frequency * 2.01, at);
+    overtone.frequency.setValueAtTime(frequency * 2, at);
     const overtoneGain = context.createGain();
-    overtoneGain.gain.value = 0.22;
+    overtoneGain.gain.value = 0.16;
     overtone.connect(overtoneGain);
     overtoneGain.connect(tone);
     overtone.start(at);
-    overtone.stop(at + 0.48);
+    overtone.stop(at + 0.38);
 
     fundamental.addEventListener('ended', () => {
       fundamental.disconnect();
@@ -969,16 +976,47 @@ window.RESEARCH = {
     }, { once: true });
   }
 
+  function woodTap(at, strength = 1) {
+    if (!context || !master) return;
+    const tap = context.createOscillator();
+    const tone = context.createBiquadFilter();
+    const envelope = context.createGain();
+    tap.type = 'triangle';
+    tap.frequency.setValueAtTime(760, at);
+    tap.frequency.exponentialRampToValueAtTime(510, at + 0.025);
+    tone.type = 'bandpass';
+    tone.frequency.value = 980;
+    tone.Q.value = 0.85;
+    envelope.gain.setValueAtTime(0.0001, at);
+    envelope.gain.linearRampToValueAtTime(0.045 * strength, at + 0.003);
+    envelope.gain.exponentialRampToValueAtTime(0.0001, at + 0.065);
+    tap.connect(tone);
+    tone.connect(envelope);
+    envelope.connect(master);
+    tap.start(at);
+    tap.stop(at + 0.075);
+    tap.addEventListener('ended', () => {
+      tap.disconnect();
+      tone.disconnect();
+      envelope.disconnect();
+    }, { once: true });
+  }
+
   function scheduleNotes() {
     if (!context || context.state !== 'running' || !enabled) return;
-    const beat = 0.58;
     const horizon = context.currentTime + 0.22;
     while (nextStepAt < horizon) {
-      const note = notes[step % notes.length];
-      if (note !== null) pluck(note, nextStepAt, step % notes.length === 0 ? 1.15 : 0.82);
-      if (step % notes.length === 0) pluck(50, nextStepAt, 0.36);
+      const position = step % 16;
+      const phrase = phrases[Math.floor(step / 16) % phrases.length];
+      const note = phrase[position];
+      if (note !== null) pluck(note, nextStepAt, position % 8 === 0 ? 1.08 : 0.86);
+      if (position === 0) pluck(50, nextStepAt, 0.24);
+      if (position === 8) pluck(57, nextStepAt, 0.2);
+      if (position === 2 || position === 6 || position === 10 || position === 14) {
+        woodTap(nextStepAt, position === 2 || position === 10 ? 0.62 : 0.46);
+      }
       step += 1;
-      nextStepAt += beat;
+      nextStepAt += stepDuration;
     }
   }
 
@@ -999,7 +1037,7 @@ window.RESEARCH = {
 
   function updateVolume() {
     volume = Number(slider.value);
-    if (master && context) master.gain.setTargetAtTime((volume / 100) * 0.24, context.currentTime, 0.08);
+    if (master && context) master.gain.setTargetAtTime((volume / 100) * 0.32, context.currentTime, 0.08);
     output.value = `${volume}%`;
     output.textContent = `${volume}%`;
     try { localStorage.setItem(volumeKey, String(volume)); } catch { /* Ignore unavailable storage. */ }
