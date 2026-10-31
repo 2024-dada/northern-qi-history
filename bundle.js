@@ -788,25 +788,18 @@ window.RESEARCH = {
 (() => {
  'use strict';
  const standalone=document.body.hasAttribute('data-ai-standalone'),preset=new URLSearchParams(standalone?location.hash.slice(1):'');
- // Public, temporary preview URL; this is NOT the DeepSeek API key.
- // Replace with a stable service origin when a permanent domain is available.
- const trial={origin:'https://northern-qi-ai-cfbok18l.edgeone.cool',query:'eo_token=de6e892c0514a2d7ef9c4a28c09deca5&eo_time=1793336163',expiresAt:(1793336163+10800)*1000};
  const legacyOrigin='https://northern-qi-ai-help.bright-guppy-8139.chatgpt.site';
- function trialExpired(now=Date.now()){return !standalone&&now>=trial.expiresAt;}
- function endpointFor(now=Date.now()){
+ function endpointFor(){
   if(standalone)return new URL('/api/chat',location.href).href;
-  return trialExpired(now)?legacyOrigin+'/api/chat':trial.origin+'/api/chat?'+trial.query;
+  return legacyOrigin+'/api/chat';
  }
- const trialEnd=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(trial.expiresAt);
  const main=standalone?'https://2024-dada.github.io/northern-qi-history/index.html':document.body.classList.contains('qi-companion')?'../index.html':'index.html';
  const panel=document.createElement('dialog');panel.className='ai-help-dialog';panel.setAttribute('aria-labelledby','ai-help-title');
  panel.innerHTML='<header class="ai-help-header"><div><small>帝怒之后 · 阅读助手</small><h2 id="ai-help-title">AI答疑</h2></div><button type="button" data-ai-close aria-label="关闭AI答疑">×</button></header><p class="ai-help-note">可解读当前页面、查找站内材料或询问历史知识。AI可能出错；史料关键句仍待核，暂未启用实时联网搜索。</p><label class="ai-help-context"><input type="checkbox" checked data-ai-context>结合当前阅读内容 <span data-ai-reading></span></label><div class="ai-help-prompts"><button type="button" data-ai-prompt="请通俗解释当前页面的内容，并区分史料记载与项目解释。">解释这一页</button><button type="button" data-ai-prompt="当前事件有哪些史料依据？有什么分歧或待核问题？">查找史料依据</button><button type="button" data-ai-prompt="高欢与高洋分别是什么身份？北齐是谁建立的？">试问历史知识</button></div><div class="ai-help-log" role="log" aria-label="答疑记录" aria-live="polite" tabindex="0"></div><p class="ai-help-status" role="status" aria-live="polite"></p><form class="ai-help-form"><label for="ai-question">你的问题</label><textarea id="ai-question" maxlength="1000" rows="2" placeholder="例如：这个事件为什么不能只用暴怒解释？" required></textarea><div><button type="button" data-ai-clear>清空对话</button><button type="submit">发送问题 ↗</button></div></form>';
  document.body.append(panel);
  const serviceNotice=document.createElement('p');serviceNotice.className='ai-help-note';
  if(!standalone){panel.querySelector('.ai-help-note').after(serviceNotice);}
- function updateServiceNotice(){if(!standalone)serviceNotice.textContent=trialExpired()?'国内临时入口已到期，已自动切回原答疑服务；部分国内网络可能需要 VPN。':'国内答疑试用中：此入口有效至'+trialEnd+'（北京时间），到期后将自动切回原答疑服务。';}
- updateServiceNotice();
- if(!standalone&&!trialExpired())setTimeout(updateServiceNotice,Math.max(0,trial.expiresAt-Date.now()+50));
+ if(!standalone)serviceNotice.textContent='当前使用原答疑服务；部分国内网络可能需要 VPN。';
  const form=panel.querySelector('form'),input=panel.querySelector('textarea'),log=panel.querySelector('.ai-help-log'),status=panel.querySelector('.ai-help-status'),send=form.querySelector('[type=submit]');
  const direct=document.createElement('a');direct.className='ai-help-direct';direct.textContent='在独立答疑页继续（手机兼容入口） ↗';direct.target='_blank';direct.rel='noopener noreferrer';direct.hidden=true;status.after(direct);
  let history=[],reading={},controller=null,opener=null;
@@ -818,7 +811,7 @@ window.RESEARCH = {
   const section=[...document.querySelectorAll('main section')].find(el=>{const r=el.getBoundingClientRect();return r.top<innerHeight*.5&&r.bottom>innerHeight*.5;});
   return {title:section?.querySelector('h2')?.textContent||document.title,text:section?.innerText.slice(0,3000)||document.querySelector('.companion-context')?.innerText||'北齐高氏历史课程网页'};
  }
- function open(button){opener=button;reading=context();updateServiceNotice();panel.querySelector('[data-ai-reading]').textContent='· '+reading.title;panel.showModal();document.documentElement.classList.add('ai-help-open');document.dispatchEvent(new CustomEvent('ui-settings-toggle',{detail:{open:true}}));input.focus();}
+ function open(button){opener=button;reading=context();panel.querySelector('[data-ai-reading]').textContent='· '+reading.title;panel.showModal();document.documentElement.classList.add('ai-help-open');document.dispatchEvent(new CustomEvent('ui-settings-toggle',{detail:{open:true}}));input.focus();}
  function addEntry(role,text,sources=[]){
   const entry=document.createElement('article');entry.className='ai-help-message ai-help-'+role;
   const label=document.createElement('strong');label.textContent=role==='user'?'你':'AI答疑';const content=document.createElement('div');content.textContent=text;entry.append(label,content);
@@ -837,7 +830,7 @@ window.RESEARCH = {
  panel.querySelector('[data-ai-clear]').onclick=()=>{controller?.abort();history=[];log.replaceChildren();direct.hidden=true;direct.removeAttribute('href');status.textContent='已清空本次对话。';};
  form.addEventListener('submit',async event=>{
   event.preventDefault();const question=input.value.trim();if(!question||controller)return;
-  updateServiceNotice();const requestEndpoint=endpointFor();
+  const requestEndpoint=endpointFor();
   const current=new AbortController();controller=current;send.disabled=true;status.textContent='正在查找材料并思考…';addEntry('user',question);input.value='';
   const timeout=setTimeout(()=>current.abort(),55000);
   try{const response=await fetch(requestEndpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},signal:current.signal,body:JSON.stringify({question,history,context:panel.querySelector('[data-ai-context]').checked?reading:{}})});if(!response.headers.get('content-type')?.includes('application/json'))throw new TypeError('Unexpected service response');const result=await response.json();if(!response.ok)throw new Error(result.error||'服务暂时不可用');if(current.signal.aborted)return;direct.hidden=true;addEntry('assistant',result.answer,result.sources||[]);history.push({role:'user',content:question},{role:'assistant',content:result.answer});history=history.slice(-6);status.textContent=result.notice||'回答仅供参考，请核对原典。';}
@@ -845,4 +838,203 @@ window.RESEARCH = {
   finally{clearTimeout(timeout);controller=null;send.disabled=false;}
  });
  if(standalone){open(document.querySelector('[data-ai-help]'));input.value=(preset.get('q')||'').slice(0,1000);window.history.replaceState(null,'',location.pathname);}
+})();
+;
+/* ===== music.js ===== */;
+(() => {
+  'use strict';
+
+  const enabledKey = 'qi-background-music-enabled';
+  const volumeKey = 'qi-background-music-volume';
+  const toggle = document.querySelector('[data-music-toggle]');
+  const slider = document.querySelector('[data-music-volume]');
+  const output = document.querySelector('[data-music-volume-output]');
+  const state = document.querySelector('[data-music-state]');
+  if (!toggle || !slider || !output || !state) return;
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  let enabled = true;
+  let volume = 24;
+  let context = null;
+  let master = null;
+  let delay = null;
+  let feedback = null;
+  let scheduler = null;
+  let nextStepAt = 0;
+  let step = 0;
+  let unlocked = false;
+  let unavailable = false;
+
+  try {
+    const savedEnabled = localStorage.getItem(enabledKey);
+    if (savedEnabled !== null) enabled = savedEnabled !== 'false';
+    const savedVolume = Number(localStorage.getItem(volumeKey));
+    if (Number.isFinite(savedVolume) && savedVolume >= 0 && savedVolume <= 100) volume = savedVolume;
+  } catch { /* Preferences remain usable for this visit when storage is blocked. */ }
+
+  slider.value = String(volume);
+  render();
+
+  function render() {
+    const playing = Boolean(context && context.state === 'running' && enabled);
+    toggle.setAttribute('aria-pressed', String(enabled));
+    toggle.setAttribute('aria-label', enabled ? '关闭古风背景音乐' : '开启古风背景音乐');
+    output.value = `${volume}%`;
+    output.textContent = `${volume}%`;
+    state.textContent = unavailable ? '暂不支持' : !enabled ? '音乐已关' : playing ? '古风音乐·播放中' : '古风音乐·待启动';
+    toggle.classList.toggle('is-playing', playing);
+    toggle.classList.toggle('is-pending', enabled && !playing && !unavailable);
+    toggle.disabled = unavailable;
+    slider.disabled = unavailable;
+  }
+
+  function makeAudioGraph() {
+    if (context || unavailable) return;
+    if (!AudioContextClass) {
+      unavailable = true;
+      render();
+      return;
+    }
+    try {
+      context = new AudioContextClass();
+      master = context.createGain();
+      master.gain.value = (volume / 100) * 0.24;
+
+      delay = context.createDelay(1.5);
+      delay.delayTime.value = 0.42;
+      const filter = context.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 2600;
+      feedback = context.createGain();
+      feedback.gain.value = 0.19;
+      const wet = context.createGain();
+      wet.gain.value = 0.2;
+
+      delay.connect(filter);
+      filter.connect(feedback);
+      feedback.connect(delay);
+      delay.connect(wet);
+      wet.connect(master);
+      master.connect(context.destination);
+      unlocked = context.state === 'running';
+    } catch {
+      unavailable = true;
+      context = null;
+      render();
+    }
+  }
+
+  const notes = [62, null, 69, 74, null, 76, 74, null, 69, null, 67, 69, null, 74, 76, null];
+  const toFrequency = midi => 440 * Math.pow(2, (midi - 69) / 12);
+
+  function pluck(midi, at, strength = 1) {
+    if (!context || !master || !delay) return;
+    const frequency = toFrequency(midi);
+    const voice = context.createGain();
+    const tone = context.createBiquadFilter();
+    tone.type = 'lowpass';
+    tone.frequency.setValueAtTime(Math.min(5200, frequency * 7), at);
+    tone.Q.value = 0.7;
+    voice.gain.setValueAtTime(0.0001, at);
+    voice.gain.linearRampToValueAtTime(0.12 * strength, at + 0.012);
+    voice.gain.exponentialRampToValueAtTime(0.0001, at + 1.25);
+    tone.connect(voice);
+    voice.connect(master);
+    voice.connect(delay);
+
+    const fundamental = context.createOscillator();
+    fundamental.type = 'triangle';
+    fundamental.frequency.setValueAtTime(frequency, at);
+    fundamental.detune.setValueAtTime(-2, at);
+    fundamental.connect(tone);
+    fundamental.start(at);
+    fundamental.stop(at + 1.3);
+
+    const overtone = context.createOscillator();
+    overtone.type = 'sine';
+    overtone.frequency.setValueAtTime(frequency * 2.01, at);
+    const overtoneGain = context.createGain();
+    overtoneGain.gain.value = 0.22;
+    overtone.connect(overtoneGain);
+    overtoneGain.connect(tone);
+    overtone.start(at);
+    overtone.stop(at + 0.48);
+
+    fundamental.addEventListener('ended', () => {
+      fundamental.disconnect();
+      overtone.disconnect();
+      overtoneGain.disconnect();
+      tone.disconnect();
+      voice.disconnect();
+    }, { once: true });
+  }
+
+  function scheduleNotes() {
+    if (!context || context.state !== 'running' || !enabled) return;
+    const beat = 0.58;
+    const horizon = context.currentTime + 0.22;
+    while (nextStepAt < horizon) {
+      const note = notes[step % notes.length];
+      if (note !== null) pluck(note, nextStepAt, step % notes.length === 0 ? 1.15 : 0.82);
+      if (step % notes.length === 0) pluck(50, nextStepAt, 0.36);
+      step += 1;
+      nextStepAt += beat;
+    }
+  }
+
+  async function start() {
+    if (!enabled || unavailable) return;
+    makeAudioGraph();
+    if (!context) return;
+    try {
+      await context.resume();
+      unlocked = context.state === 'running';
+      if (unlocked && !scheduler) {
+        nextStepAt = context.currentTime + 0.08;
+        scheduler = window.setInterval(scheduleNotes, 100);
+      }
+    } catch { unlocked = false; }
+    render();
+  }
+
+  function updateVolume() {
+    volume = Number(slider.value);
+    if (master && context) master.gain.setTargetAtTime((volume / 100) * 0.24, context.currentTime, 0.08);
+    output.value = `${volume}%`;
+    output.textContent = `${volume}%`;
+    try { localStorage.setItem(volumeKey, String(volume)); } catch { /* Ignore unavailable storage. */ }
+  }
+
+  toggle.addEventListener('click', () => {
+    enabled = !enabled;
+    try { localStorage.setItem(enabledKey, String(enabled)); } catch { /* Ignore unavailable storage. */ }
+    if (enabled) {
+      start();
+    } else if (context) {
+      context.suspend().catch(() => {});
+      render();
+    } else {
+      render();
+    }
+  });
+  slider.addEventListener('input', updateVolume);
+
+  function firstInteraction() {
+    if (!enabled || unlocked || unavailable) return;
+    start();
+  }
+  document.addEventListener('pointerdown', firstInteraction, { once: true, capture: true });
+  document.addEventListener('keydown', firstInteraction, { once: true, capture: true });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && context?.state === 'running') {
+      context.suspend().catch(() => {});
+    } else if (!document.hidden && enabled && unlocked && context?.state === 'suspended') {
+      start();
+    }
+  });
+
+  // Attempt autoplay. Browsers that require a user gesture keep the default-on
+  // preference and start on the visitor's first interaction with the page.
+  if (enabled) start();
 })();
