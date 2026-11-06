@@ -12,9 +12,9 @@
 
 ## 当前版本
 
-2026-11-06恢复服务端环境变量模式。主站、事件详情和人物故事页均通过独立答疑后端调用DeepSeek，OpenAI官方SDK只在后端运行。真实密钥仅保存在托管平台的秘密环境变量DEEPSEEK_API_KEY中，不打包到前端、不写入仓库。DEEPSEEK_MODEL为模型配置。旧共享Key已由所有者撤销；替换为新Key并重新部署前，问答可能提示维护或未配置。
+2026-11-06提供两个独立入口：自备API答疑和站长API答疑（需VPN）。前者由访客填写自己的DeepSeek Key和模型名，浏览器SDK直接请求DeepSeek，Key仅在当前窗口使用，关闭后清除，不写入存储、不发送给站长后端；后者由电脑或手机经独立后端调用站长的服务端秘密环境变量DEEPSEEK_API_KEY，并明确提示需开启VPN。
 
-前端保留当前页面、对话历史和来源链接；站内41条材料在服务端检索。国内网络是否能访问后端域名需要实测，服务端环境变量本身不解决网络可达性。
+站长旧Key已撤销且从当前源码及前端包移除，禁止再使用。新Key只可作为托管平台Secret配置。更换期间AI_ENABLED=false让站长后端返回维护说明；存入新Key并设置AI_ENABLED=true、重新部署后才能恢复回答。自备API入口不受站长配置影响。两种模式都保留站内41条材料、当前页面、对话和出处链接；切换模式清空对话，防止混用。
 
 16幅融合动态档案、41条统一材料、约9分钟的四案引导主线。支持人物筛选、多关键词搜索、出处弹窗、慢放、暂停、重播和动画进度拖动。手机单列布局与阅读导航已优化。
 
@@ -172,4 +172,6 @@ GitHub官方说明：[同步Fork](https://docs.github.com/en/pull-requests/how-t
 
 ## 2026-11-06 共享Key泄露后的修复
 
-已移除ai-direct.js、ai-client中的公开凭据与浏览器SDK。历史版本中的旧Key已被撤销；不得重新使用或在前端放入新Key。后端源码位于独立ai-service源码仓库，使用运行时env.DEEPSEEK_API_KEY。新增Key必须在托管平台作为Secret设置，部署后才生效；本地.env不能自动变为生产环境变量。
+已移除ai-client/config.js及旧ai-direct.js中的共享凭据；当前ai-direct.js是无内置Key的自备API SDK。历史版本中的旧Key已被撤销；不得重新使用或在前端放入新Key。后端源码位于独立ai-service源码仓库，使用运行时env.DEEPSEEK_API_KEY。新增Key必须在托管平台作为Secret设置，部署后才生效；本地.env不能自动变为生产环境变量。
+
+构建自备API组件：pnpm --dir ai-client install，然后pnpm --dir ai-client build；最后运行build.ps1。验证：pnpm --dir ai-client verify。浏览器SDK只接受访客当次输入，不得恢复任何共享Key默认值。

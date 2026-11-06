@@ -1,0 +1,9 @@
+{
+  "name": "northern-qi-browser-ai",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {"build": "node build.mjs", "verify": "node verify.mjs"},
+  "dependencies": {"openai": "7.51.0"},
+  "devDependencies": {"esbuild": "0.28.2"}
+}

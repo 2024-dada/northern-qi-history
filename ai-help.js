@@ -1,6 +1,8 @@
 (() => {
  'use strict';
  const standalone=document.body.hasAttribute('data-ai-standalone'),preset=new URLSearchParams(standalone?location.hash.slice(1):'');
+ const directModuleURL=new URL('ai-direct.js?v=20261106b',document.currentScript?.src||location.href);
+ let directModule;
  const legacyOrigin='https://northern-qi-ai-help.bright-guppy-8139.chatgpt.site';
  function endpointFor(){
   if(standalone)return new URL('/api/chat',location.href).href;
@@ -10,6 +12,12 @@
  const panel=document.createElement('dialog');panel.className='ai-help-dialog';panel.setAttribute('aria-labelledby','ai-help-title');
  panel.innerHTML='<header class="ai-help-header"><div><small>帝怒之后 · 阅读助手</small><h2 id="ai-help-title">AI答疑</h2></div><button type="button" data-ai-close aria-label="关闭AI答疑">×</button></header><p class="ai-help-note">可解读当前页面、查找站内材料或询问历史知识。AI可能出错；史料关键句仍待核，暂未启用实时联网搜索。</p><label class="ai-help-context"><input type="checkbox" checked data-ai-context>结合当前阅读内容 <span data-ai-reading></span></label><div class="ai-help-prompts"><button type="button" data-ai-prompt="请通俗解释当前页面的内容，并区分史料记载与项目解释。">解释这一页</button><button type="button" data-ai-prompt="当前事件有哪些史料依据？有什么分歧或待核问题？">查找史料依据</button><button type="button" data-ai-prompt="高欢与高洋分别是什么身份？北齐是谁建立的？">试问历史知识</button></div><div class="ai-help-log" role="log" aria-label="答疑记录" aria-live="polite" tabindex="0"></div><p class="ai-help-status" role="status" aria-live="polite"></p><form class="ai-help-form"><label for="ai-question">你的问题</label><textarea id="ai-question" maxlength="1000" rows="2" placeholder="例如：这个事件为什么不能只用暴怒解释？" required></textarea><div><button type="button" data-ai-clear>清空对话</button><button type="submit">发送问题 ↗</button></div></form>';
  document.body.append(panel);
+ const personal=document.createElement('div');personal.className='ai-personal-config';personal.hidden=true;
+ personal.innerHTML='<label>你的 DeepSeek API Key<input type="password" data-ai-key autocomplete="off" spellcheck="false" placeholder="填写你自己的API Key"></label><label>模型名称<input type="text" data-ai-model value="deepseek-flash" autocomplete="off" maxlength="80" spellcheck="false"></label><p>Key仅在当前窗口使用，直接发送给DeepSeek，不发送给站长后端、不写入浏览器存储；关闭窗口即清除。费用由你自己的账户承担。</p>';
+ panel.querySelector('.ai-help-context').before(personal);
+ const keyInput=personal.querySelector('[data-ai-key]'),modelInput=personal.querySelector('[data-ai-model]');
+ let mode='server';
+
  const serviceNotice=document.createElement('p');serviceNotice.className='ai-help-note';
  if(!standalone){panel.querySelector('.ai-help-note').after(serviceNotice);}
  if(!standalone)serviceNotice.textContent='密钥由答疑服务保管；回答仍需核对史料。';
@@ -24,35 +32,50 @@
   const section=[...document.querySelectorAll('main section')].find(el=>{const r=el.getBoundingClientRect();return r.top<innerHeight*.5&&r.bottom>innerHeight*.5;});
   return {title:section?.querySelector('h2')?.textContent||document.title,text:section?.innerText.slice(0,3000)||document.querySelector('.companion-context')?.innerText||'北齐高氏历史课程网页'};
  }
- function open(button){opener=button;reading=context();panel.querySelector('[data-ai-reading]').textContent='· '+reading.title;panel.showModal();document.documentElement.classList.add('ai-help-open');document.dispatchEvent(new CustomEvent('ui-settings-toggle',{detail:{open:true}}));input.focus();}
+ function open(button){
+  const next=button?.dataset.aiMode||'server';
+  if(mode!==next){controller?.abort();controller=null;send.disabled=false;history=[];log.replaceChildren();input.value='';status.textContent='';keyInput.value='';}
+  mode=next;personal.hidden=mode!=='personal';
+  panel.querySelector('#ai-help-title').textContent=mode==='personal'?'自备API答疑':'站长API答疑（需VPN）';
+  serviceNotice.textContent=mode==='personal'?'使用你自己的DeepSeek API，浏览器直接连接DeepSeek。':'使用站长的服务端API。电脑和手机均需开启VPN后使用此入口。';
+  opener=button;reading=context();panel.querySelector('[data-ai-reading]').textContent='· '+reading.title;panel.showModal();document.documentElement.classList.add('ai-help-open');document.dispatchEvent(new CustomEvent('ui-settings-toggle',{detail:{open:true}}));(mode==='personal'?keyInput:input).focus();
+ }
  function addEntry(role,text,sources=[]){
   const entry=document.createElement('article');entry.className='ai-help-message ai-help-'+role;
   const label=document.createElement('strong');label.textContent=role==='user'?'你':'AI答疑';const content=document.createElement('div');content.textContent=text;entry.append(label,content);
   if(sources.length){const refs=document.createElement('div');refs.className='ai-help-sources';const title=document.createElement('p');title.textContent='本次检索到的站内材料（不等于每条都被答案引用）';refs.append(title);for(const source of sources){if(!/^[ED]\d{2}$/.test(source.id))continue;const a=document.createElement('a');a.href=main+'#event='+encodeURIComponent(source.id);a.textContent='['+source.id+'] '+source.title;a.addEventListener('click',()=>panel.close());refs.append(a);}entry.append(refs);}
   log.append(entry);entry.scrollIntoView({block:'nearest'});
  }
- function addLauncher(target){if(!target||target.querySelector('[data-ai-help]'))return;const button=document.createElement('button');button.type='button';button.dataset.aiHelp='';button.className='ai-help-launch';button.textContent='AI答疑';button.setAttribute('aria-haspopup','dialog');target.append(button);}
+ function addLauncher(target){if(!target||target.querySelector('[data-ai-help]'))return;for(const [value,label] of [['personal','自备API答疑'],['server','站长API答疑（需VPN）']]){const button=document.createElement('button');button.type='button';button.dataset.aiHelp='';button.dataset.aiMode=value;button.className='ai-help-launch';button.textContent=label;button.setAttribute('aria-haspopup','dialog');target.append(button);}}
  addLauncher(document.querySelector('.site-header nav')||document.querySelector('.companion-nav div'));
  const detail=document.querySelector('#dialog-body');if(detail){addLauncher(detail.querySelector('.event-actions'));new MutationObserver(()=>addLauncher(detail.querySelector('.event-actions'))).observe(detail,{childList:true});}
  addLauncher(document.querySelector('.story-keyboard-help'));
  document.addEventListener('click',event=>{const button=event.target.closest('[data-ai-help]');if(button)open(button);});
  panel.querySelector('[data-ai-close]').onclick=()=>panel.close();
- panel.addEventListener('close',()=>{document.documentElement.classList.remove('ai-help-open');if(opener?.isConnected)opener.focus({preventScroll:true});});
+ panel.addEventListener('close',()=>{controller?.abort();controller=null;send.disabled=false;keyInput.value='';document.documentElement.classList.remove('ai-help-open');if(opener?.isConnected)opener.focus({preventScroll:true});});
  panel.addEventListener('keydown',event=>event.stopPropagation());
  panel.querySelectorAll('[data-ai-prompt]').forEach(button=>button.onclick=()=>{input.value=button.dataset.aiPrompt;input.focus();});
  panel.querySelector('[data-ai-clear]').onclick=()=>{controller?.abort();history=[];log.replaceChildren();direct.hidden=true;direct.removeAttribute('href');status.textContent='已清空本次对话。';};
  async function askService(payload,signal){
+  if(mode==='personal'){
+   const key=keyInput.value.trim(),model=modelInput.value.trim();
+   if(!key)throw new Error('请填写你自己的DeepSeek API Key。');
+   if(!/^[a-zA-Z0-9._:-]{1,80}$/.test(model))throw new Error('请填写有效的模型名称。');
+   try{directModule ||= import(directModuleURL.href);const {createAnswer}=await directModule;if(signal.aborted)throw new DOMException('Aborted','AbortError');return await createAnswer({key})({...payload,model},{signal});}
+   catch(error){directModule=null;throw error;}
+  }
+
   const response=await fetch(endpointFor(),{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},signal,body:JSON.stringify(payload)});
   if(!response.headers.get('content-type')?.includes('application/json'))throw new TypeError('Unexpected service response');
   const result=await response.json();if(!response.ok)throw new Error(result.error||'服务暂时不可用');return result;
  }
  form.addEventListener('submit',async event=>{
-  event.preventDefault();const question=input.value.trim();if(!question||controller)return;
+  event.preventDefault();const question=input.value.trim();if(!question||controller)return;if(mode==='personal'&&!keyInput.value.trim()){status.textContent='请先填写你自己的DeepSeek API Key。';keyInput.focus();return;}
   const current=new AbortController();controller=current;send.disabled=true;status.textContent='正在查找材料并思考…';addEntry('user',question);input.value='';
   const timeout=setTimeout(()=>current.abort(),55000);
   try{const result=await askService({question,history,context:panel.querySelector('[data-ai-context]').checked?reading:{}},current.signal);if(current.signal.aborted)return;direct.hidden=true;addEntry('assistant',result.answer,result.sources||[]);history.push({role:'user',content:question},{role:'assistant',content:result.answer});history=history.slice(-6);status.textContent=result.notice||'回答仅供参考，请核对原典。';}
-  catch(error){if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?'当前网络无法连接答疑服务，请稍后重试或切换网络。':error.message);input.value=question;}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}
-  finally{clearTimeout(timeout);controller=null;send.disabled=false;}
+  catch(error){if(controller!==current)return;if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?(mode==='personal'?'当前网络无法直连DeepSeek或加载答疑组件，请稍后重试。':'无法连接站长答疑服务，请确认电脑或手机已开启VPN。'):error.message);input.value=question;}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}
+  finally{clearTimeout(timeout);if(controller===current){controller=null;send.disabled=false;}}
  });
  if(standalone){open(document.querySelector('[data-ai-help]'));input.value=(preset.get('q')||'').slice(0,1000);window.history.replaceState(null,'',location.pathname);}
 })();
