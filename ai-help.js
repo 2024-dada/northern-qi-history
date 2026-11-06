@@ -1,8 +1,6 @@
 (() => {
  'use strict';
  const standalone=document.body.hasAttribute('data-ai-standalone'),preset=new URLSearchParams(standalone?location.hash.slice(1):'');
- const directModuleURL=new URL('ai-direct.js?v=20261105a',document.currentScript?.src||location.href);
- let directModule;
  const legacyOrigin='https://northern-qi-ai-help.bright-guppy-8139.chatgpt.site';
  function endpointFor(){
   if(standalone)return new URL('/api/chat',location.href).href;
@@ -14,7 +12,7 @@
  document.body.append(panel);
  const serviceNotice=document.createElement('p');serviceNotice.className='ai-help-note';
  if(!standalone){panel.querySelector('.ai-help-note').after(serviceNotice);}
- if(!standalone)serviceNotice.textContent='当前由浏览器直连 DeepSeek，结合站内材料回答。';
+ if(!standalone)serviceNotice.textContent='密钥由答疑服务保管；回答仍需核对史料。';
  const form=panel.querySelector('form'),input=panel.querySelector('textarea'),log=panel.querySelector('.ai-help-log'),status=panel.querySelector('.ai-help-status'),send=form.querySelector('[type=submit]');
  const direct=document.createElement('a');direct.className='ai-help-direct';direct.textContent='在独立答疑页继续（手机兼容入口） ↗';direct.target='_blank';direct.rel='noopener noreferrer';direct.hidden=true;status.after(direct);
  let history=[],reading={},controller=null,opener=null;
@@ -44,10 +42,6 @@
  panel.querySelectorAll('[data-ai-prompt]').forEach(button=>button.onclick=()=>{input.value=button.dataset.aiPrompt;input.focus();});
  panel.querySelector('[data-ai-clear]').onclick=()=>{controller?.abort();history=[];log.replaceChildren();direct.hidden=true;direct.removeAttribute('href');status.textContent='已清空本次对话。';};
  async function askService(payload,signal){
-  if(!standalone){
-   try{directModule ||= import(directModuleURL.href);return await (await directModule).answer(payload,{signal});}
-   catch(error){directModule=null;throw error;}
-  }
   const response=await fetch(endpointFor(),{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},signal,body:JSON.stringify(payload)});
   if(!response.headers.get('content-type')?.includes('application/json'))throw new TypeError('Unexpected service response');
   const result=await response.json();if(!response.ok)throw new Error(result.error||'服务暂时不可用');return result;
@@ -57,7 +51,7 @@
   const current=new AbortController();controller=current;send.disabled=true;status.textContent='正在查找材料并思考…';addEntry('user',question);input.value='';
   const timeout=setTimeout(()=>current.abort(),55000);
   try{const result=await askService({question,history,context:panel.querySelector('[data-ai-context]').checked?reading:{}},current.signal);if(current.signal.aborted)return;direct.hidden=true;addEntry('assistant',result.answer,result.sources||[]);history.push({role:'user',content:question},{role:'assistant',content:result.answer});history=history.slice(-6);status.textContent=result.notice||'回答仅供参考，请核对原典。';}
-  catch(error){if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?'当前网络无法加载答疑组件或连接DeepSeek，请刷新页面或切换网络后重试。':error.message);input.value=question;}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}
+  catch(error){if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?'当前网络无法连接答疑服务，请稍后重试或切换网络。':error.message);input.value=question;}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}
   finally{clearTimeout(timeout);controller=null;send.disabled=false;}
  });
  if(standalone){open(document.querySelector('[data-ai-help]'));input.value=(preset.get('q')||'').slice(0,1000);window.history.replaceState(null,'',location.pathname);}
