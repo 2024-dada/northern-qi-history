@@ -788,7 +788,7 @@ window.RESEARCH = {
 (() => {
  'use strict';
  const standalone=document.body.hasAttribute('data-ai-standalone'),preset=new URLSearchParams(standalone?location.hash.slice(1):'');
- const directModuleURL=new URL('ai-direct.js?v=20261112corpus',document.currentScript?.src||location.href);
+ const directModuleURL=new URL('ai-direct.js?v=20261112bm25',document.currentScript?.src||location.href);
  let directModule;
  const legacyOrigin='https://northern-qi-ai-help.bright-guppy-8139.chatgpt.site';
  function endpointFor(){
@@ -830,7 +830,7 @@ window.RESEARCH = {
  function addEntry(role,text,sources=[]){
   const entry=document.createElement('article');entry.className='ai-help-message ai-help-'+role;
   const label=document.createElement('strong');label.textContent=role==='user'?'你':'AI答疑';const content=document.createElement('div');content.textContent=text;entry.append(label,content);
-  if(sources.length){const refs=document.createElement('div');refs.className='ai-help-sources';const title=document.createElement('p');title.textContent='本次检索到的站内材料（不等于每条都被答案引用）';refs.append(title);for(const source of sources){if(!/^[ED]\d{2}$/.test(source.id))continue;const a=document.createElement('a');a.href=main+'#event='+encodeURIComponent(source.id);a.textContent='['+source.id+'] '+source.title;a.addEventListener('click',()=>panel.close());refs.append(a);}entry.append(refs);}
+  if(sources.length){const refs=document.createElement('div');refs.className='ai-help-sources';const title=document.createElement('p');title.textContent='检索命中的材料（不等于每条都被答案引用）';refs.append(title);for(const source of sources){if(source.chunk_id&&source.url){let url;try{url=new URL(source.url);if(url.protocol!=='https:')continue;}catch{continue;}const a=document.createElement('a');a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';a.textContent='原典候选 ['+source.chunk_id+'] '+[source.book,source.juan,source.chapter,source.title].filter(Boolean).join(' · ');refs.append(a);continue;}if(!/^[ED]\d{2}$/.test(source.id))continue;const a=document.createElement('a');a.href=main+'#event='+encodeURIComponent(source.id);a.textContent='['+source.id+'] '+source.title;a.addEventListener('click',()=>panel.close());refs.append(a);}entry.append(refs);}
   log.append(entry);entry.scrollIntoView({block:'nearest'});
  }
  function addLauncher(target){if(!target||target.querySelector('[data-ai-help]'))return;for(const [value,label] of [['personal','自备API答疑'],['server','站长API答疑（需VPN）']]){const button=document.createElement('button');button.type='button';button.dataset.aiHelp='';button.dataset.aiMode=value;button.className='ai-help-launch';button.textContent=label;button.setAttribute('aria-haspopup','dialog');target.append(button);}}
@@ -858,7 +858,7 @@ window.RESEARCH = {
  }
  form.addEventListener('submit',async event=>{
   event.preventDefault();const question=input.value.trim();if(!question||controller)return;if(mode==='personal'&&!keyInput.value.trim()){status.textContent='请先填写你自己的DeepSeek API Key。';keyInput.focus();return;}
-  const current=new AbortController();controller=current;send.disabled=true;status.textContent='正在查找材料并思考…';addEntry('user',question);input.value='';
+  const current=new AbortController();controller=current;send.disabled=true;status.textContent='正在用BM25查找原典材料并思考…';addEntry('user',question);input.value='';
   const timeout=setTimeout(()=>current.abort(),55000);
   try{const result=await askService({question,history,context:panel.querySelector('[data-ai-context]').checked?reading:{}},current.signal);if(current.signal.aborted)return;direct.hidden=true;addEntry('assistant',result.answer,result.sources||[]);history.push({role:'user',content:question},{role:'assistant',content:result.answer});history=history.slice(-6);status.textContent=result.notice||'回答仅供参考，请核对原典。';}
   catch(error){if(controller!==current)return;if(!current.signal.aborted){const network=error instanceof TypeError||/load failed|failed to fetch|networkerror/i.test(error.message);status.textContent='未能回答：'+(network?(mode==='personal'?'当前网络无法直连DeepSeek或加载答疑组件，请稍后重试。':'无法连接站长答疑服务，请确认电脑或手机已开启VPN。'):error.message);input.value=question;}else if(log.childElementCount)status.textContent='请求已取消或超时，可重新提问。';}

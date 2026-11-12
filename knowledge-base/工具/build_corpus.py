@@ -68,6 +68,21 @@ def main():
   for old in DB.glob(pattern):old.unlink()
  manifest={'version':'20261112-primary-v1','sources':[{k:v for k,v in s.items() if k!='text'} for s in sources],'chunks':len(chunks),'events':len(records),'events_with_candidates':sum(bool(x['candidate_chunks']) for x in coverage),'failures':failures,'deduplication':'规范化正文SHA256去重页面；规范化块SHA256去重，保留全部出处。近似异文不自动删除。'}
  for name,data in [('来源清单.json',manifest),('原文切块.json',chunks),('事件覆盖.json',coverage)]: (DB/'03_索引'/name).write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')
+ # Produce one full-text BM25 index from the canonical deduplicated chunk JSON.
+ recordby={r['id']:r for r in records};search_chunks=[]
+ for c in chunks:
+  related=[recordby[e] for e in c['event_ids'] if e in recordby]
+  source_rows=[sourceby[p['source_id']] for p in c['provenance'] if p['source_id'] in sourceby]
+  people=sorted({value for r in related for value in [r.get('ruler',''),*str(r.get('aliases','')).split()] if value})
+  topics=sorted({r.get('name','') for r in related if r.get('name')})
+  times=sorted({r.get('year','') for r in related if r.get('year')})
+  books=sorted({value for s in source_rows for value in [s.get('book',''),s.get('juan',''),s.get('chapter','')] if value})
+  urls=list(dict.fromkeys(p['url'] for p in c['provenance']))
+  search_chunks.append({'chunk_id':c['chunk_id'],'text':c['text'],'event_ids':c['event_ids'],'source_ids':[s['source_id'] for s in source_rows],'book':source_rows[0].get('book','') if source_rows else '', 'juan':source_rows[0].get('juan','') if source_rows else '', 'chapter':source_rows[0].get('chapter','') if source_rows else '', 'url':urls[0] if urls else '', 'source_urls':urls,'verification':c['verification'],'fields':{'people':people,'topics':topics,'time':times,'book':books}})
+ serialized=json.dumps(search_chunks,ensure_ascii=False,separators=(',',':'))
+ (ROOT/'website/ai-client/search-index.js').write_text('export const chunks='+serialized+';\n',encoding='utf8')
+ (ROOT/'ai-service/worker/search-index.js').write_text('export const chunks='+serialized+';\n',encoding='utf8')
+ shutil.copyfile(ROOT/'website/ai-client/bm25.js',ROOT/'ai-service/worker/bm25.js')
  lines=['# 41条材料的原文覆盖核查','\n这是关键词候选覆盖，不是每条历史断言已证实。不同来源不自动等于独立证据。','\n|事件|主题|候选块数|状态|','|---|---|---|---|']
  lines +=['|'+x['event_id']+'|'+x['name']+'|'+str(len(x['candidate_chunks']))+'|'+x['status']+'|' for x in coverage]
  (DB/'04_核验与评测/41条材料覆盖表.md').write_text('\n'.join(lines)+'\n',encoding='utf8')
