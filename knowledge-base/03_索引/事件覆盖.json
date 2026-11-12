@@ -1,0 +1,417 @@
+[
+  {
+    "event_id": "E01",
+    "name": "荀济等人被处死",
+    "candidate_chunks": [
+      "C-7c7ee0f0a194a89b"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E02",
+    "name": "高德政及妻、子被杀",
+    "candidate_chunks": [
+      "C-18d370801b2a2c7f",
+      "C-e5c7e1a0a853ba9d",
+      "C-1a255966d0ffbe68",
+      "C-7da6a035cd131417"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E03",
+    "name": "杜弼被遣人斩杀",
+    "candidate_chunks": [
+      "C-ba58b4fe72c4bec3",
+      "C-5f969d9c2bdb03dd"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E04",
+    "name": "薛嫔之死",
+    "candidate_chunks": [
+      "C-f5209d7047a2caac",
+      "C-6bee236fefceab9f",
+      "C-f489e6fa8366f6b2",
+      "C-00b7d31cf8ef0384"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E05",
+    "name": "高孝瑜强饮后死亡",
+    "candidate_chunks": [
+      "C-e85ebff402241ab4"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E06",
+    "name": "高孝琬受刑致死",
+    "candidate_chunks": [
+      "C-ad015934f864cd0a",
+      "C-acd927731b37e38d",
+      "C-5003e4c319bfc361",
+      "C-0a06ff47b8e30031"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E07",
+    "name": "弟弟高俨被命令杀害",
+    "candidate_chunks": [
+      "C-504c5b4b8d5e43d6",
+      "C-49fe86ed9a59563d",
+      "C-f1efa3cbb2c157f3",
+      "C-3625cf2222344f3f"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E08",
+    "name": "斛律光被召入宫杀害",
+    "candidate_chunks": [
+      "C-77c33f9d2e240d64",
+      "C-453d39e0e30d9aaf",
+      "C-242be180b07878ac",
+      "C-dfbc2972f4e0f762",
+      "C-93686537812ac5b8",
+      "C-e34f03a611575dfd"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E09",
+    "name": "兰陵王高长恭被赐毒药",
+    "candidate_chunks": [
+      "C-e3983428ddb1c969",
+      "C-ba6558a4870eca67"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "E10",
+    "name": "崔季舒等六人被处斩",
+    "candidate_chunks": [
+      "C-c304c2f6d6490e33",
+      "C-c2a1c9e3770415df",
+      "C-707d52ac3353a3c3",
+      "C-919faf0026ad892a"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D01",
+    "name": "粉黛、散发与市中游行",
+    "candidate_chunks": [
+      "C-93f93258dbdeefa4",
+      "C-0b7d1818644c4fda"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D02",
+    "name": "路晖礼案：军纪与极端惩罚",
+    "candidate_chunks": [
+      "C-bce0ff67a20f699a"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D03",
+    "name": "旱灾之后：毁西门豹祠",
+    "candidate_chunks": [
+      "C-c2721e220e4a9144",
+      "C-47f482af778f6d3f"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D04",
+    "name": "铁笼、刺击与火焚",
+    "candidate_chunks": [
+      "C-695df2da5fbe4b68",
+      "C-7380210ac2f27709"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D05",
+    "name": "元氏宗族遭到杀害",
+    "candidate_chunks": [
+      "C-bdf2d8e7d9abf933",
+      "C-6d360770cf27022c",
+      "C-93f93258dbdeefa4",
+      "C-0dc8033cc33c3afc",
+      "C-44b494737cf972b4",
+      "C-981bf2070ceb2324",
+      "C-119551e423257405",
+      "C-e973550707180110"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D07",
+    "name": "殿上刑具与穆嵩案",
+    "candidate_chunks": [
+      "C-ccffa82bd6617fa6",
+      "C-33c14313b4a58b66",
+      "C-00b7d31cf8ef0384"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D08",
+    "name": "殴母与事后谢罪",
+    "candidate_chunks": [
+      "C-f204460bfea590aa",
+      "C-c2721e220e4a9144",
+      "C-0dc8033cc33c3afc",
+      "C-47f482af778f6d3f",
+      "C-0b7d1818644c4fda",
+      "C-33c14313b4a58b66",
+      "C-981bf2070ceb2324",
+      "C-0b7dc4b4e752a4c4",
+      "C-94e7b12d35727660",
+      "C-119551e423257405"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D09",
+    "name": "宫廷性暴力与报复说辞",
+    "candidate_chunks": [
+      "C-792b17861e64a66b",
+      "C-9013986d9f4692e7",
+      "C-f70249448c852deb",
+      "C-f5209d7047a2caac",
+      "C-3b7ed11aef5f196f"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D10",
+    "name": "李祖娥与高绍德",
+    "candidate_chunks": [
+      "C-f70249448c852deb",
+      "C-f5209d7047a2caac"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D11",
+    "name": "高百年：从“敕”字到死刑",
+    "candidate_chunks": [
+      "C-e9d840d8f88b3bd6",
+      "C-39f8864b337f9575",
+      "C-e53c6a9904dca5c8"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D13",
+    "name": "母丧时的服饰与宴乐",
+    "candidate_chunks": [
+      "C-ddc5e3e53b11cd4d",
+      "C-4bba1da9f882c75b"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D14",
+    "name": "和士开与“及时行乐”",
+    "candidate_chunks": [
+      "C-7e6f1495f63ce624",
+      "C-1f7bf0f6cbbe882f",
+      "C-e3148789963fb3f1",
+      "C-c2e35d12ab74096d"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D15",
+    "name": "假城攻防：游戏进入真实伤害",
+    "candidate_chunks": [
+      "C-33ab1f47adce1281"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D16",
+    "name": "穷儿之市与宫园扮演",
+    "candidate_chunks": [
+      "C-33ab1f47adce1281"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D17",
+    "name": "犬马斗鸡获得官号",
+    "candidate_chunks": [
+      "C-8e6413a4c2ae8f82",
+      "C-7e6f1495f63ce624",
+      "C-d082e6d41e801260",
+      "C-1f7bf0f6cbbe882f",
+      "C-44ac623c99ffa612",
+      "C-3482e1a47b1f63f0",
+      "C-c2e35d12ab74096d",
+      "C-33ab1f47adce1281"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D18",
+    "name": "蝎盆：伤害成为观赏",
+    "candidate_chunks": [
+      "C-ce83203f1314048a"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D19",
+    "name": "征集少女与家长死刑威胁",
+    "candidate_chunks": [
+      "C-7e6f1495f63ce624",
+      "C-3482e1a47b1f63f0",
+      "C-c2e35d12ab74096d"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D21",
+    "name": "冯小怜与亡国叙述",
+    "candidate_chunks": [
+      "C-4bba1da9f882c75b"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D22",
+    "name": "末日禅位：高恒与高湝",
+    "candidate_chunks": [
+      "C-5770864e7a7f0730",
+      "C-be899e34dd9bf7ea",
+      "C-d30bade83e5acf50",
+      "C-e4fc82360730d3fe",
+      "C-8e6413a4c2ae8f82",
+      "C-9fe76c51dcfd9429",
+      "C-1f7bf0f6cbbe882f",
+      "C-e3148789963fb3f1",
+      "C-a54bd104a68cf0f5",
+      "C-5635e662675eb5d9"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D23",
+    "name": "纵犬噬人",
+    "candidate_chunks": [
+      "C-ce83203f1314048a"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D24",
+    "name": "妇人与孩子遭害",
+    "candidate_chunks": [
+      "C-ce83203f1314048a"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D25",
+    "name": "谏言之后：斩犬令对方噤声",
+    "candidate_chunks": [
+      "C-ce83203f1314048a"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D26",
+    "name": "从受宠到被扼杀",
+    "candidate_chunks": [
+      "C-75ed92df7030984e"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D27",
+    "name": "庶嫡与模仿：动机能推到哪里？",
+    "candidate_chunks": [
+      "C-ce83203f1314048a"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D28",
+    "name": "郑大车案与家内处分",
+    "candidate_chunks": [
+      "C-d54009ec874525fe",
+      "C-9013986d9f4692e7"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D29",
+    "name": "李祖娥与高洋的报复叙述",
+    "candidate_chunks": [
+      "C-f70249448c852deb"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D30",
+    "name": "权臣殴辱东魏皇帝",
+    "candidate_chunks": [
+      "C-cfb2cb825133d2de",
+      "C-48146aba06c34128",
+      "C-7c7ee0f0a194a89b"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D31",
+    "name": "兰京刺杀：权臣成为受害者",
+    "candidate_chunks": [
+      "C-cfb2cb825133d2de"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D32",
+    "name": "高殷之死与报应叙事",
+    "candidate_chunks": [
+      "C-5c9bd63aa8be6883",
+      "C-0b7dc4b4e752a4c4",
+      "C-62966db72ce63f1b",
+      "C-9cdf589e137a3e2a",
+      "C-66398ad1ea90954f",
+      "C-906c27ff1960caf4"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D34",
+    "name": "剥面皮的记载：身份与方式仍待细核",
+    "candidate_chunks": [
+      "C-c2e35d12ab74096d"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  },
+  {
+    "event_id": "D33",
+    "name": "后妃、近臣与僧侣叙述",
+    "candidate_chunks": [
+      "C-ddc5e3e53b11cd4d",
+      "C-f5209d7047a2caac",
+      "C-376b404123dca28b",
+      "C-75d7433a97bd826b",
+      "C-4bba1da9f882c75b",
+      "C-44a2896e1d36c722",
+      "C-3b7ed11aef5f196f",
+      "C-b33c843a2bca68f3"
+    ],
+    "status": "已找到原文候选段；尚需逐断言核验"
+  }
+]

@@ -1,0 +1,368 @@
+{
+  "version": "20261112-primary-v1",
+  "sources": [
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_155",
+      "source_id": "S-63d84c65193d7fc0",
+      "book": "北齐书",
+      "chapter": "高德政",
+      "candidate_events": [
+        "E02"
+      ],
+      "sha256": "963469b11996bf0c3c61629a6cb8ef69325f34f815393b06da865bd3f562af96",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷三十",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-63d84c65193d7fc0.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_122",
+      "source_id": "S-42a61a6aff3138d4",
+      "book": "北齐书",
+      "chapter": "杜弼",
+      "candidate_events": [
+        "E03"
+      ],
+      "sha256": "2f53b67d10d0ad56a9ee980ef2ecc7901800411b19a1269cc8796d9366c47959",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷二十四",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-42a61a6aff3138d4.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/HY2039/chapter/1kp8q24mohnb3",
+      "source_id": "S-54d6eb0535264dda",
+      "book": "北史",
+      "chapter": "",
+      "candidate_events": [
+        "D09",
+        "D10",
+        "D13",
+        "D21",
+        "D28",
+        "D29",
+        "D33",
+        "E04"
+      ],
+      "sha256": "46fd72900bdd3e40253ee2faf1b72d308722287d2bb45475cb127dae6b4bd7ed",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十四",
+      "alternate_urls": [],
+      "file": "01_原文/北史/S-54d6eb0535264dda.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/SK1259/chapter/1llq3weh5w2z7",
+      "source_id": "S-a47d8345892fe03d",
+      "book": "史纠",
+      "chapter": "",
+      "candidate_events": [
+        "E04"
+      ],
+      "sha256": "5e5151e0b0f426837a2560b5d619d03742c9a26b5ad99e97b245f5cbfc7ea812",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷三",
+      "alternate_urls": [],
+      "file": "01_原文/史纠/S-a47d8345892fe03d.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_40",
+      "source_id": "S-13287369f2daaea1",
+      "book": "北齐书",
+      "chapter": "河南康舒王孝瑜",
+      "candidate_events": [
+        "E05"
+      ],
+      "sha256": "7876a91489138fbeb93ee859cfcbf188ed8a1abed92b43b13aaeb2cd40fd265b",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十一",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-13287369f2daaea1.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_42",
+      "source_id": "S-b1550f719d785be3",
+      "book": "北齐书",
+      "chapter": "河閒王孝琬",
+      "candidate_events": [
+        "E06"
+      ],
+      "sha256": "df2c465382ae932398df804a93517f25bb9bac2895af28b379705332ed70023d",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十一",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-b1550f719d785be3.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/SK0718/chapter/1l9yt8e5r56p7",
+      "source_id": "S-616ce037e8435da7",
+      "book": "北齐书",
+      "chapter": "后主",
+      "candidate_events": [
+        "E06"
+      ],
+      "sha256": "12b75f61af1a89ee25a6b3566ac887b0551e77377673af4cc2fa54ff103f02e8",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷次待核",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-616ce037e8435da7.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_53",
+      "source_id": "S-797fe4245e46c072",
+      "book": "北齐书",
+      "chapter": "琅邪王俨",
+      "candidate_events": [
+        "E07"
+      ],
+      "sha256": "63adb68865e655884ec6a9573f04d0e929578f4bd43b7a5455ed5cbe92555887",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十二",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-797fe4245e46c072.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/SBCK029/chapter/SBCK029_548",
+      "source_id": "S-909db5446d950ce3",
+      "book": "资治通鉴",
+      "chapter": "陈纪五",
+      "candidate_events": [
+        "E08",
+        "E10"
+      ],
+      "sha256": "11c44c77fe47cc9e7f041866590e2430d4f95042bba8fae9f148e353cce7ca19",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷一百七十一",
+      "alternate_urls": [],
+      "file": "01_原文/资治通鉴/S-909db5446d950ce3.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_43",
+      "source_id": "S-f81c68658a14a759",
+      "book": "北齐书",
+      "chapter": "兰陵武王孝瓘",
+      "candidate_events": [
+        "E09"
+      ],
+      "sha256": "2e38e74baa36120a2225ea102be3fca19f6cf4e00851150015d3600222ba13dc",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十一",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-f81c68658a14a759.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/HY2035/chapter/1knzr1adnzxmx",
+      "source_id": "S-960ed05cf5c3e0b3",
+      "book": "北齐书",
+      "chapter": "",
+      "candidate_events": [
+        "E10"
+      ],
+      "sha256": "8526a579ff223d1573be1162a352521f18df863ce766a5d59c91e4d367b2d999",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷三十九",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-960ed05cf5c3e0b3.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_9",
+      "source_id": "S-e513f7116230178c",
+      "book": "北齐书",
+      "chapter": "文宣",
+      "candidate_events": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D07",
+        "D08",
+        "D31"
+      ],
+      "sha256": "e8d0c40553ede4f84f77fb2e3f0c0c00072fcf8b07374bd206aac18ccba33138",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷四",
+      "alternate_urls": [
+        "https://www.shidianguji.com/book/LS0011/chapter/LS0011_8"
+      ],
+      "file": "01_原文/北齐书/S-e513f7116230178c.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/HY2035/chapter/1knzr0dqogf1i",
+      "source_id": "S-1150afa9253ade3e",
+      "book": "北齐书",
+      "chapter": "",
+      "candidate_events": [
+        "D11",
+        "D18",
+        "D23",
+        "D24",
+        "D25",
+        "D26",
+        "D27"
+      ],
+      "sha256": "78ef02bd11708d700c1a8a6df171317313fd2ce90e84758cc5dd6c08b7900fb8",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十二",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-1150afa9253ade3e.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/HY2039/chapter/1kp8q1nrqihq7",
+      "source_id": "S-5f0a565bbb0405fc",
+      "book": "北史",
+      "chapter": "",
+      "candidate_events": [
+        "D13",
+        "D14",
+        "D15",
+        "D16",
+        "D17",
+        "D19",
+        "D22",
+        "D34"
+      ],
+      "sha256": "01d8dcdc7a2b73da3ea35ecc72935d07e97faced77f8769c6867b42713b40e62",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷八",
+      "alternate_urls": [],
+      "file": "01_原文/北史/S-5f0a565bbb0405fc.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0015/chapter/LS0015_9",
+      "source_id": "S-490b81049b61a431",
+      "book": "北史",
+      "chapter": "",
+      "candidate_events": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D07",
+        "D08",
+        "D32",
+        "E04"
+      ],
+      "sha256": "bd8965cd5ed6e3ff48760903a41568f7cd06b731f662b058ac24f48c9fc03542",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷七",
+      "alternate_urls": [],
+      "file": "01_原文/北史/S-490b81049b61a431.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_7",
+      "source_id": "S-360ef19819d10a0a",
+      "book": "北齐书",
+      "chapter": "文襄",
+      "candidate_events": [
+        "D28",
+        "D30",
+        "D31"
+      ],
+      "sha256": "64e337a2eb3d57eabb79d61cc3f0b251915321a13076900aa0e76f11ca45170f",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷三",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-360ef19819d10a0a.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_13",
+      "source_id": "S-da2ee5e4bc6fc7df",
+      "book": "北齐书",
+      "chapter": "孝昭",
+      "candidate_events": [
+        "D32"
+      ],
+      "sha256": "9e8647dd8deca6b16b075047efd3a527b634528076542749f34a3c8cb8215b9a",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷六",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-da2ee5e4bc6fc7df.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0011/chapter/LS0011_14",
+      "source_id": "S-c2afc9a88aa172f2",
+      "book": "北齐书",
+      "chapter": "武成",
+      "candidate_events": [
+        "D13",
+        "D14",
+        "E06"
+      ],
+      "sha256": "be58a2369a0ce288dc2f15eea1d3d966255cf957e570dd72cdbc9865bf06ed9e",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷七",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-c2afc9a88aa172f2.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/NGJ8924119990125431003/chapter/1lq09on9r1hye",
+      "source_id": "S-dba89e2a803b91e3",
+      "book": "二十一史·北齐书",
+      "chapter": "",
+      "candidate_events": [
+        "E08"
+      ],
+      "sha256": "130d2ea53e00f8c881acd08d6615a0297231882dcb37a96b25be7e1b2d326409",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十七",
+      "alternate_urls": [],
+      "file": "01_原文/二十一史_北齐书/S-dba89e2a803b91e3.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/LS0010/chapter/LS0010_18",
+      "source_id": "S-972d94c3b2215154",
+      "book": "魏书",
+      "chapter": "",
+      "candidate_events": [
+        "D30",
+        "E01"
+      ],
+      "sha256": "8c04ee69758944e9b39563b8e27e291260d92f185e0794098c460185e4ddf838",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十二",
+      "alternate_urls": [],
+      "file": "01_原文/魏书/S-972d94c3b2215154.md"
+    },
+    {
+      "url": "https://www.shidianguji.com/book/CADAL01027542/chapter/1l47vy81dut6e",
+      "source_id": "S-ea2981a0f53dddbc",
+      "book": "北齐书",
+      "chapter": "",
+      "candidate_events": [
+        "D04"
+      ],
+      "sha256": "4eecaf3df765bd41d90457b0b5ebff5378374aafc8bb6536f94cee43bdfbf4ba",
+      "collected_at": "2026-11-12",
+      "status": "公开网页录文收录；影印与版本待核",
+      "juan": "卷十",
+      "alternate_urls": [],
+      "file": "01_原文/北齐书/S-ea2981a0f53dddbc.md"
+    }
+  ],
+  "chunks": 245,
+  "events": 41,
+  "events_with_candidates": 41,
+  "failures": [],
+  "deduplication": "规范化正文SHA256去重页面；规范化块SHA256去重，保留全部出处。近似异文不自动删除。"
+}

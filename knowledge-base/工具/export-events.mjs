@@ -1,0 +1,4 @@
+import fs from 'node:fs';import vm from 'node:vm';import path from 'node:path';import {fileURLToPath} from 'node:url';
+let root=path.dirname(fileURLToPath(import.meta.url));while(!fs.existsSync(path.join(root,'website','.git'))){const next=path.dirname(root);if(next===root)throw Error('Workspace not found');root=next;}
+const site=path.join(root,'website'),sandbox={window:{}};vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(site,'data.js'),'utf8'),sandbox);const dossier=fs.readFileSync(path.join(site,'dossier.js'),'utf8');vm.runInContext(dossier.slice(0,dossier.indexOf('  const gallery=document.querySelector'))+'})();',sandbox);
+const data=sandbox.window.RESEARCH;console.log(JSON.stringify(data.events.map(({id,name,ruler,aliases,context,agency,primary,secondary,boundary,source,year,date})=>({id,name,ruler,aliases,context,agency,primary,secondary,boundary,year,date,source:data.sources[source]}))));

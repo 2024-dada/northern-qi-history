@@ -175,3 +175,8 @@ GitHub官方说明：[同步Fork](https://docs.github.com/en/pull-requests/how-t
 已移除ai-client/config.js及旧ai-direct.js中的共享凭据；当前ai-direct.js是无内置Key的自备API SDK。历史版本中的旧Key已被撤销；不得重新使用或在前端放入新Key。后端源码位于独立ai-service源码仓库，使用运行时env.DEEPSEEK_API_KEY。新增Key必须在托管平台作为Secret设置，部署后才生效；本地.env不能自动变为生产环境变量。
 
 构建自备API组件：pnpm --dir ai-client install，然后pnpm --dir ai-client build；最后运行build.ps1。验证：pnpm --dir ai-client verify。浏览器SDK只接受访客当次输入，不得恢复任何共享Key默认值。
+
+
+## 2026-11-12 原典资料库
+
+knowledge-base/保存21份识典原典录文、245个去重语义块、41条事件卡和覆盖索引。原文候选关联不代表逐断言或影印核验完成；完整来源和状态见knowledge-base/README.md。两类AI语料加入原文候选段，仍沿用原关键词评分，BM25尚未实现。网站SDK模块版本20261112corpus；站长后端须独立部署。

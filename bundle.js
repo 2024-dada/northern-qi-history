@@ -788,7 +788,7 @@ window.RESEARCH = {
 (() => {
  'use strict';
  const standalone=document.body.hasAttribute('data-ai-standalone'),preset=new URLSearchParams(standalone?location.hash.slice(1):'');
- const directModuleURL=new URL('ai-direct.js?v=20261106b',document.currentScript?.src||location.href);
+ const directModuleURL=new URL('ai-direct.js?v=20261112corpus',document.currentScript?.src||location.href);
  let directModule;
  const legacyOrigin='https://northern-qi-ai-help.bright-guppy-8139.chatgpt.site';
  function endpointFor(){
