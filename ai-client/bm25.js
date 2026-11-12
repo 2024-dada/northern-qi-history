@@ -4,6 +4,17 @@ const TRADITIONAL_TO_SIMPLIFIED=Object.fromEntries(`
 
 const FIELD_WEIGHTS={people:4,topics:3,time:1.5,book:1.5,text:1};
 const K1=1.2,B=0.75;
+const METHOD_RULES=[
+  {pattern:/恐怖刑法|酷刑|刑法|刑罚|刑名|处刑方式|死法|杀法|杀人方式|杀害方式|处死方式|怎么杀|如何杀|怎样被杀|怎么被杀/,label:'个案中的杀害或处置方式',display:['杀','斩','诛','戮','赐死','鸩','毒','杖','鞭','挞','烹','焚','烧','刺','槊','铁笼','支解','剥'],terms:['杀','斩','诛','戮','赐死','鸩','毒','杖','鞭','挞','烹','焚','烧','刺','槊','铁笼','支解','剥']},
+  {pattern:/斩首|砍头|斩杀|处斩/,label:'斩杀相关记载',display:['斩','诛','处死'],terms:['斩','诛','杀','死','首']},
+  {pattern:/毒杀|毒死|赐毒|鸩毒|饮毒/,label:'毒杀相关记载',display:['鸩','毒','赐死'],terms:['鸩','毒','酖','饮','死','赐死']},
+  {pattern:/杖杀|杖刑|杖责|鞭打|鞭杀/,label:'杖责或鞭击相关记载',display:['杖','鞭','挞'],terms:['杖','鞭','挞','击','打']},
+  {pattern:/烧死|焚烧|烹杀|火刑/,label:'焚烧或烹杀相关记载',display:['烹','焚','烧','火'],terms:['烹','焚','烧','火','杀']},
+  {pattern:/刺死|刺杀|槊杀/,label:'刺杀相关记载',display:['刺','槊','刃'],terms:['刺','槊','刃','杀']}
+];
+const CAUSE_TERMS=['权','忌','恐','畏','怒','谏','诬','谗','谋','逆','夺位','储位'];
+const FILLER_PHRASES=/请问|请|帮我|告诉我|网站|网页|本站|站内|中的|里的|里面的|里面|罗列|列举|列出|盘点|汇总|清单|有哪些|都有哪些|有什么|分别|具体|一下|相关内容/g;
+const FOLLOW_UP=/^(?:那|所以|这|这个|该|其|他|她|他们|她们|还有|然后)/;
 
 function simplify(value){
   return String(value||'').normalize('NFKC').toLowerCase().replace(/[\u3400-\u9fff]/g,char=>TRADITIONAL_TO_SIMPLIFIED[char]||char);
@@ -24,6 +35,41 @@ function fieldTerms(chunk,field){
   if(field==='text')return chunk.text||'';
   const value=chunk.fields?.[field]??chunk[field]??'';
   return Array.isArray(value)?value.join(' '):value;
+}
+
+function makeQueryPlan(question,context,history){
+  const normalized=simplify(question);
+  const compare=/比较|对比|区别|差别|异同|各自|分别|有何不同|对照/.test(normalized);
+  const list=/罗列|列举|列出|有哪些|都有哪些|盘点|汇总|清单|一共|分别/.test(normalized);
+  const lawCode=/法典|法条|律令|刑律|法律制度|制度条文|具体罪名/.test(normalized);
+  const cause=/为什么|为何|为啥|原因|缘由|动机|目的/.test(normalized);
+  const methodRule=METHOD_RULES.find(rule=>rule.pattern.test(normalized));
+  const queryTerms=new Map();
+  const add=(value,weight)=>{for(const term of tokenize(value))if(weight>(queryTerms.get(term)||0))queryTerms.set(term,weight);};
+  for(const term of tokenize(normalized.replace(FILLER_PHRASES,' ')))add(term,1);
+
+  if(!lawCode&&methodRule)for(const term of methodRule.terms)add(term,0.22);
+  if(cause)for(const term of CAUSE_TERMS)add(term,0.18);
+
+  const followUp=FOLLOW_UP.test(normalized)||/(?:呢|那样|这样|上述)$/.test(normalized);
+  const lastUserQuestion=[...history].reverse().find(item=>item?.role==='user'&&typeof item.content==='string')?.content||'';
+  let usedContext=false;
+  if(followUp){
+    if(context.title){add(context.title,0.55);usedContext=true;}
+    if(lastUserQuestion){add(lastUserQuestion,0.35);usedContext=true;}
+  }
+
+  const intent=lawCode?'formal-law':compare?'comparison':list?'list':cause?'cause':methodRule?'method':'general';
+  const scopeNote=lawCode
+    ?'本站没有系统收录北齐法典或律令，不能用个案记载代替正式刑律条文。'
+    :methodRule
+      ?'按本站个案中记载的杀害或处置方式检索；这不是完整的刑罚清单。'
+      :cause
+        ?'动机词只用于找相关材料，史书记载与项目解释需分开，不能仅凭检索词认定动机。'
+        :'';
+  const displayTerms=lawCode?[]:methodRule?methodRule.display.slice(0,10):cause?['权力','猜忌','恐惧','进谏','谋逆']:[];
+  const label=lawCode?'正式刑律/法典问题':compare?'比较问题':list?(methodRule?`列举：${methodRule.label}`:'列举问题'):cause?'原因分析问题':methodRule?.label||'按原问题检索';
+  return {terms:queryTerms,intent,label,displayTerms,scopeNote,usedContext};
 }
 
 export function createBM25Retriever(records,chunks,{k1=K1,b=B}={}){
@@ -50,41 +96,43 @@ export function createBM25Retriever(records,chunks,{k1=K1,b=B}={}){
     for(const [field,weight] of Object.entries(FIELD_WEIGHTS)){
       const data=document.fields[field],fieldStats=stats[field];
       if(!data.length||!fieldStats.averageLength)continue;
-      for(const term of queryTerms){
+      for(const [term,queryWeight] of queryTerms){
         const tf=data.frequencies.get(term)||0,df=fieldStats.df.get(term)||0;
         if(!tf||!df)continue;
         const idf=Math.log(1+(prepared.length-df+0.5)/(df+0.5));
         const norm=tf+k1*(1-b+b*data.length/fieldStats.averageLength);
-        score+=weight*idf*(tf*(k1+1))/norm;
+        score+=queryWeight*weight*idf*(tf*(k1+1))/norm;
       }
     }
     if(contextEvent&&document.chunk.event_ids?.includes(contextEvent))score+=2;
     return score;
   }
-  return function retrieve(question,context={}){
-    const queryTerms=[...new Set(tokenize(question))];
-    if(!queryTerms.length&&!context.event)return {events:[],chunks:[]};
+  return function retrieve(question,context={},history=[]){
+    const queryPlan=makeQueryPlan(question,context,history);
+    const queryTerms=queryPlan.terms;
+    if(!queryTerms.size&&!context.event)return {events:[],chunks:[],queryOptimization:querySummary(queryPlan)};
     const ranked=prepared.map(document=>({document,score:scoreDocument(document,queryTerms,context.event)}))
       .filter(item=>item.score>0)
       .sort((a,b)=>b.score-a.score||a.document.chunk.chunk_id.localeCompare(b.document.chunk.chunk_id));
-    if(!ranked.length)return {events:[],chunks:[]};
-    const comparison=/比较|對比|对比|区别|差别|異同|异同|各自|分别|分別|哪些|几个|幾個|有何不同|对照|對照/.test(simplify(question));
+    if(!ranked.length)return {events:[],chunks:[],queryOptimization:querySummary(queryPlan)};
+    const comparison=queryPlan.intent==='comparison',broad=queryPlan.intent==='list'||comparison;
+    const eventLimit=queryPlan.intent==='list'?8:comparison?6:4;
+    const chunkLimit=queryPlan.intent==='list'?12:comparison?10:6;
     const groupScores=new Map();
-    for(const item of ranked.slice(0,comparison?24:16))for(const id of item.document.chunk.event_ids||[]){
+    for(const item of ranked.slice(0,broad?32:16))for(const id of item.document.chunk.event_ids||[]){
       const record=byId.get(id);if(!record)continue;
       const group=groupScores.get(id)||{record,score:0,count:0};
       group.score+=item.score/(1+group.count*0.75);group.count++;
       groupScores.set(id,group);
     }
-    const events=[...groupScores.values()].sort((a,b)=>b.score-a.score||a.record.id.localeCompare(b.record.id)).slice(0,comparison?6:4);
+    const events=[...groupScores.values()].sort((a,b)=>b.score-a.score||a.record.id.localeCompare(b.record.id)).slice(0,eventLimit);
     const selected=[],selectedIds=new Set();
     for(let pass=0;pass<2;pass++)for(const event of events){
       const match=ranked.find(item=>!selectedIds.has(item.document.chunk.chunk_id)&&item.document.chunk.event_ids?.includes(event.record.id));
       if(match){selected.push(match);selectedIds.add(match.document.chunk.chunk_id);}
     }
-    const maxChunks=comparison?10:6;
     for(const item of ranked){
-      if(selected.length>=maxChunks)break;
+      if(selected.length>=chunkLimit)break;
       const chunk=item.document.chunk;
       if(!selectedIds.has(chunk.chunk_id)&&!(chunk.event_ids||[]).length){selected.push(item);selectedIds.add(chunk.chunk_id);}
     }
@@ -95,8 +143,12 @@ export function createBM25Retriever(records,chunks,{k1=K1,b=B}={}){
       });
       return {...event.record,evidence};
     });
-    return {events:selectedEvents,chunks:selected.map(item=>item.document.chunk)};
+    return {events:selectedEvents,chunks:selected.map(item=>item.document.chunk),queryOptimization:querySummary(queryPlan)};
   };
+}
+
+function querySummary(plan){
+  return {intent:plan.intent,label:plan.label,expandedTerms:plan.displayTerms,scopeNote:plan.scopeNote,usedContext:plan.usedContext};
 }
 
 export {tokenize as tokenizeBM25};
