@@ -373,6 +373,16 @@ window.RESEARCH = {
 (() => {
   'use strict';
   const data=window.RESEARCH, dialog=document.querySelector('#detail-dialog'), body=document.querySelector('#dialog-body');
+  const numberedSections=[
+    ['.visit-guide > .eyebrow','01'],
+    ['.family-stories .eyebrow','02'],
+    ['.violence-gallery .eyebrow','03'],
+    ['.orientation > .eyebrow','04'],
+    ['.chapter-rail > .eyebrow','05'],
+    ['.exploration .explore-heading .eyebrow','06'],
+    ['.sources > .eyebrow','07']
+  ];
+  for(const [selector,number] of numberedSections){const label=document.querySelector(selector);if(!label||label.querySelector('.section-index'))continue;const index=document.createElement('span');index.className='section-index';index.textContent=number;index.setAttribute('aria-hidden','true');label.prepend(index);}
   const escape=(value)=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const links=(source)=>source.links.map(([label,url])=>`<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(label)} ↗</a>`).join('');
   const memory={read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}},write(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}}};

@@ -162,6 +162,15 @@ html{scroll-padding-top:calc(var(--header-height,100px) + 18px)}.chapter{scroll-
 .reading-large .family-stories-features h3{font-size:25px}
 .reading-large .family-stories-note{font-size:16px}
 .reading-large .family-stories .primary-button{font-size:18px}
+/* Clear section and case numbering, with concise narrative cards. */
+.section-index{display:inline-flex;align-items:center;justify-content:center;min-width:2.45em;height:1.7em;margin-right:.75em;padding:0 .35em;border:1px solid currentColor;color:var(--red);font-variant-numeric:tabular-nums;letter-spacing:.05em;vertical-align:middle}
+.case-summary-grid{counter-reset:case-summary}
+.case-summary-grid article{counter-increment:case-summary}
+.case-summary-grid h3::before{content:counter(case-summary,decimal-leading-zero) " / ";display:inline-block;margin-right:.35em;color:var(--red);font-family:var(--sans);font-size:.62em;letter-spacing:.06em;vertical-align:.12em}
+.case-summary-story{font-size:14px;line-height:1.95;margin:0}
+.case-summary-story strong{color:#80583d;font-weight:600}
+.reading-large .case-summary-story{font-size:18px}
+@media(max-width:650px){.reading-large .case-summary-story{font-size:16px}}
 @media(max-width:800px){.family-stories{grid-template-columns:1fr;gap:20px}.family-stories h2{font-size:32px}.family-stories-intro>p:not(.eyebrow){max-width:none}}
 @media(max-width:650px){.family-stories{gap:14px}.family-stories h2{font-size:30px}.family-stories-intro>p:not(.eyebrow){font-size:14px}.family-stories-features h3{font-size:19px}.family-stories .primary-button{font-size:14px;padding:14px 18px}.reading-large .family-stories h2{font-size:35px}.reading-large .family-stories-intro>p:not(.eyebrow),.reading-large .family-stories-features li p{font-size:18px}}
 
