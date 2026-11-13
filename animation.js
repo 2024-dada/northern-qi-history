@@ -49,7 +49,7 @@
     scrub.setAttribute('aria-valuetext', `${elapsed}秒，${frames[phase].title}`);
     scene.dataset.playback = running ? 'playing' : time === duration ? 'ended' : 'paused';
     if (phase !== previousPhase) {
-      find('#scene-phase').textContent = `${String(phase + 1).padStart(2, '0')} / 04`;
+      find('#scene-phase').textContent = `${phase + 1} / 4`;
       find('#scene-title').textContent = frames[phase].title;
       find('#scene-description').textContent = frames[phase].text;
       find('#scene-evidence').textContent = frames[phase].evidence;

@@ -101,7 +101,7 @@ window.RESEARCH = {
   window.RESEARCH.visuals=entries;
   window.RESEARCH.visualArtwork=artwork;
   const cards=document.querySelector('#violence-cards');
-  cards.innerHTML=entries.map((e,i)=>`<button class="violence-card" type="button" data-event="${e.event}" data-visual="${e.key}" aria-label="${esc(e.tag)}：展开${esc(e.title)}"><span class="v-card-top"><span>${String(i+1).padStart(2,'0')} / ${esc(e.tag)}</span><span class="v-status">${esc(e.status)}</span></span>${artwork(e,'archive-'+i)}<span class="v-card-body"><span class="v-subtitle">${esc(e.subtitle)}</span><strong>${esc(e.title)}</strong><span class="v-question">${esc(e.question)}</span><span class="v-card-link">查看事件经过与原因 <span aria-hidden="true">↗</span></span></span></button>`).join('');
+  cards.innerHTML=entries.map((e,i)=>`<button class="violence-card" type="button" data-event="${e.event}" data-visual="${e.key}" aria-label="${esc(e.tag)}：展开${esc(e.title)}"><span class="v-card-top"><span>${i+1} / ${esc(e.tag)}</span><span class="v-status">${esc(e.status)}</span></span>${artwork(e,'archive-'+i)}<span class="v-card-body"><span class="v-subtitle">${esc(e.subtitle)}</span><strong>${esc(e.title)}</strong><span class="v-question">${esc(e.question)}</span><span class="v-card-link">查看事件经过与原因 <span aria-hidden="true">↗</span></span></span></button>`).join('');
   const preferences={read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}},write(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{}}};
   const bloodToggle=document.querySelector('#violence-blood');
   const bloodEnabled=preferences.read('qi-blood-enabled',true)!==false;
@@ -357,7 +357,7 @@ window.RESEARCH = {
   const cards=[...gallery.children];
   const order=[0,1,7,8,2,11,3,14,4,9,6,10,12,13,15,5];
   order.forEach(i=>gallery.append(cards[i]));
-  [...gallery.children].forEach((card,i)=>{const label=card.querySelector('.v-card-top > span');label.textContent=String(i+1).padStart(2,'0')+' / '+label.textContent.replace(/^\d+ \/ /,'');});
+  [...gallery.children].forEach((card,i)=>{const label=card.querySelector('.v-card-top > span');label.textContent=(i+1)+' / '+label.textContent.replace(/^\d+ \/ /,'');});
   const observer=new IntersectionObserver(entries=>entries.forEach(x=>x.target.classList.toggle('d-visible',x.isIntersecting)),{rootMargin:'50px'});
   gallery.querySelectorAll('.d-card').forEach(c=>observer.observe(c));
   document.addEventListener('archive-replay',()=>{document.documentElement.classList.add('d-restarting');requestAnimationFrame(()=>requestAnimationFrame(()=>document.documentElement.classList.remove('d-restarting')));});
@@ -374,13 +374,13 @@ window.RESEARCH = {
   'use strict';
   const data=window.RESEARCH, dialog=document.querySelector('#detail-dialog'), body=document.querySelector('#dialog-body');
   const numberedSections=[
-    ['.visit-guide > .eyebrow','01'],
-    ['.family-stories .eyebrow','02'],
-    ['.violence-gallery .eyebrow','03'],
-    ['.orientation > .eyebrow','04'],
-    ['.chapter-rail > .eyebrow','05'],
-    ['.exploration .explore-heading .eyebrow','06'],
-    ['.sources > .eyebrow','07']
+    ['.visit-guide > .eyebrow','1'],
+    ['.family-stories .eyebrow','2'],
+    ['.violence-gallery .eyebrow','3'],
+    ['.orientation > .eyebrow','4'],
+    ['.chapter-rail > .eyebrow','5'],
+    ['.exploration .explore-heading .eyebrow','6'],
+    ['.sources > .eyebrow','7']
   ];
   for(const [selector,number] of numberedSections){const label=document.querySelector(selector);if(!label||label.querySelector('.section-index'))continue;const index=document.createElement('span');index.className='section-index';index.textContent=number;index.setAttribute('aria-hidden','true');label.prepend(index);}
   const escape=(value)=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -485,7 +485,7 @@ window.RESEARCH = {
   dialog.addEventListener('close',()=>{document.documentElement.classList.remove('detail-open');activeEvent=null;browsingIds=null;if(!closingForNavigation&&/^#(?:event|source)=/.test(location.hash))history.replaceState(null,'',location.pathname+location.search+(returnHash||'#explore'));closingForNavigation=false;const focus=returnFocus?.isConnected?returnFocus:(returnFocus?.dataset.event?document.querySelector('#event-list [data-event="'+returnFocus.dataset.event+'"]'):null);(focus||document.querySelector('#event-list .event-row')||document.querySelector('#event-search'))?.focus({preventScroll:true});parentEvent=null;});
   document.addEventListener('click',event=>{const t=event.target.closest('[data-animation-action],[data-source],[data-event],[data-open-method],[data-event-source],[data-back-event]');if(!t)return;if(t.hasAttribute('data-animation-action')){document.querySelector('#violence-'+t.dataset.animationAction)?.click();dialog.querySelectorAll('[data-animation-action]').forEach(b=>b.textContent=document.querySelector('#violence-'+b.dataset.animationAction).textContent.replace('卡片',''));return;}if(t.hasAttribute('data-source'))sourceDetail(t.dataset.source);else if(t.hasAttribute('data-event'))eventDetail(t.dataset.event,t.dataset.visual);else if(t.hasAttribute('data-open-method'))methodDetail();else if(t.hasAttribute('data-event-source'))sourceDetail(t.dataset.eventSource,t.dataset.parentEvent);else if(t.hasAttribute('data-back-event')&&parentEvent){eventDetail(parentEvent,parentVisual,false);requestAnimationFrame(()=>{const slider=body.querySelector('[data-scene-progress]');if(slider&&eventSceneProgress!==null){slider.value=eventSceneProgress;slider.dispatchEvent(new Event('input',{bubbles:true}));}dialog.scrollTop=eventScroll;});}});
   const art={scroll:'<path d="M25 20h70v100H25zM25 20q-20 0-12 14h12M95 120q20 0 12-14H95"/><path d="M42 40h36M42 56h36M42 72h23M42 88h36"/>',network:'<circle cx="60" cy="55" r="16"/><circle cx="22" cy="105" r="10"/><circle cx="100" cy="105" r="10"/><path d="M50 70l-22 25M70 70l22 25M22 40h25M100 40H74"/>',command:'<path d="M20 25h80v45H20zM60 70v28M45 87l15 15 15-15M30 120h60"/><path d="M35 43h50M35 55h35"/>',seal:'<path d="M40 20h40v26H40zM25 46h70v28H25zM20 110h80v13H20z"/><path d="M40 92h40" stroke="#9d4236"/>'};
-  function stage(index){const s=data.stages[index];document.querySelectorAll('[data-stage]').forEach(b=>{const active=Number(b.dataset.stage)===index;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});document.querySelector('#stage-index').textContent=String(index+1).padStart(2,'0');document.querySelector('#stage-kicker').textContent=s.kicker;document.querySelector('#stage-title').textContent=s.title;document.querySelector('#stage-text').textContent=s.text;document.querySelector('#stage-quote').textContent=s.quote;document.querySelector('#stage-quote-label').textContent=([0,3].includes(index)?'史书原文（已转简体）':'根据记载整理的说明');document.querySelector('#stage-art').innerHTML=`<svg viewBox="0 0 120 145" fill="none" stroke="#8b8f79" stroke-width="1.5">${art[s.symbol]}</svg>`;}
+  function stage(index){const s=data.stages[index];document.querySelectorAll('[data-stage]').forEach(b=>{const active=Number(b.dataset.stage)===index;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});document.querySelector('#stage-index').textContent=String(index+1);document.querySelector('#stage-kicker').textContent=s.kicker;document.querySelector('#stage-title').textContent=s.title;document.querySelector('#stage-text').textContent=s.text;document.querySelector('#stage-quote').textContent=s.quote;document.querySelector('#stage-quote-label').textContent=([0,3].includes(index)?'史书原文（已转简体）':'根据记载整理的说明');document.querySelector('#stage-art').innerHTML=`<svg viewBox="0 0 120 145" fill="none" stroke="#8b8f79" stroke-width="1.5">${art[s.symbol]}</svg>`;}
   document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',()=>stage(Number(b.dataset.stage))));stage(0);
   function node(key){const n=data.nodes[key];document.querySelectorAll('[data-node]').forEach(b=>{const active=b.dataset.node===key;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});document.querySelector('#node-role').textContent=n.role;document.querySelector('#node-title').textContent=n.title;document.querySelector('#node-text').textContent=n.text;}
   document.querySelectorAll('[data-node]').forEach(b=>b.addEventListener('click',()=>node(b.dataset.node)));node('ruler');
@@ -502,7 +502,7 @@ window.RESEARCH = {
   };
   data.events.forEach(e=>{if(!classifications[e.id])classifications[e.id]={date:e.date??null,method:e.method||e.type,disputed:/待核|线索|分歧|推断/.test(e.status||'')};e.category=e.category||'暴力事件';});
   const viewNotes={person:'按人物与材料类型查找，点开可见事件经过、人物责任、原因分析和史料来源。',time:'按已定位的年份排列；具体年份未定的事件单列，不强行补入时间顺序。',method:'依据方式或行为类型分组；伤害、死亡与宫廷生活分别标注。方式未明的单列，具体器物与操作不补造。',difference:'查看日期、方式或篇章叙述有分歧，以及尚待核验的材料，点开详情核对相应来源。'};
-  function eventRow(e){const snippet=searchSnippet(e);return `<button class="event-row${readEvents.has(e.id)?' event-read':''}" data-event="${e.id}" aria-label="展开${escape(e.name)}"${snippet?` aria-describedby="event-match-${escape(e.id)}"`:''}><span class="event-id">${String(data.events.indexOf(e)+1).padStart(2,"0")}</span><span class="event-ruler">${escape(e.ruler)}</span><span class="event-content"><strong>${highlighted(e.name)}${saved.has(e.id)?'<span class="event-saved" aria-label="已收藏"> ★</span>':''}</strong><span class="event-meta">${highlighted(e.type)}${readEvents.has(e.id)?'<span class="read-badge">已读</span>':''}</span>${snippet}</span><span class="event-year">${escape(e.year)}</span><span class="event-arrow" aria-hidden="true">↗</span></button>`;}
+  function eventRow(e){const snippet=searchSnippet(e);return `<button class="event-row${readEvents.has(e.id)?' event-read':''}" data-event="${e.id}" aria-label="展开${escape(e.name)}"${snippet?` aria-describedby="event-match-${escape(e.id)}"`:''}><span class="event-id">${data.events.indexOf(e)+1}</span><span class="event-ruler">${escape(e.ruler)}</span><span class="event-content"><strong>${highlighted(e.name)}${saved.has(e.id)?'<span class="event-saved" aria-label="已收藏"> ★</span>':''}</strong><span class="event-meta">${highlighted(e.type)}${readEvents.has(e.id)?'<span class="read-badge">已读</span>':''}</span>${snippet}</span><span class="event-year">${escape(e.year)}</span><span class="event-arrow" aria-hidden="true">↗</span></button>`;}
   function explorationLink(){
     const url=new URL(location.pathname,location.origin);
     if(filter!=='全部')url.searchParams.set('ruler',filter);
@@ -700,7 +700,7 @@ window.RESEARCH = {
     scrub.setAttribute('aria-valuetext', `${elapsed}秒，${frames[phase].title}`);
     scene.dataset.playback = running ? 'playing' : time === duration ? 'ended' : 'paused';
     if (phase !== previousPhase) {
-      find('#scene-phase').textContent = `${String(phase + 1).padStart(2, '0')} / 04`;
+      find('#scene-phase').textContent = `${phase + 1} / 4`;
       find('#scene-title').textContent = frames[phase].title;
       find('#scene-description').textContent = frames[phase].text;
       find('#scene-evidence').textContent = frames[phase].evidence;

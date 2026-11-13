@@ -9,7 +9,7 @@
 .scene-screen-note{position:absolute;right:15px;top:13px;font-size:10px;color:#b7c0b3;letter-spacing:.08em}
 .scene-steps{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #c9beaa}
 .scene-steps button{background:none;border:0;border-right:1px solid #c9beaa;color:#776e5e;min-height:48px;padding:9px 5px;font:inherit;font-size:12px;cursor:pointer}
-.scene-steps button:last-child{border-right:0}.scene-steps button.active{color:#923b2b;background:#f0e9dc;box-shadow:inset 0 -2px #923b2b}.scene-steps button span{margin-right:8px;font-size:10px;opacity:.7}
+.scene-steps button:last-child{border-right:0}.scene-steps button.active{color:#923b2b;background:#f0e9dc;box-shadow:inset 0 -2px #923b2b}.scene-steps button span{display:inline-grid;place-items:center;width:1.8em;height:1.8em;margin-right:8px;border-radius:3px;background:var(--red);color:var(--paper-light);font-size:11px;font-weight:800;line-height:1;opacity:1}
 .scene-commentary{padding:22px 28px 0;min-height:153px}.scene-commentary .eyebrow{color:#923b2b;margin:0 0 8px}.scene-commentary h4{font-size:20px;font-weight:500;margin:0 0 10px}
 .scene-commentary p:not(.eyebrow){font-size:14px;line-height:1.9;color:#5c5c4f;margin:0}
 .scene-controls{display:flex;align-items:center;gap:12px;padding:0 28px 20px}

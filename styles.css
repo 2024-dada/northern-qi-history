@@ -163,10 +163,10 @@ html{scroll-padding-top:calc(var(--header-height,100px) + 18px)}.chapter{scroll-
 .reading-large .family-stories-note{font-size:16px}
 .reading-large .family-stories .primary-button{font-size:18px}
 /* Clear section and case numbering, with concise narrative cards. */
-.section-index{display:inline-flex;align-items:center;justify-content:center;min-width:2.45em;height:1.7em;margin-right:.75em;padding:0 .35em;border:1px solid currentColor;color:var(--red);font-variant-numeric:tabular-nums;letter-spacing:.05em;vertical-align:middle}
+.section-index{display:inline-flex;align-items:center;justify-content:center;width:1.8em;height:1.8em;margin-right:.75em;padding:0;border:0;border-radius:3px;background:var(--red);color:var(--paper-light);font-family:var(--sans);font-size:1.08em;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;vertical-align:middle;box-shadow:0 2px 0 color-mix(in srgb,var(--red) 68%,#000)}
 .case-summary-grid{counter-reset:case-summary}
 .case-summary-grid article{counter-increment:case-summary}
-.case-summary-grid h3::before{content:counter(case-summary,decimal-leading-zero) " / ";display:inline-block;margin-right:.35em;color:var(--red);font-family:var(--sans);font-size:.62em;letter-spacing:.06em;vertical-align:.12em}
+.case-summary-grid h3::before{content:counter(case-summary);display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;margin-right:.45em;border-radius:50%;background:var(--red);color:var(--paper-light);font-family:var(--sans);font-size:.72em;font-weight:800;line-height:1;vertical-align:.12em}
 .case-summary-story{font-size:14px;line-height:1.95;margin:0}
 .case-summary-story strong{color:#80583d;font-weight:600}
 .reading-large .case-summary-story{font-size:18px}
@@ -184,3 +184,13 @@ html{scroll-padding-top:calc(var(--header-height,100px) + 18px)}.chapter{scroll-
 .lecture-stone-link .lecture-stone-highlight{fill:none;stroke:var(--paper-light);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round;opacity:.88}
 .lecture-stone-link:hover{border-color:var(--red);color:var(--red);background:var(--paper-light)}
 @media(max-width:650px){.lecture-stone-link{min-height:36px;padding:4px 8px}}
+
+/* Make every reader-facing ordinal a single, high-contrast digit. */
+.visit-guide li span,.family-stories-features li>span,.takeaways>div>span,.chapter-rail nav a b{display:inline-flex;align-items:center;justify-content:center;width:1.9em;height:1.9em;padding:0;border-radius:3px;background:var(--red);color:var(--paper-light);font-family:var(--sans);font-size:13px;font-weight:800;letter-spacing:0;line-height:1;vertical-align:middle}
+.visit-guide li span{margin-right:0}
+.family-stories-features li>span{font-size:13px;padding:0}
+.takeaways>div>span{font-size:12px}
+.chapter-rail nav a b{margin-right:.55em;font-size:11px}
+.event-row .event-id{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border-radius:3px;background:var(--red);color:var(--paper-light);font-family:var(--sans);font-size:12px;font-weight:800;line-height:1}
+.timeline-panel .large-number{display:grid;place-items:center;width:52px;height:62px;border-radius:3px;background:var(--red);color:var(--paper-light);font-family:var(--serif);font-size:42px;font-weight:700;line-height:1}
+@media(max-width:650px){.event-row .event-id{width:20px;height:20px;font-size:11px}.timeline-panel .large-number{width:42px;height:52px;font-size:34px}}
