@@ -67,3 +67,8 @@ html[data-ui-theme] #detail-dialog .visual-label{background:var(--ui-tint);color
 html[data-ui-theme] #detail-dialog :is(.detail-contents button:hover,.event-actions button[aria-pressed=true]){background:var(--ui-tint);color:var(--ui-accent)}
 .qi-companion .avatar span{background:#14231edb;border-radius:8px;padding:2px 8px}
 .qi-companion .level-tag{background:var(--ui-surface)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)}
+
+/* Keep numerals readable when theme text rules style their parent links. */
+html[data-ui-theme] :is(.section-index,.visit-guide li span,.family-stories-features li>span,.takeaways>div>span,.timeline-panel .large-number,.scene-steps button span){background:var(--ui-accent);color:var(--ui-on-accent)}
+html[data-ui-theme] .chapter-rail nav a b{background:var(--ui-accent);color:var(--ui-on-accent)}
+html[data-ui-theme] .exploration .event-row .event-id{background:var(--ui-accent);color:var(--ui-on-accent)}

@@ -402,6 +402,11 @@ html[data-ui-theme] #detail-dialog :is(.detail-contents button:hover,.event-acti
 .qi-companion .avatar span{background:#14231edb;border-radius:8px;padding:2px 8px}
 .qi-companion .level-tag{background:var(--ui-surface)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)}
 
+/* Keep numerals readable when theme text rules style their parent links. */
+html[data-ui-theme] :is(.section-index,.visit-guide li span,.family-stories-features li>span,.takeaways>div>span,.timeline-panel .large-number,.scene-steps button span){background:var(--ui-accent);color:var(--ui-on-accent)}
+html[data-ui-theme] .chapter-rail nav a b{background:var(--ui-accent);color:var(--ui-on-accent)}
+html[data-ui-theme] .exploration .event-row .event-id{background:var(--ui-accent);color:var(--ui-on-accent)}
+
 /* ===== ai-help.css ===== */
 .ai-help-launch{font:inherit;font-size:12px;border:1px solid var(--ui-line,#c5b79b);border-radius:18px;padding:5px 12px;min-height:36px;background:var(--ui-surface,#f6f2e8);color:var(--ui-accent,#9d4236);cursor:pointer;white-space:nowrap}
 .ai-help-dialog{box-sizing:border-box;width:min(600px,calc(100% - 24px));height:min(780px,90dvh);max-height:90dvh;margin:auto;padding:0;border:1px solid var(--ui-line,#c5b79b);border-radius:14px;background:var(--ui-surface,#f6f2e8);color:var(--ui-ink,#252c25);font:14px/1.8 var(--sans,"Microsoft YaHei",sans-serif);overflow:hidden}
