@@ -8,8 +8,25 @@
 
   const WORLD = Object.freeze({width: 1100, height: 640, margin: 46});
   const FOG = Object.freeze({cellSize: 24, revealRadius: 158, fade: 28});
+  const HAZARD_PROFILES = Object.freeze({
+    cauldron: {damagePerSecond: 9, tier: '高危', name: '刑具与灼热意象'},
+    cage: {damagePerSecond: 8, tier: '高危', name: '铁笼与火焰意象'},
+    river: {damagePerSecond: 5, tier: '中危', name: '河流与姓名牌意象'},
+    saw: {damagePerSecond: 10, tier: '极高', name: '刑具意象'},
+    beat: {damagePerSecond: 6, tier: '中危', name: '鞭杖与冲击意象'},
+    arrow: {damagePerSecond: 7, tier: '高危', name: '弓矢攻防意象'},
+    scorpion: {damagePerSecond: 12, tier: '极高', name: '蝎盆意象'},
+    dog: {damagePerSecond: 9, tier: '高危', name: '犬影追逐意象'},
+    animal: {damagePerSecond: 8, tier: '高危', name: '动物伤害意象'},
+    wrestle: {damagePerSecond: 8, tier: '高危', name: '角力意象'},
+    assassin: {damagePerSecond: 9, tier: '高危', name: '刺杀意象'},
+    seal: {damagePerSecond: 6, tier: '中危', name: '诏令与权力意象'},
+    mask: {damagePerSecond: 5, tier: '中危', name: '面具与身份意象'},
+    archive: {damagePerSecond: 5, tier: '中危', name: '史料档案意象'}
+  });
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const hazardProfile = record => HAZARD_PROFILES[record?.scene] || HAZARD_PROFILES.archive;
 
   function randomFor(seed) {
     let value = seed >>> 0;
@@ -159,11 +176,25 @@
     run.layerRecords = hazardRecords;
     run.hazards = hazardRecords.map(record => {
       const point = position(random, [{...run.player, minimum: 175}]);
+      const profile = hazardProfile(record);
+      const radius = 68 + random() * 34;
+      const creatures = record.scene === 'scorpion'
+        ? Array.from({length: 8 + Math.floor(random() * 5)}, () => {
+          const angle = random() * Math.PI * 2;
+          const spread = random() * radius * .72;
+          return {x: Math.cos(angle) * spread, y: Math.sin(angle) * spread, phase: random() * Math.PI * 2, scale: .72 + random() * .45};
+        })
+        : [];
       return {
         ...point, record,
-        radius: 68 + random() * 34,
+        radius,
         offset: random() * 12,
-        shape: random() < .28 ? 'square' : 'circle'
+        shape: random() < .28 ? 'square' : 'circle',
+        damagePerSecond: profile.damagePerSecond,
+        tier: profile.tier,
+        illustration: profile.name,
+        creatures,
+        damagePulseAt: 0
       };
     });
     const contextRecords = shuffle(run.contextRecords, random).slice(0, Math.min(2, run.contextRecords.length));
@@ -293,16 +324,18 @@
     }
     const targets = targetList(run)
       .map(target => ({target, span: distance(run.player, target)}))
-      .filter(item => item.span <= 68)
+      .filter(item => item.span <= Math.max(86, run.player.radius + item.target.radius + 48))
       .sort((a, b) => a.span - b.span);
     if (!targets.length) {
       run.message = '挥击未命中。靠近敌人后再按空格或 J 攻击。';
       return;
     }
     const target = targets[0].target;
-    target.hp = Math.max(0, target.hp - run.player.attackDamage);
+    const dealt = Math.min(run.player.attackDamage, target.hp);
+    target.hp = Math.max(0, target.hp - dealt);
     target.hitUntil = now + .18;
     run.attackFlash = {x: target.x, y: target.y, until: now + .16};
+    run.hitText = {x: target.x, y: target.y, value: `−${dealt}`, until: now + .72};
     applyTradeDamage(run, now);
 
     if (target.hp <= 0) {
@@ -325,7 +358,7 @@
       if (run.phase === 'over') return;
       if (completeLayerIfReady(run) || run.phase !== 'playing') return;
     } else {
-      run.message = `命中${target.label}：${Math.ceil(target.hp)} / ${target.maxHp}。你承受反击 4 点。`;
+      run.message = `命中${target.label}：−${dealt}，剩余 ${Math.ceil(target.hp)} / ${target.maxHp}。你承受反击 4 点。`;
     }
   }
 
@@ -412,8 +445,16 @@
     for (const hazard of run.hazards) {
       const state = hazardState(hazard, run.stageElapsed);
       if (state.active && distance(run.player, hazard) < hazard.radius) {
-        takeHit(run, now, 10, `进入「${hazard.record.title}」的抽象危险区`);
-        if (run.phase === 'over') break;
+        run.player.hp = Math.max(0, run.player.hp - hazard.damagePerSecond * dt);
+        if (now >= hazard.damagePulseAt) {
+          hazard.damagePulseAt = now + .5;
+          run.flashUntil = now + .12;
+          run.message = `进入「${hazard.record.title}」场景：游戏伤害 ${hazard.damagePerSecond} 点体力/秒。`;
+        }
+        if (run.player.hp <= 0) {
+          run.phase = 'over';
+          break;
+        }
       }
     }
     run.score = Math.floor(run.elapsed * 10) + run.bossKills * 300 + run.marshalKills * 220 + run.enemyKills * 35;
@@ -434,5 +475,5 @@
     return true;
   }
 
-  return Object.freeze({WORLD, FOG, createRun, advance, chooseUpgrade, hazardState});
+  return Object.freeze({WORLD, FOG, HAZARD_PROFILES, createRun, advance, chooseUpgrade, hazardState, hazardProfile});
 });
