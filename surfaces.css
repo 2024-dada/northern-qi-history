@@ -16,7 +16,7 @@
       radial-gradient(ellipse at 0% 100%,#76a09d29,transparent 56%);
   }
 
-  .has-sidebar :is(.chapter,.orientation,.sources,.royal-dossier,.violence-gallery),
+  html[data-ui-theme] .has-sidebar :is(.chapter,.orientation,.sources,.royal-dossier,.violence-gallery),
   .qi-companion :is(.hero,.tl-hero,.tl-index-wrap,.legend),
   .lecture-page main {
     background-color:var(--ui-surface,#fff8e9);
@@ -26,9 +26,6 @@
     background-blend-mode:normal,normal,multiply;
     border:1px solid var(--ui-line,#c5af8d);
     border-radius:6px;
-  }
-  html[data-ui-theme=night] :is(.has-sidebar,.qi-companion) {
-    --paper-veil:#202c30e0;
   }
   html[data-ui-theme=night] :is(
     .has-sidebar :is(.chapter,.orientation,.sources,.royal-dossier,.violence-gallery),
@@ -110,7 +107,7 @@
     border-inline-start:3px solid var(--paper-teal);
   }
 
-  html[data-ui-theme] .qi-companion,
+  html[data-ui-theme] body.qi-companion,
   .lecture-page {
     min-height:100vh;
     background-color:var(--ui-bg,#f5e9d2);
@@ -118,7 +115,7 @@
     background-size:auto,auto,cover;
     background-blend-mode:normal,normal,multiply;
   }
-  html[data-ui-theme=night] .qi-companion { background-blend-mode:normal,normal,normal; }
+  html[data-ui-theme=night] body.qi-companion { background-blend-mode:normal,normal,normal; }
   .qi-companion :is(.hero,.tl-hero,.tl-index-wrap,.legend) { padding:clamp(17px,4vw,30px); }
   html[data-ui-theme] .qi-companion :is(.companion-nav,.companion-context,.story-nav) {
     background:var(--ui-tint);
