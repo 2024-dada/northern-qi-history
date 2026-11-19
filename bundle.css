@@ -407,7 +407,7 @@ html[data-ui-theme] :is(.section-index,.visit-guide li span,.family-stories-feat
 html[data-ui-theme] .chapter-rail nav a b{background:var(--ui-accent);color:var(--ui-on-accent)}
 html[data-ui-theme] .exploration .event-row .event-id{background:var(--ui-accent);color:var(--ui-on-accent)}
 
-/* Dunhuang exhibition palette and reading navigation */
+/* Mineral pigment palette and reading navigation */
 :root[data-ui-theme=mural] {
   --ui-bg:#f5e9d2;
   --ui-surface:#fff8e9;
@@ -424,56 +424,21 @@ html[data-ui-theme] .exploration .event-row .event-id{background:var(--ui-accent
   --mural-gold:#c89a48;
 }
 
-.has-sidebar .hero .mural-hero {
-  position:relative;
-  display:grid;
-  gap:9px;
-  width:100%;
-  max-width:none;
-  height:auto;
-  padding:0;
-  margin:0;
-  border:0;
-}
-.mural-picture {
-  display:block;
-  position:relative;
-  isolation:isolate;
-  overflow:hidden;
-  aspect-ratio:4 / 3;
-  border:1px solid var(--ui-line);
-  border-radius:4px;
-  background:var(--ui-tint);
-  box-shadow:0 14px 36px #30241e30;
-}
-.mural-picture img {
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-.mural-picture::after {
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background:linear-gradient(112deg,transparent 39%,#ffdb7933 50%,transparent 61%);
-  transform:translateX(-100%);
-  animation:mural-light 1.35s .35s both;
-}
-@keyframes mural-light {
-  to { transform:translateX(100%); }
-}
-@media (prefers-reduced-motion:reduce) {
-  .mural-picture::after { animation:none; }
-}
-.mural-hero figcaption {
-  color:var(--ui-muted);
-  font-size:.8rem;
-  text-align:right;
+html[data-ui-theme=mural] body {
+  background-color:var(--ui-bg);
+  background-image:
+    radial-gradient(ellipse at 100% 0%,#c89a4830,transparent 48%),
+    radial-gradient(ellipse at 0% 100%,#24566216,transparent 52%),
+    repeating-linear-gradient(117deg,#75492f07 0 1px,transparent 1px 5px);
 }
 html[data-ui-theme=mural] .has-sidebar .hero {
-  background:radial-gradient(ellipse at 85% 40%,#c89a4840,transparent 58%), var(--ui-bg);
+  background:radial-gradient(ellipse at 78% 45%,#c89a4840,transparent 62%);
+}
+html[data-ui-theme=mural] .has-sidebar .site-header {
+  border-inline-end-color:var(--mural-gold);
+}
+html[data-ui-theme=mural] :is(.visit-guide,.family-stories) {
+  background:linear-gradient(115deg,var(--ui-tint),var(--ui-bg));
 }
 
 .case-preview {
@@ -578,9 +543,6 @@ html[data-ui-theme=mural] .violence-gallery .violence-card:hover {
 }
 @media (max-width:700px) {
   .case-preview ol { grid-template-columns:1fr; }
-}
-@media (max-width:650px) {
-  .has-sidebar .hero .mural-hero { margin-top:8px; }
 }
 
 /* ===== ai-help.css ===== */

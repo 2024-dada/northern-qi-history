@@ -2,7 +2,7 @@
   'use strict';
   const defaultTheme='mural';
   const themes=[
-    {id:'mural',name:'敦煌壁画',description:'暖纸、赭红与石青的展览配色',colors:['#f5e9d2','#30241e','#8a352d']},
+    {id:'mural',name:'赭红石青',description:'暖纸底色，配赭红、石青与暗金',colors:['#f5e9d2','#30241e','#8a352d']},
     {id:'paper',name:'原版宣纸',description:'暖纸底色与朱砂点缀',colors:['#ede8dc','#252c25','#9d4236']},
     {id:'jade',name:'青瓷竹影',description:'浅青底色与深绿文字',colors:['#e4eee7','#203e34','#23684f']},
     {id:'blue',name:'月白藏蓝',description:'月白底色与藏蓝点缀',colors:['#e6edf5','#223a51','#365f95']},
