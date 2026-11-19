@@ -1,0 +1,137 @@
+/* Paper and mineral pigment across reading surfaces. */
+@media screen {
+  :root {
+    --paper-grain:url("assets/mineral-paper.webp");
+    --paper-gold:#ae7942;
+    --paper-teal:#316166;
+    --paper-wash:radial-gradient(ellipse at 100% 0%,#bd835b29,transparent 54%),
+      radial-gradient(ellipse at 0% 100%,#40757c1e,transparent 56%);
+    --paper-veil:#fff8e991;
+  }
+  :root[data-ui-theme=night] {
+    --paper-veil:#202c30e0;
+    --paper-gold:#c99d6b;
+    --paper-teal:#76a09d;
+    --paper-wash:radial-gradient(ellipse at 100% 0%,#c99d6b2b,transparent 55%),
+      radial-gradient(ellipse at 0% 100%,#76a09d29,transparent 56%);
+  }
+
+  .has-sidebar :is(.chapter,.orientation,.sources,.royal-dossier,.violence-gallery),
+  .qi-companion :is(.hero,.tl-hero,.tl-index-wrap,.legend),
+  .lecture-page main {
+    background-color:var(--ui-surface,#fff8e9);
+    background-image:var(--paper-wash),linear-gradient(var(--paper-veil),var(--paper-veil)),var(--paper-grain);
+    background-size:auto,auto,100% auto;
+    background-repeat:no-repeat,no-repeat,repeat-y;
+    background-blend-mode:normal,normal,multiply;
+    border:1px solid var(--ui-line,#c5af8d);
+    border-radius:6px;
+  }
+  html[data-ui-theme=night] :is(.has-sidebar,.qi-companion) {
+    --paper-veil:#202c30e0;
+  }
+  html[data-ui-theme=night] :is(
+    .has-sidebar :is(.chapter,.orientation,.sources,.royal-dossier,.violence-gallery),
+    .qi-companion :is(.hero,.tl-hero,.tl-index-wrap,.legend)
+  ) { background-blend-mode:normal,normal,normal; }
+
+  .has-sidebar .chapter,
+  html[data-ui-theme] .has-sidebar :is(.visit-guide,.family-stories,.case-preview) {
+    border-block-start:2px solid color-mix(in srgb,var(--paper-gold) 62%,var(--ui-line));
+  }
+  .has-sidebar .chapter {
+    margin-block:20px;
+    padding:clamp(24px,4.2vw,55px);
+  }
+  html[data-ui-theme] .has-sidebar :is(.visit-guide,.family-stories,.case-preview,.site-header),
+  html[data-ui-theme] :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog),
+  html[data-ui-theme] .qi-companion :is(.story-card,.modal) {
+    background-color:var(--ui-surface);
+    background-image:var(--paper-wash),linear-gradient(var(--paper-veil),var(--paper-veil)),var(--paper-grain);
+    background-size:100% 100%,100% 100%,100% auto;
+    background-repeat:no-repeat,no-repeat,repeat-y;
+    background-blend-mode:normal,normal,multiply;
+  }
+  html[data-ui-theme=night] :is(
+    .has-sidebar :is(.visit-guide,.family-stories,.case-preview,.site-header),
+    #detail-dialog,.ui-settings-dialog,.ai-help-dialog,
+    .qi-companion :is(.story-card,.modal)
+  ) { background-blend-mode:normal,normal,normal; }
+
+  html[data-ui-theme] .has-sidebar .exploration {
+    background-color:var(--ui-explore);
+    background-image:
+      radial-gradient(ellipse at 100% 0%,#ba956b36,transparent 48%),
+      linear-gradient(160deg,#162a2cde,#142426f5),var(--paper-grain);
+    background-size:auto,auto,100% auto;
+    background-repeat:no-repeat,no-repeat,repeat-y;
+    border-block-start:2px solid var(--paper-gold);
+  }
+  html[data-ui-theme] .chapter :is(.scene-animation,.reading-conclusion) {
+    background-color:var(--ui-tint);
+    background-image:var(--paper-wash);
+    color:var(--ui-ink);
+    border-color:var(--ui-line);
+  }
+  html[data-ui-theme] .scene-animation :is(.scene-commentary p:not(.eyebrow),.scene-duration,.scene-replay,.scene-scrubber output) {
+    color:var(--ui-muted);
+  }
+  html[data-ui-theme] .scene-animation .scene-citation {
+    background:var(--ui-surface);
+    border-color:var(--ui-line);
+  }
+  html[data-ui-theme] .scene-animation .scene-citation p { color:var(--ui-muted); }
+  html[data-ui-theme] .has-sidebar :is(.violence-card,.case-summary-grid article,.sources li) {
+    background-image:linear-gradient(155deg,var(--ui-surface),var(--ui-tint));
+  }
+  .has-sidebar .sources li {
+    border:1px solid var(--ui-line);
+    border-radius:4px;
+    padding:8px 12px;
+  }
+
+  html[data-ui-theme] :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog),
+  html[data-ui-theme] .qi-companion :is(.modal,.story-card) {
+    border:1px solid var(--ui-line);
+    border-block-start:3px solid var(--paper-gold);
+    color:var(--ui-ink);
+    box-shadow:0 20px 58px #101a2060;
+  }
+  html[data-ui-theme] :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog)::backdrop,
+  .qi-companion :is(.modal-mask,.story-overlay) {
+    background:radial-gradient(ellipse at 70% 20%,#3e545184,#111b22df 75%);
+  }
+  html[data-ui-theme] #detail-dialog :is(blockquote,.source-state,.scene-narration,.scene-controls-panel),
+  html[data-ui-theme] .ai-help-dialog :is(.ai-help-header,.ai-help-form,.ai-help-message) {
+    background:linear-gradient(140deg,var(--ui-surface),var(--ui-tint));
+    border-color:var(--ui-line);
+  }
+  html[data-ui-theme] #detail-dialog :is(blockquote,.source-state,.scene-narration) {
+    border-inline-start:3px solid var(--paper-teal);
+  }
+
+  html[data-ui-theme] .qi-companion,
+  .lecture-page {
+    min-height:100vh;
+    background-color:var(--ui-bg,#f5e9d2);
+    background-image:var(--paper-wash),linear-gradient(var(--paper-veil),var(--paper-veil)),var(--paper-grain);
+    background-size:auto,auto,cover;
+    background-blend-mode:normal,normal,multiply;
+  }
+  html[data-ui-theme=night] .qi-companion { background-blend-mode:normal,normal,normal; }
+  .qi-companion :is(.hero,.tl-hero,.tl-index-wrap,.legend) { padding:clamp(17px,4vw,30px); }
+  html[data-ui-theme] .qi-companion :is(.companion-nav,.companion-context,.story-nav) {
+    background:var(--ui-tint);
+    color:var(--ui-ink);
+  }
+  html[data-ui-theme] .qi-companion :is(.companion-nav,.companion-context) a { color:var(--ui-accent); }
+  .lecture-page main {
+    width:calc(100% - 24px);
+    margin:clamp(12px,4vw,42px) auto;
+    padding:clamp(18px,5vw,44px);
+  }
+  @media(max-width:700px) {
+    .has-sidebar .chapter { padding:22px 15px; }
+    .has-sidebar .sources li { padding:7px 9px; }
+  }
+}
