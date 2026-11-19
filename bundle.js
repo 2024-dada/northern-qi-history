@@ -148,7 +148,8 @@ window.RESEARCH = {
   function bladeTip(rig,pose){const [,body,shoulder,elbow]=pose,hand=worldPoint(rig,pose,10+26*Math.cos(radians(shoulder))+24*Math.cos(radians(shoulder+elbow)),-69+26*Math.sin(radians(shoulder))+24*Math.sin(radians(shoulder+elbow))),length=Number(partsFor(rig)['weapon']?.dataset.length||0),angle=radians(body+shoulder+elbow);return {x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)};}
   function rigPose(rig,pose,drop=0){
     const [step,body,shoulder,elbow]=pose;
-    partsFor(rig)['move'].setAttribute('transform',`translate(${step} ${drop})`);
+    const parts=partsFor(rig);
+    parts.move.setAttribute('transform',`translate(${step} ${drop})`);
     parts.torso.setAttribute('transform',`rotate(${body} 0 -25)`);
     parts.shoulder.setAttribute('transform',`rotate(${shoulder})`);
     parts.elbow.setAttribute('transform',`rotate(${elbow})`);
