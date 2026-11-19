@@ -1213,3 +1213,472 @@ grip.addEventListener('dblclick',()=>applyWidth(256,true));grip.addEventListener
 const links=[...panel.querySelectorAll('nav>a[href^="#"]')];function mark(id){links.forEach(a=>{const active=a.getAttribute('href')==='#'+id;a.classList.toggle('is-current',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});}
 if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio);if(visible.length)mark(visible[0].target.id);},{rootMargin:'-10% 0px -55% 0px',threshold:[0,.1,.4]});links.forEach(a=>{const target=document.getElementById(a.hash.slice(1));if(target)observer.observe(target);});}
 })();
+;
+/* ===== court-game-data.js ===== */;
+/* Historical summaries are tied to existing source entries. Fiction is labelled in play. */
+window.COURT_GAME_CASES = [
+  {
+    id: 'dezheng', ruler: '高洋', event: 'E02', source: 'dezheng', title: '旧臣的劝谏',
+    claim: '高德政最终被处斩的命令出自高洋。',
+    clues: [
+      ['人物责任', '本站整理的责任链将高洋列为下令者，最终处斩的直接执行者未详。', 'support'],
+      ['经过摘要', '记录先写高洋亲自伤害高德政，随后写到命令处斩的过程。', 'support'],
+      ['早期关系', '高德政曾协助高洋建立北齐，后来多次劝谏。', 'context'],
+      ['研究提示', '长期君臣冲突、同僚推动与事后说法需要分别考察。', 'context']
+    ],
+    explanation: '下令者与执行者要分别确认。本站材料将命令归于高洋，不能补造最终执行者的姓名。'
+  },
+  {
+    id: 'xue', ruler: '高洋', event: 'E04', source: 'xue', title: '两篇薛嫔记载',
+    claim: '两篇史书对薛嫔被杀的时间过程完全一致。',
+    clues: [
+      ['篇章对照', '本纪突出突然起疑并杀害，后妃传写到怀孕、生产后被杀，两者时间过程不同。', 'refute'],
+      ['版本提示', '本站把这组差别标为篇章叙述分歧，关键句仍须影印对校。', 'refute'],
+      ['人物关系', '薛嫔案涉及高洋对既往关系的猜忌。', 'context'],
+      ['研究提示', '突然失控与延续惩罚的权重仍难确定。', 'context']
+    ],
+    explanation: '已展开的篇章对照足以否定“完全一致”。两篇不能直接拼接成一个确定的现场。'
+  },
+  {
+    id: 'yu', ruler: '高湛', event: 'E05', source: 'yu', title: '押送途中的死亡',
+    claim: '当前材料可以无争议地把高孝瑜之死定为毒杀。',
+    clues: [
+      ['关键字对照', '本站所列《北齐书》录文作“槛之于车”，《通鉴》对应作“鸩之于车”。', 'refute'],
+      ['核验记录', '关键字影印待核，当前条目保留为强制行为相关死亡，具体方式有分歧。', 'refute'],
+      ['事前冲突', '传记涉及高孝瑜批评近臣、遭谗言与君主忌惮。', 'context'],
+      ['已知经过', '高孝瑜被迫饮酒、押送，途中死亡。', 'context']
+    ],
+    explanation: '字词分歧会影响方式判断。确认死亡经过与确认毒杀方式是不同的判断。'
+  },
+  {
+    id: 'wan', ruler: '高湛', event: 'E06', source: 'wan', title: '年号与责任',
+    claim: '高孝琬死于高纬年号下，所以该案应归责于高纬。',
+    clues: [
+      ['主语核对', '本案记载中的“上皇”指高湛，本站责任整理也将施事归于高湛。', 'refute'],
+      ['身份核对', '事件发生时高湛为太上皇，不能仅按年号确定下令者。', 'refute'],
+      ['宗室关系', '高孝琬为宗室，称高湛为叔。', 'context'],
+      ['指控背景', '记载涉及射草人、搜获物件与诬告，不能把指控全部当成查实反叛。', 'context']
+    ],
+    explanation: '责任须追到具体行动者。年号是时间线索，记载中的主语和身份才回答本题。'
+  },
+  {
+    id: 'yan', ruler: '高纬', event: 'E07', source: 'yan', title: '杀弟的先例',
+    claim: '祖珽引用古代先例，是高俨被杀的唯一原因。',
+    clues: [
+      ['此前行动', '高俨此前假借诏令诛和士开并调兵，已经造成权力冲突。', 'refute'],
+      ['原因对照', '本站同时列出皇权安全、近臣劝说及典故辩护，材料不足以证明典故单独致事。', 'refute'],
+      ['亲属关系', '高俨是高纬的弟弟。', 'context'],
+      ['文化语言', '祖珽援引周公、季友的古代杀亲先例支持决定。', 'context']
+    ],
+    explanation: '“唯一原因”需要排除其他解释。已有的权力冲突使这一排他判断无法成立。'
+  },
+  {
+    id: 'hulv', ruler: '高纬', event: 'E08', source: 'hulv', title: '宫门前的召见',
+    claim: '斛律光案的直接执行者包括刘桃枝。',
+    clues: [
+      ['直接行动', '《北齐书》所列短引为“桃枝自后拉而杀之”。', 'support'],
+      ['责任分工', '本站将高纬列为决策与召见者，将刘桃枝等列为直接执行者。', 'support'],
+      ['月份问题', '两书记载为572年，但六月、七月有分歧。', 'context'],
+      ['事前处境', '朝中竞争、敌方谣言与军队行动指控进入君主决策。', 'context']
+    ],
+    explanation: '决策、召见与直接执行须分别归责。月份分歧不妨碍本题对执行者的定位。'
+  },
+  {
+    id: 'seal', fiction: true, title: '夜半诏书', event: 'E07',
+    claim: '今晚收到的调兵文书经过了有效复核。',
+    clues: [
+      ['值房呈报', '值房称已经按手续复核，核对人员留有登记。', 'support'],
+      ['送达记录', '另一份登记称复核人员尚未到场，两份呈报互不一致。', 'refute'],
+      ['纸张线索', '文书封套有旧折痕，仅凭外观无法判定手续。', 'context'],
+      ['宫廷关系', '送信者受近臣委托，委托关系本身不足以证明文书真伪。', 'context']
+    ],
+    explanation: '本题为虚构推演。两种相反呈报同时出现时应保留分歧，只见外观和关系时应承认材料不足。'
+  },
+  {
+    id: 'petition', fiction: true, title: '联名奏议', event: 'E10',
+    claim: '呈报者已经核对过联署名单。',
+    clues: [
+      ['近臣呈报', '呈报者声称逐一核验了签名，并提交核验单。', 'support'],
+      ['核验者回报', '署名的核验者回报自己从未见过名单，与前一呈报相反。', 'refute'],
+      ['奏议主题', '奏议讨论是否移驾，议题本身不证明核验是否完成。', 'context'],
+      ['朝中竞争', '呈报者与联署者利益有冲突，仍需核对其具体说法。', 'context']
+    ],
+    explanation: '本题为虚构推演。利益关系提示查证方向，核验是否完成仍取决于具体呈报。'
+  },
+  {
+    id: 'transfer', fiction: true, title: '两份调任登记', event: 'E08',
+    claim: '两处值房收到的调任日期一致。',
+    clues: [
+      ['第一处值房', '第一处值房的比对单称，两处记录日期相同。', 'support'],
+      ['第二处值房', '第二处值房的比对单称，两处日期相差一日。', 'refute'],
+      ['传送距离', '文书经过两站转送，距离不能单独证明日期相同。', 'context'],
+      ['等待复核', '抄录员正在等待原件，尚未提供可核对的日期。', 'context']
+    ],
+    explanation: '本题为虚构推演。只见转送信息时不能确定，见到相反比对单时应标为呈报有分歧。'
+  }
+];
+;
+/* ===== court-game.js ===== */;
+(() => {
+  'use strict';
+  const cases = window.COURT_GAME_CASES;
+  const verdicts = {
+    support: '已见材料支持', refute: '已见材料否定',
+    conflict: '已见呈报有分歧', unknown: '目前材料不足'
+  };
+  const decrees = {
+    severe: { name: '签发重刑诏令', control: 18, trust: -15, result: '严令已发，朝中暂时噤声。下轮呈报可能更谨慎，也可能更不完整。' },
+    delay: { name: '暂缓处置', control: -8, trust: 10, result: '处置暂缓，相关人员愿意继续陈述，催办的奏报仍会送来。' },
+    review: { name: '交人复核', control: 2, trust: 3, result: '复核任务已经发出。值房继续运转，新的呈报将在下一案展开。' }
+  };
+  const clamp = value => Math.max(0, Math.min(100, value));
+
+  function randomFor(seed) {
+    let value = seed >>> 0;
+    return () => {
+      value += 0x6D2B79F5;
+      let mixed = Math.imul(value ^ value >>> 15, value | 1);
+      mixed ^= mixed + Math.imul(mixed ^ mixed >>> 7, mixed | 61);
+      return ((mixed ^ mixed >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function shuffled(items, random) {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+  function makeRun(seed, ruler, firstCase = null) {
+    const random = randomFor(seed);
+    const chosenRuler = ruler === 'random' ? ['高洋', '高湛', '高纬'][Math.floor(random() * 3)] : ruler;
+    const pool = cases.filter(item => item.fiction || item.ruler === chosenRuler);
+    let picked = shuffled(pool, random).slice(0, 3);
+    if (firstCase) {
+      const fixed = pool.find(item => item.id === firstCase);
+      if (fixed) picked = [fixed, ...shuffled(pool.filter(item => item !== fixed), random).slice(0, 2)];
+    }
+    if (picked.every(item => item.fiction)) {
+      const historical = shuffled(pool.filter(item => !item.fiction), random)[0];
+      picked[Math.floor(random() * 3)] = historical;
+    }
+    const pressureLabels = ['边报催促回奏', '近臣争执不下', '值房要求尽快定夺'];
+    return {
+      seed, ruler: chosenRuler, requestedRuler: ruler, firstCase,
+      control: 50, trust: 50, tokens: 3, index: 0, history: [],
+      rounds: picked.map(item => ({
+        id: item.id, order: shuffled([0, 1, 2, 3], random),
+        pressure: [4, 8, 12][Math.floor(random() * 3)],
+        pressureLabel: pressureLabels[Math.floor(random() * pressureLabels.length)]
+      }))
+    };
+  }
+  function expectedVerdict(item, revealed) {
+    const kinds = new Set(revealed.map(index => item.clues[index][2]));
+    if (kinds.has('support') && kinds.has('refute')) return 'conflict';
+    if (kinds.has('support')) return 'support';
+    if (kinds.has('refute')) return 'refute';
+    return 'unknown';
+  }
+  function evidenceScore(item, revealed, selected) {
+    if (!selected.length || selected.length > 2 || selected.some(index => !revealed.includes(index))) return 0;
+    const required = new Set(revealed.map(index => item.clues[index][2]).filter(kind => kind !== 'context'));
+    if (!required.size) return selected.every(index => item.clues[index][2] === 'context') ? 6 : 0;
+    const supplied = new Set(selected.map(index => item.clues[index][2]));
+    const matches = [...required].filter(kind => supplied.has(kind)).length;
+    return Math.round(6 * matches / required.size);
+  }
+  function scoreRun(run) {
+    return Math.round((run.history.reduce((sum, item) => sum + item.points, 0) + run.control * .2 + run.trust * .2) * 10) / 10;
+  }
+  window.COURT_GAME_ENGINE = Object.freeze({ makeRun, expectedVerdict, evidenceScore, scoreRun, decrees });
+
+  const panel = document.querySelector('#court-game');
+  if (!panel) return;
+  const board = panel.querySelector('[data-court-board]');
+  const status = panel.querySelector('[data-court-status]');
+  const esc = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+  let run = null;
+  let draft = null;
+  let mode = 'setup';
+  let pendingCase = null;
+  let best = 0;
+  let storageNote = '';
+  try { best = Math.max(0, Math.min(100, Number(localStorage.getItem('qi-court-best-v1')) || 0)); }
+  catch { storageNote = '浏览器无法保存分数，本次仍可完整游玩。'; }
+
+  const currentCase = () => cases.find(item => item.id === run.rounds[run.index].id);
+  const freshSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
+  const button = (action, label, extra = '') => `<button type="button" data-court-action="${action}" ${extra}>${label}</button>`;
+  function links(item) {
+    return `<div class="court-source-links">
+      <button type="button" data-event="${item.event}">查看${item.fiction ? '关联历史事件' : '原事件'} ↗</button>${item.source ? `<button type="button" data-source="${item.source}">核对史料出处 ↗</button>` : ''}</div>`;
+  }
+  function announce(message) { status.textContent = message; }
+  function render(focusSelector = null) {
+    if (mode === 'setup') renderSetup();
+    if (mode === 'round') renderRound();
+    if (mode === 'result') renderResult();
+    if (mode === 'finished') renderFinished();
+    if (focusSelector) {
+      const target = board.querySelector(focusSelector);
+      target?.focus({ preventScroll: true });
+      if (focusSelector === 'h3') target?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    }
+  }
+  function renderSetup() {
+    const fixed = cases.find(item => item.id === pendingCase);
+    board.innerHTML = `<div class="court-intro">
+      <div>
+      <p class="court-kicker">北齐宫廷 · 三案推演</p>
+      <h3 tabindex="-1">一念成诏</h3>
+      <p>坐上御座，读奏报、查线索，再决定是否落印。你的选择会改变朝局控制与信任，也会影响下一案先收到什么。</p>
+      <p class="court-boundary">史实题引用本站材料。新增呈报、朝局数值与诏令后果均为游戏推演。</p>
+      </div>
+      <div class="court-setup">
+      <label for="court-ruler">选择君主</label>
+      <select id="court-ruler" ${fixed ? 'disabled' : ''}>${[['random', '随机君主'], ['高洋', '高洋'], ['高湛', '高湛'], ['高纬', '高纬']].map(([value, label]) => `<option value="${value}" ${fixed?.ruler === value ? 'selected' : ''}>${label}</option>`).join('')}</select>${fixed ? `<p>以「${esc(fixed.title)}」开局，角色为${fixed.ruler}。</p>` : ''}${button('start', run && !run.finished ? '重新开局 · 放弃当前进度' : '登殿开局', 'class="court-primary"')}${run ? button('return', '返回当前牌局') : ''}<p>每局 3 案 · 3 枚查档签 · 约 4–6 分钟</p>
+      <p>本机最高分 <strong>${best}</strong> / 100</p>
+      </div>
+      </div>
+      <details class="court-rules">
+      <summary>玩法与计分</summary>
+      <p>每案免费展开两张呈报，其余每张消耗一枚查档签。选择最多两张作为判断依据，再判断已展开材料是支持、否定、相互矛盾还是不足。可点选卡片，也可把卡片拖进证据区。</p>
+      <p>每案判断 14 分，证据匹配 6 分；三案共 60 分。最终控制与信任各占 20 分。只按本轮已经展开的材料判分；仅有背景信息时，「目前材料不足」可得满判断分。</p>
+      <p>每轮先承受 4、8 或 12 点控制压力。重刑诏令增加 18 控制、减少 15 信任；暂缓减少 8 控制、增加 10 信任；复核增加 2 控制、增加 3 信任。信任低于 35，下一案先收到两张间接背景呈报。</p>
+      <p>数值限制在 0–100。结算可复现同一牌局，最高分保存在当前浏览器。</p>
+      </details>
+      <p class="court-storage">${esc(storageNote)}</p>`;
+  }
+  function beginRound() {
+    const item = currentCase();
+    const round = run.rounds[run.index];
+    const indirect = run.trust < 35;
+    const first = indirect ? round.order.filter(index => item.clues[index][2] === 'context').slice(0, 2) : round.order.slice(0, 2);
+    draft = { revealed: first, selected: [], verdict: '', decree: '', indirect };
+    mode = 'round';
+    render('h3');
+    announce(`第 ${run.index + 1} 案已展开。${indirect ? '信任偏低，先收到两份间接呈报。' : ''}`);
+  }
+  function metrics() {
+    return `<div class="court-metrics">
+      <span>君主 <b>${esc(run.ruler)}</b>
+      </span>
+      <span>第 <b>${run.index + 1}</b> / 3 案</span>
+      <label>控制 <b>${run.control}</b>
+      <meter min="0" max="100" value="${run.control}">${run.control}</meter>
+      </label>
+      <label>信任 <b>${run.trust}</b>
+      <meter min="0" max="100" value="${run.trust}">${run.trust}</meter>
+      </label>
+      <span>查档签 <b>${run.tokens}</b> / 3</span>
+      </div>`;
+  }
+  function renderRound() {
+    const item = currentCase();
+    const round = run.rounds[run.index];
+    board.innerHTML = `${metrics()}<div class="court-round-heading">
+      <div>
+      <p class="court-kicker">${item.fiction ? '全案为虚构推演' : '史实摘要 · 依据本站已收录材料'}</p>
+      <h3 tabindex="-1">${esc(item.title)}</h3>
+      </div>${button('setup', '换角色 / 重开')}</div>
+      <p class="court-pressure">本轮推演压力 · ${round.pressureLabel}，落印时控制 −${round.pressure}。${draft.indirect ? '信任低于 35，先送达两份间接呈报。' : ''}</p>
+      <p class="court-claim">
+      <strong>本轮要判断的陈述</strong>${esc(item.claim)}</p>
+      <div class="court-clues">${round.order.map(index => {
+      const [title, content] = item.clues[index];
+      const opened = draft.revealed.includes(index);
+      const chosen = draft.selected.includes(index);
+      return `<article class="court-clue ${opened ? 'is-open' : 'is-sealed'} ${chosen ? 'is-selected' : ''}" ${opened ? `draggable="true" data-court-drag="${index}"` : ''}>
+      <h4>${esc(opened ? title : '封存线索')}</h4>${opened ? `<p>${esc(content)}</p>
+      <label>
+      <input type="checkbox" data-court-evidence="${index}" ${chosen ? 'checked' : ''}> 用作判断依据</label>` : `<p>展开后可加入判断依据。</p>${button('reveal', '查档 · 消耗 1 签', `data-clue="${index}" ${run.tokens ? '' : 'disabled'}`)}`}</article>`;
+    }).join('')}</div>
+      <div class="court-evidence" data-court-drop role="group" aria-label="已选证据">
+      <strong>判断依据 · ${draft.selected.length} / 2</strong>
+      <p>${draft.selected.length ? draft.selected.map(index => esc(item.clues[index][0])).join(' ＋ ') : '点选已展开卡片的复选框，或拖动卡片到这里。'}</p>
+      <small>建议选择直接涉及本轮陈述的材料；只有背景信息时也可据此判断材料不足。</small>
+      </div>
+      <fieldset class="court-options">
+      <legend>你怎样看待已展开的材料？</legend>${Object.entries(verdicts).map(([key, label]) => `<label>
+      <input type="radio" name="court-verdict" value="${key}" ${draft.verdict === key ? 'checked' : ''}>${label}</label>`).join('')}</fieldset>
+      <fieldset class="court-options court-decrees">
+      <legend>本轮诏令 · 后果均为推演</legend>${Object.entries(decrees).map(([key, value]) => `<label>
+      <input type="radio" name="court-decree" value="${key}" ${draft.decree === key ? 'checked' : ''}>
+      <span>
+      <b>${value.name}</b>
+      <small>控制 ${value.control > 0 ? '+' : ''}${value.control} · 信任 ${value.trust > 0 ? '+' : ''}${value.trust}</small>
+      </span>
+      </label>`).join('')}</fieldset>
+      <div class="court-submit">${button('seal', '落印 · 签发诏令', 'class="court-seal"')}<p>选择判断依据、材料判断和诏令后即可落印。</p>
+      </div>`;
+  }
+  function reveal(index) {
+    if (mode !== 'round' || run.tokens <= 0 || draft.revealed.includes(index)) return;
+    if (!run.rounds[run.index].order.includes(index)) return;
+    run.tokens--;
+    draft.revealed.push(index);
+    render(`[data-court-evidence="${index}"]`);
+    announce(`已展开「${currentCase().clues[index][0]}」，剩余 ${run.tokens} 枚查档签。`);
+  }
+  function selectEvidence(index, selected) {
+    if (mode !== 'round' || !draft.revealed.includes(index)) return;
+    if (selected && !draft.selected.includes(index)) {
+      if (draft.selected.length === 2) {
+        render(`[data-court-evidence="${index}"]`);
+        announce('最多选择两张证据，请先取消一张。');
+        return;
+      }
+      draft.selected.push(index);
+    } else if (!selected) draft.selected = draft.selected.filter(value => value !== index);
+    render(`[data-court-evidence="${index}"]`);
+    announce(`已选择 ${draft.selected.length} 张判断依据。`);
+  }
+  function seal() {
+    if (mode !== 'round') return;
+    if (!draft.selected.length || !draft.verdict || !draft.decree) {
+      announce('请先选择至少一张判断依据、一个材料判断和一种诏令。');
+      const target = !draft.selected.length ? '[data-court-evidence]' : !draft.verdict ? '[name="court-verdict"]' : '[name="court-decree"]';
+      board.querySelector(target)?.focus();
+      return;
+    }
+    const item = currentCase();
+    const expected = expectedVerdict(item, draft.revealed);
+    const judgmentPoints = draft.verdict === expected ? 14 : 0;
+    const proofPoints = evidenceScore(item, draft.revealed, draft.selected);
+    const decree = decrees[draft.decree];
+    const oldControl = run.control;
+    const oldTrust = run.trust;
+    run.control = clamp(run.control - run.rounds[run.index].pressure + decree.control);
+    run.trust = clamp(run.trust + decree.trust);
+    run.history.push({
+      id: item.id, expected, verdict: draft.verdict, decree: draft.decree,
+      revealed: [...draft.revealed], selected: [...draft.selected],
+      judgmentPoints, proofPoints, points: judgmentPoints + proofPoints,
+      controlDelta: run.control - oldControl, trustDelta: run.trust - oldTrust
+    });
+    mode = 'result';
+    render('h3');
+    announce(`诏令已签发。本案获得 ${judgmentPoints + proofPoints} / 20 分。`);
+  }
+  function renderResult() {
+    const item = currentCase();
+    const result = run.history[run.index];
+    const delta = number => `${number > 0 ? '+' : ''}${number}`;
+    board.innerHTML = `${metrics()}<div class="court-result">
+      <span class="court-stamp" aria-hidden="true">诏已下</span>
+      <p class="court-kicker">第 ${run.index + 1} 案结算 · 推演后果</p>
+      <h3 tabindex="-1">${decrees[result.decree].name}</h3>
+      <p>${decrees[result.decree].result}</p>
+      <p>
+      <b>控制 ${delta(result.controlDelta)} · 信任 ${delta(result.trustDelta)}</b>（已计入本轮压力）</p>
+      <div class="court-score">
+      <b>${result.points}</b>
+      <span>/ 20<br>判断 ${result.judgmentPoints} / 14 · 证据 ${result.proofPoints} / 6</span>
+      </div>
+      <h4>回看这次判断</h4>
+      <p>你的判断是「${verdicts[result.verdict]}」。按已展开的材料，本轮应判为「${verdicts[result.expected]}」。</p>
+      <p>${result.expected === 'unknown' ? '你目前展开的材料只提供背景，足以说明需要继续查档。' : esc(item.explanation)}</p>
+      <p>你选择的依据为 ${result.selected.map(index => `「${esc(item.clues[index][0])}」`).join('、')}。</p>
+      <p>${result.proofPoints === 6 ? '所选依据覆盖了已展开材料中与陈述相关的方向。' : '证据分要求覆盖已见的支持或否定方向；出现相反呈报时，两个方向都需要引用。'}</p>
+      <details>
+      <summary>查看全部线索与题目说明</summary>${item.clues.map(([title, content, kind]) => `<p>
+      <b>${esc(title)}</b> · ${kind === 'context' ? '背景材料' : kind === 'support' ? '支持方向' : '否定方向'}<br>${esc(content)}</p>`).join('')}<p>${esc(item.explanation)}</p>
+      </details>${links(item)}${button('next', run.index === 2 ? '合卷 · 查看总分' : '下一案 →', 'class="court-primary"')}</div>`;
+  }
+  function finish() {
+    mode = 'finished';
+    run.finished = true;
+    const score = scoreRun(run);
+    if (score > best) {
+      best = score;
+      try { localStorage.setItem('qi-court-best-v1', String(best)); }
+      catch { storageNote = '本次最高分无法保存在浏览器中。'; }
+    }
+    render('h3');
+    announce(`三案结束，总分 ${score} / 100。`);
+  }
+  function renderFinished() {
+    const points = run.history.reduce((sum, result) => sum + result.points, 0);
+    board.innerHTML = `<div class="court-result">
+      <p class="court-kicker">${esc(run.ruler)} · 三案已结</p>
+      <h3 tabindex="-1">一念之后，回看诏令</h3>
+      <div class="court-score">
+      <b>${scoreRun(run)}</b>
+      <span>/ 100<br>本机最高 ${best}</span>
+      </div>
+      <p>判断与证据 ${points} / 60 · 控制 ${(run.control * .2).toFixed(1)} / 20 · 信任 ${(run.trust * .2).toFixed(1)} / 20</p>
+      <p>这局的分数同时记录查证质量和推演中的朝局代价。每项诏令如何影响历史，需要回到原事件核对。</p>
+      <ol class="court-recap">${run.history.map(result => {
+      const item = cases.find(entry => entry.id === result.id);
+      return `<li>
+      <h4>${esc(item.title)} · ${result.points} / 20</h4>
+      <p>${decrees[result.decree].name} · ${verdicts[result.verdict]}</p>
+      <p>${esc(item.explanation)}</p>${links(item)}</li>`;
+    }).join('')}</ol>
+      <div class="court-replay">${button('replay', '原局重玩')}${button('new', '随机新局', 'class="court-primary"')}${button('setup', '重新选君主')}</div>
+      <p class="court-storage">${esc(storageNote)}</p>
+      <small>牌局编号 ${run.seed} · 题库 v1 · 原局重玩恢复相同君主、案序和开场随机安排，后续呈报仍受你的新选择影响。</small>
+      </div>`;
+  }
+
+  panel.addEventListener('change', event => {
+    const input = event.target;
+    if (input.matches('[data-court-evidence]')) selectEvidence(Number(input.dataset.courtEvidence), input.checked);
+    if (mode === 'round' && input.name === 'court-verdict') draft.verdict = input.value;
+    if (mode === 'round' && input.name === 'court-decree') draft.decree = input.value;
+  });
+  panel.addEventListener('click', event => {
+    const target = event.target.closest('[data-court-action]');
+    if (!target) return;
+    const action = target.dataset.courtAction;
+    if (action === 'start') {
+      const fixed = cases.find(item => item.id === pendingCase);
+      run = makeRun(freshSeed(), fixed?.ruler || board.querySelector('#court-ruler').value, pendingCase);
+      beginRound();
+    }
+    if (action === 'reveal') reveal(Number(target.dataset.clue));
+    if (action === 'seal') seal();
+    if (action === 'next' && mode === 'result') {
+      if (run.index === 2) finish();
+      else { run.index++; beginRound(); }
+    }
+    if (action === 'setup') { pendingCase = null; mode = 'setup'; render('h3'); }
+    if (action === 'return' && run) { mode = run.history.length > run.index ? (run.finished ? 'finished' : 'result') : 'round'; render('h3'); }
+    if (action === 'replay' && mode === 'finished') { run = makeRun(run.seed, run.requestedRuler, run.firstCase); beginRound(); }
+    if (action === 'new' && mode === 'finished') { run = makeRun(freshSeed(), 'random'); beginRound(); }
+  });
+  panel.addEventListener('dragstart', event => {
+    const card = event.target.closest('[data-court-drag]');
+    if (card && event.dataTransfer) event.dataTransfer.setData('text/plain', 'qi-court:' + card.dataset.courtDrag);
+  });
+  panel.addEventListener('dragover', event => { if (event.target.closest('[data-court-drop]')) event.preventDefault(); });
+  panel.addEventListener('drop', event => {
+    if (!event.target.closest('[data-court-drop]')) return;
+    event.preventDefault();
+    const match = /^qi-court:([0-3])$/.exec(event.dataTransfer?.getData('text/plain') || '');
+    if (match) selectEvidence(Number(match[1]), true);
+  });
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('[data-court-open]');
+    if (!trigger) return;
+    pendingCase = trigger.dataset.courtOpen || null;
+    mode = 'setup';
+    const dialog = document.querySelector('#detail-dialog');
+    if (dialog.open) dialog.querySelector('.dialog-close').click();
+    render('h3');
+    panel.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+  });
+  const dialogBody = document.querySelector('#dialog-body');
+  new MutationObserver(() => {
+    const actions = dialogBody.querySelector('.event-actions');
+    const permalink = dialogBody.querySelector('[data-event-permalink]');
+    if (!actions || !permalink || actions.querySelector('[data-court-open]')) return;
+    const hash = new URL(permalink.href).hash;
+    const eventId = new URLSearchParams(hash.slice(1)).get('event');
+    const item = cases.find(entry => !entry.fiction && entry.event === eventId);
+    if (item) actions.insertAdjacentHTML('beforeend', `<button type="button" data-court-open="${item.id}">以此案开始宫廷推演 ↗</button>`);
+  }).observe(dialogBody, { childList: true, subtree: true });
+  render();
+})();

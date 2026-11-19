@@ -4,8 +4,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
-$cssOrder = @('styles.css', 'animation.css', 'violence.css', 'dossier.css', 'theme.css', 'ai-help.css', 'music.css', 'sidebar.css', 'surfaces.css')
-$jsOrder = @('data.js', 'violence.js', 'dossier.js', 'app.js', 'animation.js', 'theme.js', 'ai-help.js', 'music.js', 'sidebar.js')
+$cssOrder = @('styles.css', 'animation.css', 'violence.css', 'dossier.css', 'theme.css', 'ai-help.css', 'music.css', 'sidebar.css', 'surfaces.css', 'court-game.css')
+$jsOrder = @('data.js', 'violence.js', 'dossier.js', 'app.js', 'animation.js', 'theme.js', 'ai-help.js', 'music.js', 'sidebar.js', 'court-game-data.js', 'court-game.js')
 
 $css = foreach ($file in $cssOrder) {
   "/* ===== $file ===== */"
