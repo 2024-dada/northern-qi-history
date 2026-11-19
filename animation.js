@@ -18,6 +18,10 @@
   const duration = 20000;
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   let reducedMotion = motionPreference.matches;
+  const victimLabel = find('#scene-victim-label');
+  const executorLabel = find('#scene-executor-label');
+  const timeLabel = find('#scene-time');
+  let previousElapsed = -1;
   let time = 0, running = false, lastTick = null, raf = null, previousPhase = -1;
   const clamp = value => Math.max(0, Math.min(1, value));
   const ease = value => { const x = clamp(value); return x * x * (3 - 2 * x); };
@@ -37,16 +41,19 @@
     actors.victim.setAttribute('opacity', String(1 - disappearing));
     actors.executor.setAttribute('transform', `translate(${executorX} 247) rotate(${-6 * approaching})`);
     actors.executor.setAttribute('opacity', String(clamp((time - 8500) / 1300) * (1 - disappearing * .75)));
-    find('#scene-victim-label').setAttribute('x', String(victimX));
-    find('#scene-executor-label').setAttribute('x', String(executorX));
+    victimLabel.setAttribute('x', String(victimX));
+    executorLabel.setAttribute('x', String(executorX));
     actors.command.setAttribute('stroke-dashoffset', String(330 * (1 - command)));
     actors.command.setAttribute('opacity', String(phase > 0 ? 1 : 0));
     actors.stamp.setAttribute('opacity', String(reducedMotion ? (phase >= 3 ? 1 : 0) : between(15300, 17500)));
     actors.trace.setAttribute('opacity', String(disappearing));
     scrub.value = String(time);
     const elapsed = Math.floor(time / 1000);
-    find('#scene-time').textContent = `${String(elapsed).padStart(2, '0')} / 20 秒`;
-    scrub.setAttribute('aria-valuetext', `${elapsed}秒，${frames[phase].title}`);
+    if (elapsed !== previousElapsed) {
+      timeLabel.textContent = `${String(elapsed).padStart(2, '0')} / 20 秒`;
+      scrub.setAttribute('aria-valuetext', `${elapsed}秒，${frames[phase].title}`);
+      previousElapsed = elapsed;
+    }
     scene.dataset.playback = running ? 'playing' : time === duration ? 'ended' : 'paused';
     if (phase !== previousPhase) {
       find('#scene-phase').textContent = `${phase + 1} / 4`;
@@ -59,7 +66,8 @@
       });
       previousPhase = phase;
     }
-    play.textContent = running ? 'Ⅱ 暂停' : time === 0 ? '▶ 播放示意动画' : time === duration ? '↻ 再看一次' : '▶ 继续播放';
+    const buttonLabel = running ? 'Ⅱ 暂停' : time === 0 ? '▶ 播放示意动画' : time === duration ? '↻ 再看一次' : '▶ 继续播放';
+    if (play.textContent !== buttonLabel) play.textContent = buttonLabel;
   }
 
   function stop() {

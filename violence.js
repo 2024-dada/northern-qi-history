@@ -27,7 +27,7 @@
     return `<g class="v-rig rig-${role}" data-role="${role}" data-x="${x}" data-y="${y}" data-facing="${facing}" transform="translate(${x} ${y})"><defs><linearGradient id="${id}" x1="0" x2="1"><stop stop-color="${dark}"/><stop offset=".38" stop-color="${mid}"/><stop offset=".7" stop-color="${light}"/><stop offset="1" stop-color="${mid}"/></linearGradient><linearGradient id="${id}-steel" x2=".3" y2="1"><stop stop-color="#f6ead4"/><stop offset=".45" stop-color="#b8c7bf"/><stop offset=".55" stop-color="#fff7db"/><stop offset="1" stop-color="#718e85"/></linearGradient><radialGradient id="${id}-shadow"><stop stop-color="#07100c" stop-opacity=".65"/><stop offset="1" stop-color="#07100c" stop-opacity="0"/></radialGradient></defs><ellipse class="rig-shadow" cy="7" rx="36" ry="7" fill="url(#${id}-shadow)"/><g class="rig-move"><g transform="scale(${facing} 1)"><g class="rig-torso" transform="rotate(0 0 -25)"><path d="M-10-75Q-25-65-30-39L-23-33L-6-61Z" fill="${dark}" stroke="${mid}" stroke-width=".5"/><path d="M-15-5L-17 6L-4 8L-2 4L-8 0" fill="#1a2923"/><g class="rig-front-foot"><path d="M6-5L10 4Q22 3 24 8H6L2 3Z" fill="#1a2923" stroke="#a39268" stroke-width=".5"/></g><g class="rig-hem"><path d="M-12-82Q-19-70-17-48L-27-1Q-10 5 2 1Q15 5 27-1L16-48Q17-70 11-82Z" fill="url(#${id})" stroke="${light}" stroke-opacity=".45" stroke-width=".6"/><path d="M-10-75L2-53L12-77M2-53L8-8M-12-47L-18-7M13-43L21-4M-20-3Q0 4 23-3" fill="none" stroke="${dark}" stroke-width="1.3" stroke-opacity=".6"/><path d="M-6-76L3-58L10-77" fill="none" stroke="#dbc592" stroke-width="2"/><path d="M-17-44Q0-40 17-44L17-39Q0-34-17-39Z" fill="#493d2d"/><rect x="-2" y="-43" width="7" height="5" rx="1" fill="#c5a56a"/><path d="M3-37L8-13L13-14L8-37" fill="#9b7850"/><path d="M-14-51Q-7-56-4-57M11-52L14-57M-20-17L-17-30" fill="none" stroke="${light}" stroke-opacity=".45" stroke-width=".8"/></g><path d="M-5-88V-80L6-79V-88" fill="#bba47e"/><g class="rig-head"><path d="M-10-107Q-12-99-8-92L-3-87L7-89L11-94L15-97L11-100L11-106Z" fill="#d0b892"/><path d="M-10-106Q-13-93-7-90L-5-103H11V-109Z" fill="#29362c"/><path d="M-15-110H14L10-119H-9Z" fill="#344339" stroke="#b3a377" stroke-width=".6"/><path d="M-10-111H10M-4-118V-112M6-118V-112" stroke="#c2aa7d" stroke-opacity=".5" stroke-width=".5"/><path d="M5-102H9M6-95L10-95" stroke="#635641" stroke-width=".7"/></g><g transform="translate(10 -69)"><g class="rig-shoulder"><path d="M-3-8Q10-12 24-6L30 5L25 12Q12 8-3 8Z" fill="url(#${id})" stroke="${light}" stroke-opacity=".4" stroke-width=".5"/><path d="M4-5L20-1M7 4L22 7" stroke="${dark}" stroke-opacity=".5" fill="none"/><g transform="translate(26 0)"><g class="rig-elbow"><path d="M-2-5L18-6L25-4L25 5L18 7L-2 5Z" fill="${mid}" stroke="${light}" stroke-opacity=".4" stroke-width=".5"/><path d="M16-6L16 6M20-5V5" stroke="#d4bf8e" stroke-width="1.5"/><g transform="translate(24 0)"><path d="M0-4L7-3L9 0L6 4H0Z" fill="#cdb58d"/>${armed?`<g class="rig-weapon" data-length="${length}"><path d="M5-4L${length}-6L${length+4}-2L${length} 1L5 4Z" fill="url(#${id}-steel)" stroke="#e7dfc4" stroke-width=".5"/><path d="M7-2L${length} -3" stroke="#fff9e7" stroke-width=".7"/><path d="M9 1L${length-7}-1" stroke="#49695f" stroke-opacity=".5" stroke-width=".55"/><path d="M11-1H19M22-1H27" stroke="#f2ead3" stroke-opacity=".6" stroke-width=".35"/><path d="M4-9Q6-7 5-2V3Q6 8 4 9" fill="none" stroke="#c5a472" stroke-width="2.7"/><path d="M3-6V6" stroke="#f0d3a0" stroke-width=".7"/><circle cx="4" cy="0" r="1.2" fill="#604b30"/><path d="M-6 0H4" stroke="#785c3d" stroke-width="4"/><path d="M-5-2L-3 2M-2-2L0 2M1-2L3 2" stroke="#cfb789" stroke-width=".8"/><ellipse cx="-7" rx="2.1" ry="3.2" fill="#b49a6a" stroke="#ead2a3" stroke-width=".45"/></g>`:''}</g></g></g></g></g></g></g></g></g>`;
   }
   function backdrop(uid,floor=223) {
-    return `<defs><linearGradient id="${uid}-bg" x2=".8" y2="1"><stop stop-color="#101e1b"/><stop offset=".5" stop-color="#2b4238"/><stop offset="1" stop-color="#172b23"/></linearGradient><radialGradient id="${uid}-light"><stop stop-color="#c5ae7a" stop-opacity=".17"/><stop offset="1" stop-color="#c5ae7a" stop-opacity="0"/></radialGradient><linearGradient id="${uid}-floor" y2="1" x2="0"><stop stop-color="#4b6350" stop-opacity=".2"/><stop offset="1" stop-color="#0e211b" stop-opacity=".8"/></linearGradient></defs><rect width="480" height="340" fill="url(#${uid}-bg)"/><ellipse cx="323" cy="116" rx="175" ry="137" fill="url(#${uid}-light)"/><g class="scene-architecture" fill="none" stroke="#b2a27c" stroke-opacity=".13"><path d="M45 104L97 79H383L438 104M59 105H421M69 111H411M94 79L140 66H340L385 79M79 112V${floor}M401 112V${floor}M89 115V${floor}M391 115V${floor}"/><path d="M113 113H365V${floor}H113Z M126 117H352V${floor}H126Z"/><path d="M145 119V${floor}M167 119V${floor}M189 119V${floor}M291 119V${floor}M313 119V${floor}M335 119V${floor}" stroke-opacity=".08"/><path d="M224 120H256V${floor}H224Z" fill="#071810" fill-opacity=".4"/></g><path d="M0 ${floor}H480V340H0Z" fill="url(#${uid}-floor)"/><g stroke="#b4a17e" stroke-opacity=".08" fill="none"><path d="M24 ${floor}H456M5 ${floor+17}H475M0 ${floor+41}H480M70 340L170 ${floor}M410 340L311 ${floor}M240 ${floor}V340"/></g><g class="scene-motes" fill="#d0b583">${Array.from({length:9},(_,i)=>`<circle data-dust="${i}" cx="${69+i*43}" cy="${88+i%4*35}" r="${i%3===0?1:.6}" opacity=".14"/>`).join('')}</g><g fill="#101f19" opacity=".55"><path d="M0 61H18V${floor+10}H0M462 61H480V${floor+10}H462"/></g><path d="M22 19H42M22 19V39M458 19H438M458 19V39" fill="none" stroke="#ad9670" stroke-opacity=".4"/>`;
+    return `<defs><linearGradient id="${uid}-bg" x2=".8" y2="1"><stop stop-color="#0f1d26"/><stop offset=".48" stop-color="#2f4a4d"/><stop offset="1" stop-color="#15292e"/></linearGradient><radialGradient id="${uid}-light"><stop stop-color="#e6b877" stop-opacity=".27"/><stop offset="1" stop-color="#c5ae7a" stop-opacity="0"/></radialGradient><linearGradient id="${uid}-floor" y2="1" x2="0"><stop stop-color="#4b6350" stop-opacity=".2"/><stop offset="1" stop-color="#0e211b" stop-opacity=".8"/></linearGradient></defs><rect width="480" height="340" fill="url(#${uid}-bg)"/><ellipse cx="323" cy="116" rx="175" ry="137" fill="url(#${uid}-light)"/><g class="scene-architecture" fill="none" stroke="#b2a27c" stroke-opacity=".13"><path d="M45 104L97 79H383L438 104M59 105H421M69 111H411M94 79L140 66H340L385 79M79 112V${floor}M401 112V${floor}M89 115V${floor}M391 115V${floor}"/><path d="M113 113H365V${floor}H113Z M126 117H352V${floor}H126Z"/><path d="M145 119V${floor}M167 119V${floor}M189 119V${floor}M291 119V${floor}M313 119V${floor}M335 119V${floor}" stroke-opacity=".08"/><path d="M224 120H256V${floor}H224Z" fill="#071810" fill-opacity=".4"/></g><path d="M0 ${floor}H480V340H0Z" fill="url(#${uid}-floor)"/><g stroke="#b4a17e" stroke-opacity=".08" fill="none"><path d="M24 ${floor}H456M5 ${floor+17}H475M0 ${floor+41}H480M70 340L170 ${floor}M410 340L311 ${floor}M240 ${floor}V340"/></g><g class="scene-motes" fill="#d0b583">${Array.from({length:9},(_,i)=>`<circle data-dust="${i}" cx="${69+i*43}" cy="${88+i%4*35}" r="${i%3===0?1:.6}" opacity=".14"/>`).join('')}</g><g fill="#101f19" opacity=".55"><path d="M0 61H18V${floor+10}H0M462 61H480V${floor+10}H462"/></g><path d="M22 19H42M22 19V39M458 19H438M458 19V39" fill="none" stroke="#ad9670" stroke-opacity=".4"/>`;
   }
   window.RESEARCH.sceneFigure=figure;
   window.RESEARCH.sceneBackdrop=backdrop;
@@ -69,6 +69,9 @@
     bloodToggle.textContent=off?'血色特效：关闭':'血色特效：开启';
   });
   const reduce=matchMedia('(prefers-reduced-motion: reduce)'), toggle=document.querySelector('#violence-motion');
+  const dialog=document.querySelector('#detail-dialog');
+  const root=document.documentElement;
+  let nextFrame=null;
   let paused=reduce.matches, tracked=[], previous=null, speed=preferences.read('qi-animation-speed',1)===.55?.55:1;
   function updateSpeed(){document.documentElement.classList.toggle('scene-slow',speed!==1);const button=document.querySelector('#violence-speed');button.textContent=speed===1?'速度：正常':'速度：慢放';button.setAttribute('aria-pressed',String(speed!==1));}updateSpeed();
   const poses={
@@ -90,22 +93,30 @@
     const [step,body]=pose,angle=radians(body),facing=Number(rig.dataset.facing);
     return {x:Number(rig.dataset.x)+step+facing*(x*Math.cos(angle)-(y+25)*Math.sin(angle)),y:Number(rig.dataset.y)+drop+x*Math.sin(angle)+(y+25)*Math.cos(angle)-25};
   }
-  function bladeTip(rig,pose){const [,body,shoulder,elbow]=pose,hand=worldPoint(rig,pose,10+26*Math.cos(radians(shoulder))+24*Math.cos(radians(shoulder+elbow)),-69+26*Math.sin(radians(shoulder))+24*Math.sin(radians(shoulder+elbow))),length=Number(rig.querySelector('.rig-weapon')?.dataset.length||0),angle=radians(body+shoulder+elbow);return {x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)};}
+  const rigParts=new WeakMap();
+  function partsFor(rig){
+    if(!rigParts.has(rig)){
+      const names=['move','torso','shoulder','elbow','hem','shadow','front-foot','weapon'];
+      rigParts.set(rig,Object.fromEntries(names.map(name=>[name,rig.querySelector('.rig-'+name)])));
+    }
+    return rigParts.get(rig);
+  }
+  function bladeTip(rig,pose){const [,body,shoulder,elbow]=pose,hand=worldPoint(rig,pose,10+26*Math.cos(radians(shoulder))+24*Math.cos(radians(shoulder+elbow)),-69+26*Math.sin(radians(shoulder))+24*Math.sin(radians(shoulder+elbow))),length=Number(partsFor(rig)['weapon']?.dataset.length||0),angle=radians(body+shoulder+elbow);return {x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)};}
   function rigPose(rig,pose,drop=0){
     const [step,body,shoulder,elbow]=pose;
-    rig.querySelector('.rig-move').setAttribute('transform',`translate(${step} ${drop})`);
-    rig.querySelector('.rig-torso').setAttribute('transform',`rotate(${body} 0 -25)`);
-    rig.querySelector('.rig-shoulder').setAttribute('transform',`rotate(${shoulder})`);
-    rig.querySelector('.rig-elbow').setAttribute('transform',`rotate(${elbow})`);
-    rig.querySelector('.rig-hem').setAttribute('transform',`skewX(${body*.12})`);
-    rig.querySelector('.rig-shadow').setAttribute('rx',String(36+Math.abs(step)*.1));
-    rig.querySelector('.rig-front-foot').setAttribute('transform',`rotate(${-body*.5} 8 -3)`);
+    partsFor(rig)['move'].setAttribute('transform',`translate(${step} ${drop})`);
+    parts.torso.setAttribute('transform',`rotate(${body} 0 -25)`);
+    parts.shoulder.setAttribute('transform',`rotate(${shoulder})`);
+    parts.elbow.setAttribute('transform',`rotate(${elbow})`);
+    parts.hem.setAttribute('transform',`skewX(${body*.12})`);
+    parts.shadow.setAttribute('rx',String(36+Math.abs(step)*.1));
+    parts['front-foot'].setAttribute('transform',`rotate(${-body*.5} 8 -3)`);
     // Return the hand in scene coordinates, so props cannot detach from it.
     const x=10+26*Math.cos(radians(shoulder))+24*Math.cos(radians(shoulder+elbow));
     const y=-69+26*Math.sin(radians(shoulder))+24*Math.sin(radians(shoulder+elbow));
     const bx=x*Math.cos(radians(body))-(y+25)*Math.sin(radians(body));
     const by=x*Math.sin(radians(body))+(y+25)*Math.cos(radians(body))-25;
-    const hand={x:Number(rig.dataset.x)+step+Number(rig.dataset.facing)*bx,y:Number(rig.dataset.y)+drop+by};const length=Number(rig.querySelector('.rig-weapon')?.dataset.length||0),angle=radians(body+shoulder+elbow);return {...hand,tip:{x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)}};
+    const hand={x:Number(rig.dataset.x)+step+Number(rig.dataset.facing)*bx,y:Number(rig.dataset.y)+drop+by};const length=Number(parts.weapon?.dataset.length||0),angle=radians(body+shoulder+elbow);return {...hand,tip:{x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)}};
   }
   function drawScene(scene){
     const {svg,key,actor,victim}=scene,p=(scene.elapsed%cycleFor(key))/cycleFor(key),strike=['slash','behead'].includes(key)?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
@@ -183,7 +194,7 @@
     if(restored){paused=true;update();const status=document.querySelector('[data-scene-state]');if(status)status.textContent='已恢复本次浏览的进度，点击播放继续';}
     tracked.forEach(drawScene);
   }
-  const update=()=>{toggle.setAttribute('aria-pressed',String(paused));toggle.textContent=paused?'播放卡片动画 ▷':'暂停卡片动画 Ⅱ';document.querySelectorAll('[data-animation-action=motion]').forEach(button=>button.textContent=toggle.textContent.replace('卡片',''));};
+  const update=()=>{scheduleFrame();toggle.setAttribute('aria-pressed',String(paused));toggle.textContent=paused?'播放卡片动画 ▷':'暂停卡片动画 Ⅱ';document.querySelectorAll('[data-animation-action=motion]').forEach(button=>button.textContent=toggle.textContent.replace('卡片',''));};
   document.querySelector('#violence-speed')?.addEventListener('click',()=>{speed=speed===1?.55:1;preferences.write('qi-animation-speed',speed);updateSpeed();});
   document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.once=false;scene.elapsed=reduce.matches?2900:0;drawScene(scene);});const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已回到开始，点击播放查看';document.dispatchEvent(new Event('archive-replay'));});
   toggle.addEventListener('click',()=>{paused=!paused;update();});
@@ -196,17 +207,51 @@
     tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=true;scene.elapsed=0;drawScene(scene);});
     paused=false;update();dialog.querySelector('[data-scene-state]').textContent='正在单次播放，结束后停在结果画面';
   });
-  document.addEventListener('visibilitychange',()=>{previous=null;});
+  document.addEventListener('visibilitychange',scheduleFrame);
   reduce.addEventListener('change' ,()=>{paused=reduce.matches;tracked.forEach(item=>{item.elapsed=reduce.matches?2900:0;drawScene(item);});update();});
-  const observer=new IntersectionObserver(items=>items.forEach(item=>item.target.classList.toggle('in-view',item.isIntersecting)),{threshold:.1});
+  const observer=new IntersectionObserver(items=>{
+    items.forEach(item=>item.target.classList.toggle('in-view',item.isIntersecting));
+    scheduleFrame();
+  },{threshold:.1});
   cards.querySelectorAll('.violence-card').forEach(card=>observer.observe(card));
   new MutationObserver(collect).observe(document.querySelector('#dialog-body'),{childList:true});
-  function frame(now){const dt=previous===null?0:Math.min(now-previous,50);previous=now;const dialogOpen=document.querySelector('#detail-dialog').open;
-    if(document.documentElement.classList.contains('ui-settings-open')||document.documentElement.classList.contains('ai-help-open')){requestAnimationFrame(frame);return;}
-    tracked.forEach(scene=>{const modal=!!scene.svg.closest('.detail-visual');const visible=modal?dialogOpen:!dialogOpen&&scene.svg.closest('.violence-card').classList.contains('in-view');if(visible&&!document.hidden&&!paused){scene.elapsed+=dt*speed;
-      if(modal&&scene.once&&scene.elapsed>=cycleFor(scene.key)*.9){scene.elapsed=cycleFor(scene.key)*.9;scene.once=false;paused=true;update();document.querySelector('[data-scene-state]').textContent='单次播放结束 · 已停在结果画面';}
-      drawScene(scene);}});
-    requestAnimationFrame(frame);
+  const playbackObserver=new MutationObserver(scheduleFrame);
+  playbackObserver.observe(dialog,{attributes:true,attributeFilter:['open']});
+  playbackObserver.observe(root,{attributes:true,attributeFilter:['class']});
+
+  function visibleScenes(){
+    if(paused||document.hidden||root.classList.contains('ui-settings-open')||root.classList.contains('ai-help-open'))return [];
+    return tracked.filter(({svg})=>dialog.open
+      ? svg.closest('.detail-visual')
+      : svg.closest('.violence-card.in-view'));
   }
-  collect();update();requestAnimationFrame(frame);
+  function scheduleFrame(){
+    if(visibleScenes().length){
+      if(nextFrame===null)nextFrame=requestAnimationFrame(frame);
+    }else{
+      if(nextFrame!==null)cancelAnimationFrame(nextFrame);
+      nextFrame=null;
+      previous=null;
+    }
+  }
+  function frame(now){
+    nextFrame=null;
+    const active=visibleScenes();
+    const dt=previous===null?0:Math.min(now-previous,50);
+    previous=now;
+    for(const scene of active){
+      scene.elapsed+=dt*speed;
+      if(dialog.open&&scene.once&&scene.elapsed>=cycleFor(scene.key)*.9){
+        scene.elapsed=cycleFor(scene.key)*.9;
+        scene.once=false;
+        paused=true;
+        update();
+        document.querySelector('[data-scene-state]').textContent='单次播放结束 · 已停在结果画面';
+      }
+      drawScene(scene);
+    }
+    scheduleFrame();
+  }
+  collect();
+  update();
 })();

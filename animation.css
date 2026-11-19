@@ -25,3 +25,12 @@
   .scene-steps button{font-size:11px;min-height:46px}.scene-steps button span{display:block;margin:0 0 4px}.scene-commentary{padding:18px 17px 0;min-height:215px}.scene-commentary h4{font-size:18px}.scene-commentary p:not(.eyebrow){font-size:13px}
   .scene-controls{padding:16px 17px;flex-wrap:wrap;gap:8px 15px}.scene-play{min-width:137px}.scene-scrubber{flex-basis:100%;margin-top:3px}.scene-citation{padding:16px 17px}.scene-motion-note{padding:0 17px 16px}
 }
+
+/* Crisp edges and a restrained gold frame around the vector stage. */
+.scene-screen { box-shadow:inset 0 0 0 1px #bb956a; }
+.scene-screen .scene-svg-label { font-weight:700; fill:#fff1d3; }
+.scene-screen .scene-svg-small { fill:#c5d0c6; }
+@media(max-width:650px) {
+  .scene-screen .scene-svg-label { font-size:21px; letter-spacing:0; }
+  .scene-screen .scene-svg-small { font-size:14px; letter-spacing:0; }
+}
