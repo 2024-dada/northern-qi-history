@@ -7,6 +7,14 @@
   if (!canvas || !engine || !Array.isArray(records)) return;
 
   const ctx = canvas.getContext('2d', {alpha: false});
+  const fogCanvas = document.createElement('canvas');
+  fogCanvas.width = engine.WORLD.width;
+  fogCanvas.height = engine.WORLD.height;
+  const fogCtx = fogCanvas.getContext('2d');
+  const memoryCanvas = document.createElement('canvas');
+  memoryCanvas.width = engine.WORLD.width;
+  memoryCanvas.height = engine.WORLD.height;
+  const memoryCtx = memoryCanvas.getContext('2d');
   const $ = selector => document.querySelector(selector);
   const W = engine.WORLD.width;
   const H = engine.WORLD.height;
@@ -18,6 +26,8 @@
   let run = null;
   let mode = 'ready';
   let stickPointer = null;
+  let attackPointer = null;
+  let touchAttack = false;
   let stickVector = {x: 0, y: 0};
   let rankRows = [];
   let storageAvailable = true;
@@ -117,7 +127,10 @@
       lastFoundCount = 0;
       return;
     }
-    $('[data-current-layer-note]').textContent = `第 ${run.layer} 层 · 从27条暴力事件中随机抽取 ${run.layerRecords.length} 条危险主题。`;
+    const encounter = run.layer >= 5
+      ? '大将军带领三支分散的将领小队。'
+      : run.layer >= 3 ? '三支将领小队分散巡查。' : '三支追兵小队分散搜索。';
+    $('[data-current-layer-note]').textContent = `第 ${run.layer} 层 · ${encounter}地图视野外的物件会隐藏。`;
     $('[data-current-hazards]').innerHTML = run.layerRecords.map(record => `<li>
       <a href="${escapeHtml(record.source)}"><em>${escapeHtml(record.id)}</em> ${escapeHtml(record.title)}</a>
       <small>${escapeHtml(record.status)}</small>
@@ -173,6 +186,7 @@
     requestFullscreen();
     pressed.clear();
     stickVector = {x: 0, y: 0};
+    touchAttack = false;
     $('[data-game-action="pause"]').disabled = false;
     showOnly(null);
     lastFoundCount = 0;
@@ -188,10 +202,11 @@
     mode = 'over';
     pressed.clear();
     stickVector = {x: 0, y: 0};
+    touchAttack = false;
     $('[data-game-action="pause"]').disabled = true;
     saveRun();
     $('[data-final-score]').textContent = run.score.toLocaleString('zh-CN');
-    $('[data-final-summary]').textContent = `存活 ${formatTime(run.elapsed)} · 到达第 ${run.layer} 层 · 击败 ${run.bossKills} 位皇帝。`;
+    $('[data-final-summary]').textContent = `存活 ${formatTime(run.elapsed)} · 到达第 ${run.layer} 层 · 击退追兵 ${run.enemyKills} 名 · 击败将军 ${run.marshalKills} 名、皇帝 ${run.bossKills} 位。`;
     showOnly('over');
     setLive(`本局结束，得分 ${run.score}。排行榜只保存到当前浏览器。`);
   }
@@ -201,6 +216,7 @@
     mode = 'paused';
     pressed.clear();
     stickVector = {x: 0, y: 0};
+    touchAttack = false;
     showOnly('pause');
     setLive('已暂停，暂停期间不计时。');
   }
@@ -218,12 +234,14 @@
     run = null;
     pressed.clear();
     stickVector = {x: 0, y: 0};
+    touchAttack = false;
     $('[data-game-action="pause"]').disabled = true;
     showOnly('start');
     resetHud();
     renderLayerRecords();
     renderRecordIndex();
-    setLive('输入名称后开始。危险表现为抽象区域，不复原施刑现场。');
+    touchAttack = false;
+    setLive('输入名称后开始。未探索区域会被黑雾遮挡，危险表现为抽象区域。');
   }
 
   function moveVector() {
@@ -343,11 +361,11 @@
     text('背景档案', context.x, context.y + 29, 'rgba(239,224,185,.74)', 9, 'center', 500);
   }
 
-  function drawWeapon(time) {
-    if (run.weapon.collected) return;
-    const lift = Math.sin(time * 3) * 3;
+  function drawWeapon(weapon, time) {
+    if (weapon.collected) return;
+    const lift = Math.sin(time * 3 + weapon.x) * 3;
     ctx.save();
-    ctx.translate(run.weapon.x, run.weapon.y + lift);
+    ctx.translate(weapon.x, weapon.y + lift);
     ctx.rotate(-Math.PI / 4);
     ctx.fillStyle = 'rgba(221,196,137,.15)';
     ctx.fillRect(-18, -18, 36, 36);
@@ -357,7 +375,113 @@
     ctx.fillRect(-2, 5, 4, 9);
     ctx.fillRect(-7, 3, 14, 3);
     ctx.restore();
-    text('散落武器', run.weapon.x, run.weapon.y + 27 + lift, '#ead7aa', 10, 'center', 600);
+    text('武器', weapon.x, weapon.y + 27 + lift, '#ead7aa', 10, 'center', 600);
+  }
+
+  function drawHealingItem(item, time) {
+    if (item.collected) return;
+    const lift = Math.sin(time * 2.6 + item.y) * 2;
+    ctx.save();
+    ctx.translate(item.x, item.y + lift);
+    circle(0, 0, 15, 'rgba(164,190,132,.2)', 'rgba(199,220,151,.85)', 1.5);
+    ctx.fillStyle = '#d7dfae';
+    ctx.fillRect(-4, -8, 8, 16);
+    ctx.fillRect(-8, -4, 16, 8);
+    ctx.restore();
+    text('回血药', item.x, item.y + 27 + lift, '#dfe8bb', 10, 'center', 600);
+  }
+
+  function drawHealthBar(entity, width, title) {
+    const x = entity.x - width / 2;
+    const y = entity.y - entity.radius - 17;
+    const ratio = Math.max(0, entity.hp / entity.maxHp);
+    ctx.fillStyle = 'rgba(7,12,10,.88)';
+    ctx.fillRect(x - 1, y - 1, width + 2, 6);
+    ctx.fillStyle = '#603d36';
+    ctx.fillRect(x, y, width, 4);
+    ctx.fillStyle = ratio > .45 ? '#a6bd83' : '#dc8063';
+    ctx.fillRect(x, y, width * ratio, 4);
+    text(`${title} ${Math.ceil(entity.hp)}/${entity.maxHp}`, entity.x, y - 8, '#f0e5ca', 8, 'center', 600);
+  }
+
+  function drawEnemy(enemy, time) {
+    if (!enemy.alive) return;
+    const hurt = enemy.hitUntil > run.elapsed;
+    ctx.save();
+    ctx.translate(enemy.x, enemy.y + Math.sin(time * 2 + enemy.x) * .8);
+    if (hurt && Math.floor(time * 30) % 2) ctx.globalAlpha = .45;
+    circle(0, 3, enemy.radius + 4, 'rgba(5,10,8,.28)', null);
+    const bodyColor = enemy.type === 'marshal' ? '#b28b4e' : enemy.type === 'general' ? '#865044' : '#53675c';
+    const trimColor = enemy.type === 'soldier' ? '#b9aa83' : '#dfc17f';
+    ctx.beginPath();
+    ctx.moveTo(-enemy.radius, enemy.radius + 4);
+    ctx.lineTo(-enemy.radius + 4, -2);
+    ctx.lineTo(-enemy.radius * .6, -enemy.radius * .65);
+    ctx.lineTo(enemy.radius * .6, -enemy.radius * .65);
+    ctx.lineTo(enemy.radius - 4, -2);
+    ctx.lineTo(enemy.radius, enemy.radius + 4);
+    ctx.closePath();
+    ctx.fillStyle = bodyColor;
+    ctx.fill();
+    ctx.strokeStyle = trimColor;
+    ctx.lineWidth = enemy.type === 'marshal' ? 2 : 1;
+    ctx.stroke();
+    circle(0, -enemy.radius, enemy.type === 'soldier' ? 5 : 7, '#c6aa87', '#473b31', 1);
+    ctx.beginPath();
+    ctx.moveTo(-7, -enemy.radius - 3);
+    ctx.lineTo(0, -enemy.radius - (enemy.type === 'marshal' ? 16 : 10));
+    ctx.lineTo(7, -enemy.radius - 3);
+    ctx.closePath();
+    ctx.fillStyle = trimColor;
+    ctx.fill();
+    if (enemy.type === 'marshal') {
+      ctx.strokeStyle = 'rgba(224,195,125,.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -enemy.radius - 13);
+      ctx.lineTo(0, -enemy.radius - 30);
+      ctx.lineTo(12, -enemy.radius - 25);
+      ctx.lineTo(0, -enemy.radius - 20);
+      ctx.stroke();
+    }
+    ctx.restore();
+    drawHealthBar(enemy, enemy.type === 'soldier' ? 36 : enemy.type === 'general' ? 50 : 66, enemy.label);
+  }
+
+  function drawFog() {
+    const fog = engine.FOG;
+    const columns = Math.ceil(W / fog.cellSize);
+    const rows = Math.ceil(H / fog.cellSize);
+    if (run.exploredDirty) {
+      memoryCtx.clearRect(0, 0, W, H);
+      memoryCtx.fillStyle = 'rgba(0,0,0,.48)';
+      for (let row = 0; row < rows; row++) {
+        for (let column = 0; column < columns; column++) {
+          if (run.explored[row * columns + column]) {
+            memoryCtx.fillRect(column * fog.cellSize, row * fog.cellSize, fog.cellSize + .5, fog.cellSize + .5);
+          }
+        }
+      }
+      run.exploredDirty = false;
+    }
+    fogCtx.globalCompositeOperation = 'source-over';
+    fogCtx.globalAlpha = 1;
+    fogCtx.fillStyle = '#020405';
+    fogCtx.fillRect(0, 0, W, H);
+    fogCtx.globalCompositeOperation = 'destination-out';
+    fogCtx.drawImage(memoryCanvas, 0, 0, W, H);
+    fogCtx.globalAlpha = 1;
+    const radius = fog.revealRadius;
+    const gradient = fogCtx.createRadialGradient(run.player.x, run.player.y, radius - fog.fade, run.player.x, run.player.y, radius);
+    gradient.addColorStop(0, 'rgba(0,0,0,1)');
+    gradient.addColorStop(.82, 'rgba(0,0,0,.98)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    fogCtx.fillStyle = gradient;
+    fogCtx.beginPath();
+    fogCtx.arc(run.player.x, run.player.y, radius, 0, Math.PI * 2);
+    fogCtx.fill();
+    fogCtx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(fogCanvas, 0, 0, W, H);
   }
 
   function drawEmperor(time) {
@@ -378,7 +502,7 @@
     ctx.beginPath(); ctx.moveTo(-10, -22); ctx.lineTo(-8, -34); ctx.lineTo(-2, -27); ctx.lineTo(3, -37); ctx.lineTo(7, -27); ctx.lineTo(12, -32); ctx.lineTo(11, -21); ctx.closePath();
     ctx.fillStyle = '#d2b76e'; ctx.fill();
     ctx.restore();
-    text('皇帝', boss.x, boss.y + 44, '#f1d9aa', 11, 'center', 700);
+    drawHealthBar(boss, 74, '皇帝');
     if (run.player.hasWeapon) {
       ctx.save();
       ctx.strokeStyle = `rgba(235,208,145,${.4 + Math.sin(time * 7) * .18})`;
@@ -417,9 +541,20 @@
     }
     for (const hazard of run.hazards) drawHazard(hazard, time);
     for (const context of run.contexts) drawContext(context, time);
-    drawWeapon(time);
+    for (const weapon of run.weaponPickups) drawWeapon(weapon, time);
+    for (const item of run.healingItems) drawHealingItem(item, time);
+    for (const enemy of run.enemies) drawEnemy(enemy, time);
     drawEmperor(time);
     drawPlayer(time);
+    if (run.attackFlash && run.attackFlash.until > run.elapsed) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(234,211,151,${Math.max(.25, (run.attackFlash.until - run.elapsed) / .16)})`;
+      ctx.lineWidth = 3;
+      circle(run.attackFlash.x, run.attackFlash.y, 28 + (run.elapsed * 80 % 8), null, ctx.strokeStyle, 3);
+      ctx.restore();
+    }
+    drawFog();
+    text('未探索区域被黑雾遮挡', W - 28, 48, 'rgba(226,220,197,.68)', 10, 'right', 500);
     if (run.phase === 'upgrade') {
       ctx.fillStyle = 'rgba(213,190,130,.8)';
       ctx.fillRect(W / 2 - 1, H / 2 - 30, 2, 60);
@@ -432,7 +567,7 @@
     priorFrame = now;
     if (mode === 'playing' && run) {
       const previousLayer = run.layer;
-      engine.advance(run, moveVector(), dt);
+      engine.advance(run, {...moveVector(), attack: touchAttack || pressed.has(' ') || pressed.has('j') || pressed.has('J')}, dt);
       updateHud();
       if (run.layer !== previousLayer || run.foundRecords.length !== lastFoundCount) renderLayerRecords();
       if (run.message) setLive(run.message);
@@ -487,14 +622,14 @@
       else if (mode === 'paused') resumeGame();
       return;
     }
-    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' ', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D'].includes(event.key)) {
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' ', 'j', 'J', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D'].includes(event.key)) {
       if (mode !== 'playing' || event.target.closest('input, button, a, summary')) return;
-      if (event.key.startsWith('Arrow') || event.key === ' ') event.preventDefault();
+      if (event.key.startsWith('Arrow') || event.key === ' ' || event.key === 'j' || event.key === 'J') event.preventDefault();
       pressed.add(event.key);
     }
   });
   document.addEventListener('keyup', event => pressed.delete(event.key));
-  window.addEventListener('blur', () => pressed.clear());
+  window.addEventListener('blur', () => { pressed.clear(); touchAttack = false; });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && mode === 'playing') {
       pauseGame();
@@ -533,6 +668,22 @@
   };
   stick.addEventListener('pointerup', resetStick);
   stick.addEventListener('pointercancel', resetStick);
+
+  const attackControl = $('[data-attack-control]');
+  const stopTouchAttack = event => {
+    if (event.pointerId !== attackPointer) return;
+    attackPointer = null;
+    touchAttack = false;
+  };
+  attackControl.addEventListener('pointerdown', event => {
+    if (mode !== 'playing') return;
+    event.preventDefault();
+    attackPointer = event.pointerId;
+    touchAttack = true;
+    attackControl.setPointerCapture(event.pointerId);
+  });
+  attackControl.addEventListener('pointerup', stopTouchAttack);
+  attackControl.addEventListener('pointercancel', stopTouchAttack);
 
   function resizeCanvas() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);

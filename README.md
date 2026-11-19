@@ -105,14 +105,14 @@
 | dossier.js / dossier.css | 文档线索融入统一材料及动画 |
 | animation.js / animation.css | 斛律光案四幕引导动画 |
 | survival.html / survival.css / survival.js | 独立全屏闯关页、Canvas 操作和本机排行榜 |
-| survival-engine.js | 游戏移动、碰撞、生命、计分与升级规则 |
+| survival-engine.js | 游戏移动、地图迷雾、分组追兵、战斗伤害、回血、计分与升级规则 |
 | survival-game-data.js | 从41条项目材料卡生成的游戏索引；不替代史料卡 |
 | survival-portal.css | 主站旧游戏位置的全屏闯关入口卡片 |
 | tools/build-survival-data.mjs | 从事件卡和 dossier 分类生成41条游戏索引 |
 
 主站构建：`powershell -ExecutionPolicy Bypass -File .\build.ps1 -Version 资源版本`。脚本会打包主站CSS/JS并同步资源版本；若本机有Node.js，就从41条事件卡重新生成`survival-game-data.js`，没有Node.js时沿用仓库内已生成的索引。独立游戏页不加载主站的整站脚本。
 
-本地预览可在仓库目录运行 `python -m http.server 8766`，访问 http://127.0.0.1:8766/；也可直接打开 index.html。对外分享请使用上面的公开网站。
+本地预览可在仓库目录运行 `python -m http.server 8766`，访问 http://127.0.0.1:8766/；也可直接打开 index.html。对外分享请使用上面的公开网站。游戏地图以视野探索迷雾，带有武器和回血药收集、士兵/将领/大将军分层敌群、双方扣血的近战与首领血条。键盘用 WASD 移动、空格或 J 攻击；手机使用摇杆和挥击按钮。
 
 ## 如何获取2024-dada的更新
 
