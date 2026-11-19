@@ -40,6 +40,22 @@
     margin-block:20px;
     padding:clamp(24px,4.2vw,55px);
   }
+  html[data-ui-theme] .has-sidebar .chapter-rail {
+    background:transparent;
+  }
+  html[data-ui-theme] .chapter-rail nav a:is(:hover,.active) {
+    background:color-mix(in srgb,var(--ui-surface) 64%,transparent);
+    border-color:transparent;
+    border-inline-start-color:var(--paper-gold);
+  }
+  html[data-ui-theme] .chapter-rail nav a.active {
+    border-inline-start-color:var(--ui-accent);
+  }
+  .chapter-rail .rail-progress {
+    background:color-mix(in srgb,var(--paper-gold) 52%,var(--ui-line));
+    border-radius:999px;
+  }
+  .chapter-rail .rail-progress span { border-radius:inherit; }
   html[data-ui-theme] .has-sidebar :is(.visit-guide,.family-stories,.case-preview,.site-header),
   html[data-ui-theme] :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog),
   html[data-ui-theme] .qi-companion :is(.story-card,.modal) {
@@ -130,5 +146,14 @@
   @media(max-width:700px) {
     .has-sidebar .chapter { padding:22px 15px; }
     .has-sidebar .sources li { padding:7px 9px; }
+  }
+  @media(max-width:650px) {
+    html[data-ui-theme] .has-sidebar .chapter-rail {
+      background:linear-gradient(
+        105deg,
+        color-mix(in srgb,var(--ui-surface) 96%,transparent),
+        color-mix(in srgb,var(--ui-tint) 94%,transparent)
+      );
+    }
   }
 }
