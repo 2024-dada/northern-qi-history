@@ -26,7 +26,7 @@ $html = [regex]::Replace($html, '<script src="(?:data|violence|dossier|app|anima
 
 $bootstrap = @'
 <script data-theme-bootstrap>
-(()=>{'use strict';const ids=['paper','jade','blue','night'];let selected='paper';try{const saved=localStorage.getItem('qi-ui-theme');if(ids.includes(saved))selected=saved;}catch{}document.documentElement.dataset.uiTheme=selected;})();
+(()=>{'use strict';const ids=['mural','paper','jade','blue','night'];let selected='mural';try{const saved=localStorage.getItem('qi-ui-theme');if(ids.includes(saved))selected=saved;}catch{}document.documentElement.dataset.uiTheme=selected;})();
 </script>
 '@
 $bootstrapPattern = '(?s)<script data-theme-bootstrap>.*?</script>[ \t]*\r?\n?'
