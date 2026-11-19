@@ -208,6 +208,8 @@
       alive: true, radius: 25, hp: 125, maxHp: 125, speed: 54 + Math.min(run.layer, 8) * 3,
       damage: 8, attackDelay: 1.1, lastAttackAt: -Infinity, hitUntil: 0
     };
+    run.nextImperialGeneralAt = run.elapsed + 5;
+    run.layerGeneralsSpawned = 0;
     run.player.hasWeapon = false;
     run.weaponPickups = [];
     run.healingItems = [];
@@ -238,7 +240,7 @@
     const formationNote = run.layer >= 5
       ? '大将军、三支将领队伍和皇帝已经分散布防。'
       : run.layer >= 3 ? '三支将领队伍已分散追捕。' : '三支追兵小队正在宫苑中搜索。';
-    run.message = `第 ${run.layer} 层：未探索区域被黑雾遮住。${formationNote}寻找武器与药品。`;
+    run.message = `第 ${run.layer} 层：未探索区域被黑雾遮住。${formationNote}皇帝每 5 秒会召来一名将领。寻找武器与药品；拾取武器后自动攻击近处敌人。`;
   }
 
   function createRun(name, seed, records) {
@@ -248,7 +250,7 @@
     const run = {
       name, seed: seed >>> 0, random: randomFor(seed), violentRecords, contextRecords,
       elapsed: 0, stageElapsed: 0, layer: 1, level: 1, score: 0,
-      bossKills: 0, marshalKills: 0, enemyKills: 0, foundRecords: [],
+      bossKills: 0, marshalKills: 0, generalKills: 0, enemyKills: 0, foundRecords: [],
       upgrades: {speed: 0, dodge: 0}, nextAttackAt: 0, attackFlash: null,
       enemySequence: 1, lastHitAt: -Infinity, lastContactAt: -Infinity, flashUntil: 0,
       player: {
@@ -291,6 +293,36 @@
     ];
   }
 
+  function spawnImperialGeneral(run) {
+    const emperor = run.emperor;
+    const activeEnemies = run.enemies.filter(enemy => enemy.alive);
+    const ring = 82 + Math.min(run.layerGeneralsSpawned, 5) * 15;
+    let point = null;
+    for (let attempt = 0; attempt < 36; attempt++) {
+      const angle = run.random() * Math.PI * 2;
+      const span = ring + run.random() * 22;
+      const candidate = {
+        x: clamp(emperor.x + Math.cos(angle) * span, WORLD.margin + 25, WORLD.width - WORLD.margin - 25),
+        y: clamp(emperor.y + Math.sin(angle) * span, WORLD.margin + 25, WORLD.height - WORLD.margin - 25)
+      };
+      if (distance(candidate, emperor) < 58 || distance(candidate, run.player) < 42) continue;
+      if (activeEnemies.some(enemy => distance(candidate, enemy) < 38)) continue;
+      point = candidate;
+      break;
+    }
+    if (!point) {
+      const angle = run.random() * Math.PI * 2;
+      point = {
+        x: clamp(emperor.x + Math.cos(angle) * 92, WORLD.margin + 25, WORLD.width - WORLD.margin - 25),
+        y: clamp(emperor.y + Math.sin(angle) * 92, WORLD.margin + 25, WORLD.height - WORLD.margin - 25)
+      };
+    }
+    const group = addFormation(run, point, {general: true, soldiers: 0});
+    group.kind = 'emperorGuard';
+    run.layerGeneralsSpawned++;
+    run.message = '皇帝召来一名将领增援。';
+  }
+
   function applyTradeDamage(run, now) {
     const damage = 4;
     if (run.player.dodge && run.random() < run.player.dodge) {
@@ -316,20 +348,13 @@
   }
 
   function performAttack(run, now) {
-    if (now < run.nextAttackAt) return;
-    run.nextAttackAt = now + .52;
-    if (!run.player.hasWeapon) {
-      run.message = '还没有武器。探索地图，靠近发光武器拾取。';
-      return;
-    }
+    if (!run.player.hasWeapon || now < run.nextAttackAt) return;
     const targets = targetList(run)
       .map(target => ({target, span: distance(run.player, target)}))
       .filter(item => item.span <= Math.max(86, run.player.radius + item.target.radius + 48))
       .sort((a, b) => a.span - b.span);
-    if (!targets.length) {
-      run.message = '挥击未命中。靠近敌人后再按空格或 J 攻击。';
-      return;
-    }
+    if (!targets.length) return;
+    run.nextAttackAt = now + .52;
     const target = targets[0].target;
     const dealt = Math.min(run.player.attackDamage, target.hp);
     target.hp = Math.max(0, target.hp - dealt);
@@ -352,6 +377,7 @@
         run.message = '大将军已被击败。将领队伍仍可能继续追击。';
       } else {
         run.enemyKills++;
+        if (target.type === 'general') run.generalKills++;
         run.score += target.points;
         run.message = `${target.label}已被击退。`;
       }
@@ -376,7 +402,9 @@
         group.alerted = true;
         run.message = group.command
           ? '大将军的亲兵发现了你，附近的将领小队也正赶来。'
-          : group.members.some(enemy => enemy.type === 'general')
+          : group.kind === 'emperorGuard'
+            ? '皇帝召来的将领发现了你，正在追击。'
+            : group.members.some(enemy => enemy.type === 'general')
             ? '将领发现了你，所属小队开始追击。'
             : '追兵发现了你，正在靠近。';
       }
@@ -413,7 +441,7 @@
       if (weapon.collected || distance(run.player, weapon) >= 30) continue;
       weapon.collected = true;
       run.player.hasWeapon = true;
-      run.message = '拾到武器。按空格或 J 挥击；每次交锋双方都会损失体力。';
+      run.message = '拾到武器。你会自动攻击攻击范围内最近的敌人；每次交锋双方都会损失体力。';
     }
     for (const item of run.healingItems) {
       if (item.collected || run.player.hp >= run.player.maxHp || distance(run.player, item) >= 30) continue;
@@ -439,7 +467,11 @@
     updateEnemies(run, now, dt);
     if (run.phase === 'over') return;
 
-    if (input?.attack) performAttack(run, now);
+    if (run.emperor.alive && now >= run.nextImperialGeneralAt) {
+      spawnImperialGeneral(run);
+      run.nextImperialGeneralAt = now + 5;
+    }
+    performAttack(run, now);
     if (run.phase !== 'playing') return;
 
     for (const hazard of run.hazards) {

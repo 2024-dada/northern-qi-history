@@ -26,9 +26,6 @@
   let run = null;
   let mode = 'ready';
   let stickPointer = null;
-  let attackPointer = null;
-  let touchAttack = false;
-  let attackQueued = false;
   let stickVector = {x: 0, y: 0};
   let rankRows = [];
   let storageAvailable = true;
@@ -189,9 +186,7 @@
     mode = 'playing';
     requestFullscreen();
     pressed.clear();
-    attackQueued = false;
     stickVector = {x: 0, y: 0};
-    touchAttack = false;
     $('[data-game-action="pause"]').disabled = false;
     showOnly(null);
     lastFoundCount = 0;
@@ -207,11 +202,10 @@
     mode = 'over';
     pressed.clear();
     stickVector = {x: 0, y: 0};
-    touchAttack = false;
     $('[data-game-action="pause"]').disabled = true;
     saveRun();
     $('[data-final-score]').textContent = run.score.toLocaleString('zh-CN');
-    $('[data-final-summary]').textContent = `存活 ${formatTime(run.elapsed)} · 到达第 ${run.layer} 层 · 击退追兵 ${run.enemyKills} 名 · 击败将军 ${run.marshalKills} 名、皇帝 ${run.bossKills} 位。`;
+    $('[data-final-summary]').textContent = `存活 ${formatTime(run.elapsed)} · 到达第 ${run.layer} 层 · 击退追兵与将领 ${run.enemyKills} 名（其中将领 ${run.generalKills} 名）· 击败大将军 ${run.marshalKills} 名、皇帝 ${run.bossKills} 位。`;
     showOnly('over');
     setLive(`本局结束，得分 ${run.score}。排行榜只保存到当前浏览器。`);
   }
@@ -220,9 +214,7 @@
     if (mode !== 'playing') return;
     mode = 'paused';
     pressed.clear();
-    attackQueued = false;
     stickVector = {x: 0, y: 0};
-    touchAttack = false;
     showOnly('pause');
     setLive('已暂停，暂停期间不计时。');
   }
@@ -240,16 +232,13 @@
     mode = 'ready';
     run = null;
     pressed.clear();
-    attackQueued = false;
     stickVector = {x: 0, y: 0};
-    touchAttack = false;
     $('[data-game-action="pause"]').disabled = true;
     showOnly('start');
     resetHud();
     renderLayerRecords();
     renderRecordIndex();
-    touchAttack = false;
-    setLive('输入名称后开始。未探索区域有黑雾；危险场景是史料主题示意，伤害数值属于游戏设定。');
+    setLive('输入名称后开始。WASD 控制移动；拾取武器后会自动攻击近处敌人。');
   }
 
   function moveVector() {
@@ -776,9 +765,7 @@
     priorFrame = now;
     if (mode === 'playing' && run) {
       const previousLayer = run.layer;
-      const attack = attackQueued || touchAttack || pressed.has(' ') || pressed.has('j') || pressed.has('J');
-      attackQueued = false;
-      engine.advance(run, {...moveVector(), attack}, dt);
+      engine.advance(run, moveVector(), dt);
       updateHud();
       if (run.layer !== previousLayer || run.foundRecords.length !== lastFoundCount) renderLayerRecords();
       if (run.message) setLive(run.message);
@@ -834,15 +821,15 @@
       else if (mode === 'paused') resumeGame();
       return;
     }
-    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' ', 'j', 'J', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D'].includes(event.key)) {
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D'].includes(event.key)) {
       const interactiveTarget = event.target instanceof Element && event.target.closest('input, button, a, summary');
       if (mode !== 'playing' || interactiveTarget) return;
-      if (event.key.startsWith('Arrow') || event.key === ' ' || event.key === 'j' || event.key === 'J') event.preventDefault();
+      if (event.key.startsWith('Arrow')) event.preventDefault();
       pressed.add(event.key);
     }
   });
   document.addEventListener('keyup', event => pressed.delete(event.key));
-  window.addEventListener('blur', () => { pressed.clear(); touchAttack = false; attackQueued = false; });
+  window.addEventListener('blur', () => pressed.clear());
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && mode === 'playing') {
       pauseGame();
@@ -881,27 +868,6 @@
   };
   stick.addEventListener('pointerup', resetStick);
   stick.addEventListener('pointercancel', resetStick);
-
-  const attackControl = $('[data-attack-control]');
-  canvas.addEventListener('pointerdown', () => {
-    if (mode !== 'playing') return;
-    canvas.focus({preventScroll: true});
-    attackQueued = true;
-  });
-  const stopTouchAttack = event => {
-    if (event.pointerId !== attackPointer) return;
-    attackPointer = null;
-    touchAttack = false;
-  };
-  attackControl.addEventListener('pointerdown', event => {
-    if (mode !== 'playing') return;
-    event.preventDefault();
-    attackPointer = event.pointerId;
-    touchAttack = true;
-    attackControl.setPointerCapture(event.pointerId);
-  });
-  attackControl.addEventListener('pointerup', stopTouchAttack);
-  attackControl.addEventListener('pointercancel', stopTouchAttack);
 
   function resizeCanvas() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);

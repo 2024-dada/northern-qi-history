@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#15221d">
   <meta name="description" content="《越过宫门》：受北齐史料启发的非写实生存闯关游戏。">
   <title>越过宫门 · 北齐生存闯关</title>
-  <link rel="stylesheet" href="survival.css?v=20261119survival4">
-  <script src="survival-game-data.js?v=20261119survival4" defer></script>
-  <script src="survival-engine.js?v=20261119survival4" defer></script>
-  <script src="survival.js?v=20261119survival4" defer></script>
+  <link rel="stylesheet" href="survival.css?v=20261120autoattack">
+  <script src="survival-game-data.js?v=20261120autoattack" defer></script>
+  <script src="survival-engine.js?v=20261120autoattack" defer></script>
+  <script src="survival.js?v=20261120autoattack" defer></script>
 </head>
 <body class="survival-page">
   <header class="survival-header">
@@ -41,15 +41,15 @@
         </div>
 
         <div class="survival-stage" data-stage-wrap>
-          <canvas id="survival-canvas" width="1100" height="640" tabindex="0" aria-label="黑雾探索游戏地图：使用W、A、S、D移动，空格或J、鼠标点击或挥击按钮攻击，寻找武器和回血药，击败追兵、将领和皇帝。">
+          <canvas id="survival-canvas" width="1100" height="640" tabindex="0" aria-label="黑雾探索游戏地图：使用W、A、S、D移动，寻找武器和回血药；拾取武器后自动攻击附近敌人。">
             当前浏览器不支持画布，请使用更新的浏览器打开游戏。
           </canvas>
           <section class="survival-overlay survival-start" data-overlay="start" aria-labelledby="start-title">
             <div class="survival-overlay-card">
               <p class="survival-eyebrow">每局地图与危险区域都会变化</p>
               <h2 id="start-title">准备进入宫禁</h2>
-              <p>未探索区域会被黑雾遮住，走到附近才会显现；武器、回血药和敌人都不会提前显示。主要使用传统 WASD：W 向上、A 向左、S 向下、D 向右；方向键也可移动。</p>
-              <p>找到武器后可按空格或 J、点击地图，或按住画面上的“挥击”按钮。追兵两刀、将领四刀、皇帝五刀；第五层起有大将军与多支分散队伍。交锋会互相掉血，但敌方每次受击损失更多。回血药恢复体力。</p>
+              <p>未探索区域会被黑雾遮住，走到附近才会显现；武器、回血药和敌人都不会提前显示。使用传统 WASD 移动：W 向上、A 向左、S 向下、D 向右；方向键也可移动。</p>
+              <p>找到武器后，玩家会自动攻击范围内最近的敌人，不需要按攻击键或点攻击按钮。追兵两刀、将领四刀、皇帝五刀；皇帝存活期间每 5 秒会在身边召来一名将领。第五层起另有大将军与多支分散队伍。交锋会互相掉血，但敌方每次受击损失更多；回血药恢复体力。</p>
               <p>危险场景按本站事件卡绘制：例如 D18 会出现浴斛、多人蝎影与摆尾动作；其他事件会显示与原文主题相符的器物或场景。进入生效区域后持续扣血，画面和侧栏都会标出每秒数值。这些伤害值只用于游戏平衡，不是史料记载的真实伤情。</p>
               <p>每击败一位皇帝，等级提升并选择移速或闪避；最高五级，之后继续闯层。</p>
               <label for="player-name">玩家名称</label>
@@ -98,11 +98,10 @@
             </div>
             <p>按住并拖动移动</p>
           </div>
-          <button type="button" class="survival-attack" data-attack-control aria-label="按住挥击攻击">挥击<br><small>按住</small></button>
-          <p class="survival-live" data-game-live role="status" aria-live="polite">输入名称后开始。未探索区域会被黑雾遮挡；危险场景按事件卡绘制，数值属于游戏设定。</p>
+          <p class="survival-live" data-game-live role="status" aria-live="polite">输入名称后开始。WASD 控制移动；拾取武器后会自动攻击近处敌人。</p>
         </div>
         <p class="survival-landscape-note">手机横屏游玩，地图会更宽、更容易看清。</p>
-        <div class="survival-controls-note"><span>⌨ WASD：W↑ A← S↓ D→</span><span>空格 / J：攻击</span><span>也可点击地图或按住“挥击”</span><span>方向键也可移动</span><span>手机：摇杆移动，按住挥击</span><span>Esc：暂停</span></div>
+        <div class="survival-controls-note"><span>⌨ WASD：W↑ A← S↓ D→</span><span>拾取武器后自动攻击最近敌人</span><span>方向键也可移动</span><span>手机：摇杆移动</span><span>皇帝每 5 秒召来将领</span><span>Esc：暂停</span></div>
       </section>
 
       <aside class="survival-aside" aria-label="本机排行榜和史料索引">
