@@ -1,0 +1,25 @@
+.survival-launch-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 24px;
+  width: 100%;
+  padding: clamp(15px, 2.4vw, 24px);
+  border: 1px solid #a99368;
+  background: linear-gradient(112deg, rgb(239 231 210 / 95%), rgb(249 244 230 / 96%) 58%, rgb(222 211 183 / 72%));
+  box-shadow: inset 0 0 0 4px rgb(173 152 109 / 9%), 0 8px 22px rgb(48 42 31 / 7%);
+}
+.survival-launch-copy { min-width: 0; }
+.survival-launch-copy .eyebrow { margin: 0 0 5px; color: #8c4a3b; font-size: 11px; letter-spacing: .15em; }
+.survival-launch-copy h3 { margin: 0; color: #28362f; font: clamp(20px, 3vw, 27px)/1.25 "STSong", "SimSun", serif; letter-spacing: .08em; }
+.survival-launch-copy p:last-child { max-width: 730px; margin: 6px 0 0; color: #626b60; font-size: 13px; line-height: 1.65; }
+.survival-launch-link { display: inline-flex; align-items: center; justify-content: center; gap: 11px; min-height: 44px; padding: 10px 17px; color: #fff4df; border: 1px solid #714034; background: #834738; box-shadow: inset 0 0 0 3px rgb(255 235 201 / 11%); text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; transition: background .18s ease, transform .18s ease; }
+.survival-launch-link:hover { background: #9b5945; transform: translateY(-1px); }
+.survival-launch-link:focus-visible { outline: 3px solid #315e50; outline-offset: 3px; }
+.survival-launch-icon { font-size: 19px; line-height: 1; }
+.survival-launch-note { grid-column: 1 / -1; margin: 0; padding-top: 8px; border-top: 1px solid rgb(128 107 72 / 24%); color: #76786a; font-size: 10px; line-height: 1.5; }
+@media (max-width: 640px) {
+  .survival-launch-card { grid-template-columns: minmax(0, 1fr); }
+  .survival-launch-link { width: 100%; }
+  .survival-launch-note { grid-column: auto; }
+}

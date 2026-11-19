@@ -10,8 +10,11 @@
 <script data-theme-bootstrap>
 (()=>{'use strict';const ids=['mural','paper','jade','blue','night'];let selected='mural';try{const saved=localStorage.getItem('qi-ui-theme');if(ids.includes(saved))selected=saved;}catch{}document.documentElement.dataset.uiTheme=selected;})();
 </script>
-<link rel="stylesheet" href="bundle.css?v=20261119game">
-<script src="bundle.js?v=20261119game" defer></script>
+
+
+
+<link rel="stylesheet" href="bundle.css?v=20261119survival2">
+<script src="bundle.js?v=20261119survival2" defer></script>
 </head>
 <body class="has-sidebar">
   <button class="sidebar-toggle" type="button" aria-controls="site-sidebar" aria-expanded="false"><span aria-hidden="true">☰</span> 目录与设置</button>
@@ -40,12 +43,15 @@
     </section>
     <section class="violence-gallery section-shell" id="violence-gallery" aria-labelledby="violence-title">
       <div class="violence-heading"><div><p class="eyebrow">事件动画 / 16 个场景</p><h2 id="violence-title">用动画了解事件，<br>再查看经过与原因。</h2></div><div class="violence-intro"><p>这里用 16 个动画场景介绍不同事件。点击卡片，可查看相关人物、事情经过、原因分析与出处。动画中的动作细节是示意，不能当作历史现场。</p><button id="violence-blood" type="button" aria-pressed="true">血色特效：开启</button><button id="violence-motion" type="button" aria-pressed="false">暂停卡片动画 Ⅱ</button><button id="violence-speed" type="button" aria-pressed="false">速度：正常</button><button id="violence-replay" type="button">从头重播 ↻</button></div></div>
-      <div class="archive-toolbar"><div class="archive-filters" role="group" aria-label="筛选动态档案人物"><button type="button" data-gallery-ruler="全部" aria-pressed="true">全部动画</button><button type="button" data-gallery-ruler="高洋" aria-pressed="false">高洋</button><button type="button" data-gallery-ruler="高纬" aria-pressed="false">高纬</button><button type="button" data-gallery-ruler="高湛" aria-pressed="false">高湛</button><button type="button" data-gallery-ruler="高澄" aria-pressed="false">高澄</button><button type="button" data-gallery-ruler="高绰" aria-pressed="false">高绰</button></div><p id="gallery-count" role="status">16 个动画场景</p></div><div class="archive-shortcuts"><button type="button" data-court-open>开始宫廷推演 · 一念成诏 ↗</button><span>点击动画查看事件；原因分析和史料出处在同一详情中。</span><button data-event="E04" data-visual="behead">查看薛嫔案动画与记载 ↗</button><a href="#story">阅读四个案例的原因分析 ↓</a></div><div id="violence-cards" class="violence-cards"></div>
-      <section id="court-game" class="court-game" aria-label="一念成诏宫廷推演">
-        <div data-court-board></div>
-        <p class="court-live" data-court-status role="status" aria-live="polite"></p>
+      <div class="archive-toolbar"><div class="archive-filters" role="group" aria-label="筛选动态档案人物"><button type="button" data-gallery-ruler="全部" aria-pressed="true">全部动画</button><button type="button" data-gallery-ruler="高洋" aria-pressed="false">高洋</button><button type="button" data-gallery-ruler="高纬" aria-pressed="false">高纬</button><button type="button" data-gallery-ruler="高湛" aria-pressed="false">高湛</button><button type="button" data-gallery-ruler="高澄" aria-pressed="false">高澄</button><button type="button" data-gallery-ruler="高绰" aria-pressed="false">高绰</button></div><p id="gallery-count" role="status">16 个动画场景</p></div><div class="archive-shortcuts"><span>点击动画查看事件；原因分析和史料出处在同一详情中。</span><button data-event="E04" data-visual="behead">查看薛嫔案动画与记载 ↗</button><a href="#story">阅读四个案例的原因分析 ↓</a></div><div id="violence-cards" class="violence-cards"></div>
+      <section id="court-game" class="survival-launch" aria-labelledby="survival-launch-title">
+        <div class="survival-launch-card">
+          <div class="survival-launch-copy"><p class="eyebrow">独立全屏游戏 · 本机排行榜</p><h3 id="survival-launch-title">越过宫门</h3><p>受囚者在随机地图中躲避史料主题危险、拾取武器并挑战关底。存活越久、通过层数越多，分数越高；升级时可选移速或闪避。</p></div>
+          <a class="survival-launch-link" href="survival.html?v=20261119survival2"><span class="survival-launch-icon" aria-hidden="true">◈</span>输入名称，开始闯关 <span aria-hidden="true">↗</span></a>
+          <p class="survival-launch-note">游戏中危险区域均为抽象机制；全部41条本站材料可查，其中只有暴力事件进入危险主题池。分数仅保存在当前浏览器，不上传。</p>
+        </div>
       </section>
-      <p class="violence-boundary">动作、人物与器物为象征性设计。标签区分先行伤害、致死记载与方式分歧；关键句影印仍待核。喷血与飞溅为设计特效，不表示确定的伤口部位或出血量。动画无音效。</p>
+      <p class="violence-boundary">动画中的动作、人物和器物均为艺术示意；游戏危险区域是虚构机制，不复原施刑现场。事件记载、原因推断与游戏规则分别呈现，点击史料链接可返回材料卡核对。</p>
     </section>
     <section class="orientation section-shell" id="people"><p class="eyebrow">人物介绍 / 区分身份与责任</p><div class="orientation-content"><p>高欢是政权奠基者，高洋建立北齐。<br><span>分析每次事件时，要分别确认谁在位、谁下令、谁直接执行，不能把全家族当作同一个行动者。</span><sup><button data-source="foundation" aria-label="查看来源1">[1]</button></sup></p><div class="family"><div><span>高欢</span><small>政权奠基者</small></div><span class="family-arrow">→</span><div><span>高洋</span><small>北齐开国皇帝</small></div><span class="family-divider">/</span><div><span>高湛</span><small>武成帝 · 后为太上皇</small></div><span class="family-arrow">→</span><div><span>高纬</span><small>后主 · 高湛之子</small></div></div></div><p class="small-note">高澄是高洋的兄长，在北齐建国前掌握东魏政权，死后被追加帝号。四个案例重点分析高洋与高纬；高湛、高绰、高演及后妃材料可在“全部材料”中比较。</p></section>
     <div class="reading-layout" id="story">

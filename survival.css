@@ -1,0 +1,162 @@
+:root {
+  color-scheme: light;
+  --survival-paper: #eee7d5;
+  --survival-card: #f8f3e7;
+  --survival-ink: #26352e;
+  --survival-muted: #68746a;
+  --survival-line: #c9b990;
+  --survival-accent: #8f493a;
+  --survival-gold: #c49c58;
+  --survival-dark: #17241f;
+  --survival-deep: #101916;
+  font-family: "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+  background: var(--survival-paper);
+  color: var(--survival-ink);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(ellipse at 18% 10%, #f5efdf 0, transparent 46%), var(--survival-paper); }
+button, input { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a { color: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid #426963; outline-offset: 3px; }
+
+.survival-header { min-height: 76px; padding: 12px clamp(16px, 4vw, 48px); display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--survival-line); background: rgb(248 243 231 / 90%); }
+.survival-brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+.survival-brand-mark { width: 42px; height: 42px; display: grid; place-items: center; color: #fff6e6; background: var(--survival-accent); border: 1px solid #b68563; box-shadow: inset 0 0 0 3px rgb(255 238 206 / 20%); font: 25px/1 "STSong", "SimSun", serif; }
+.survival-brand strong, .survival-brand small { display: block; }
+.survival-brand strong { font: 22px/1.15 "STSong", "SimSun", serif; letter-spacing: .08em; }
+.survival-brand small { margin-top: 4px; color: var(--survival-muted); font-size: 11px; letter-spacing: .08em; }
+.survival-back { color: #565d52; text-decoration: none; font-size: 14px; }
+.survival-back:hover, .survival-footer a:hover { color: var(--survival-accent); text-decoration: underline; }
+
+.survival-main { width: min(1560px, 100%); margin: 0 auto; padding: 22px clamp(14px, 3.5vw, 42px) 28px; }
+.survival-heading { min-height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 0 0 18px; }
+.survival-heading h1 { margin: 3px 0 4px; font: clamp(28px, 4vw, 40px)/1.12 "STSong", "SimSun", serif; letter-spacing: .08em; }
+.survival-heading p:not(.survival-eyebrow) { max-width: 760px; margin: 0; color: #5d675f; font-size: 14px; line-height: 1.6; }
+.survival-eyebrow { margin: 0; color: var(--survival-accent); font-size: 11px; font-weight: 700; letter-spacing: .16em; }
+.survival-seal { width: 49px; height: 49px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--survival-line); outline: 1px solid rgb(143 73 58 / 18%); outline-offset: 4px; color: var(--survival-accent); font: 26px/1 "STSong", "SimSun", serif; transform: rotate(-4deg); }
+
+.survival-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 314px); align-items: start; gap: 16px; }
+.survival-play { min-width: 0; overflow: hidden; background: #fbf7eb; border: 1px solid var(--survival-line); box-shadow: 0 12px 34px rgb(41 43 32 / 10%); }
+.survival-hud { min-height: 58px; display: flex; align-items: center; gap: clamp(10px, 2.5vw, 27px); padding: 9px 14px; color: #f2ecd8; background: #1c2b25; border-bottom: 1px solid #596653; }
+.survival-hud > span { display: grid; gap: 2px; min-width: 48px; }
+.survival-hud small { color: #c5c5aa; font-size: 10px; letter-spacing: .08em; }
+.survival-hud b { color: #fff7e8; font-size: 15px; font-variant-numeric: tabular-nums; }
+.survival-hud .survival-health { flex: 1; min-width: 100px; grid-template-columns: auto auto; align-items: center; column-gap: 9px; }
+.survival-health i { display: block; height: 7px; grid-column: 1 / -1; overflow: hidden; border-radius: 5px; background: #586458; }
+.survival-health i span { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #93a273, #d6b878); transition: width .18s ease; }
+.survival-pause { padding: 7px 14px; color: #f9f1dc; border: 1px solid #8e8a69; border-radius: 2px; background: transparent; cursor: pointer; }
+.survival-pause:disabled { opacity: .45; cursor: default; }
+
+.survival-stage { position: relative; overflow: hidden; background: #15221d; }
+#survival-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1100 / 640; background: var(--survival-dark); }
+.survival-live { position: absolute; z-index: 1; right: 12px; bottom: 9px; left: 12px; margin: 0; padding: 6px 9px; border: 1px solid rgb(226 205 154 / 22%); color: #e5dec8; background: rgb(16 25 22 / 78%); font-size: 11px; line-height: 1.45; text-align: center; pointer-events: none; }
+.survival-overlay { position: absolute; z-index: 4; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 24px; background: rgb(12 19 17 / 70%); backdrop-filter: blur(2px); }
+.survival-overlay[hidden] { display: none; }
+.survival-overlay-card { width: min(490px, 100%); max-height: 100%; overflow-y: auto; padding: clamp(18px, 3vw, 30px); border: 1px solid #c7b387; outline: 1px solid rgb(255 245 213 / 22%); outline-offset: -7px; color: #eee8d8; background: linear-gradient(145deg, #24342d, #17231f 72%); box-shadow: 0 16px 45px rgb(0 0 0 / 36%); }
+.survival-overlay-card h2 { margin: 7px 0 12px; color: #fff5df; font: clamp(24px, 4vw, 34px)/1.18 "STSong", "SimSun", serif; letter-spacing: .08em; }
+.survival-overlay-card > p:not(.survival-eyebrow) { color: #d0d2c0; font-size: 13px; line-height: 1.7; }
+.survival-overlay-card label { display: block; margin: 18px 0 6px; color: #dfd6bc; font-size: 12px; }
+.survival-overlay-card input { width: 100%; min-height: 42px; padding: 8px 11px; color: #fff8e9; border: 1px solid #8b896f; border-radius: 2px; background: #101916; }
+.survival-primary, .survival-secondary { width: 100%; min-height: 44px; margin-top: 10px; padding: 9px 14px; border: 1px solid #d6b878; border-radius: 2px; color: #fff6e5; background: var(--survival-accent); font-weight: 700; letter-spacing: .08em; cursor: pointer; }
+.survival-primary:hover { background: #a35540; }
+.survival-secondary { color: #e7ddc3; border-color: #82856c; background: transparent; }
+.survival-local-note { margin-bottom: 0; color: #b9c0ae !important; font-size: 11px !important; }
+.survival-upgrades { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.survival-upgrades button { min-height: 112px; padding: 14px; display: flex; flex-direction: column; justify-content: center; gap: 9px; text-align: left; color: #f3ecd8; border: 1px solid #a89366; background: #25372e; cursor: pointer; }
+.survival-upgrades button:hover { border-color: #f0d38f; background: #32473b; }
+.survival-upgrades strong { color: #e7c986; font-size: 17px; }
+.survival-upgrades span { color: #d0d2c1; font-size: 12px; line-height: 1.5; }
+.survival-final-score { margin: 10px 0 3px !important; color: #f1cf82 !important; font: 48px/1.1 Georgia, serif; font-variant-numeric: tabular-nums; }
+.survival-secondary-link { display: block; margin: 14px 0 2px; color: #e1c783; text-align: center; text-decoration: underline; font-size: 13px; }
+.survival-touch { display: none; }
+
+.survival-controls-note { display: flex; flex-wrap: wrap; gap: 12px 25px; padding: 9px 14px; color: #697269; background: #f1ebdc; border-top: 1px solid #d7caab; font-size: 11px; }
+.survival-landscape-note { display: none; margin: 0; padding: 7px 12px; color: #5f665c; background: #f1ebdc; border-top: 1px solid #d7caab; font-size: 11px; text-align: center; }
+.survival-aside { display: grid; gap: 12px; }
+.survival-side-card { min-width: 0; padding: 16px; border: 1px solid var(--survival-line); background: linear-gradient(150deg, rgb(250 246 235 / 96%), rgb(239 231 211 / 96%)); box-shadow: 0 7px 18px rgb(41 43 32 / 7%); }
+.survival-side-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.survival-side-heading h2 { margin: 4px 0 0; font: 22px/1.15 "STSong", "SimSun", serif; }
+.survival-rank-icon { width: 35px; height: 35px; display: grid; place-items: center; color: #f7edd6; background: #80664e; border-radius: 50%; font: 18px "STSong", "SimSun", serif; }
+.survival-side-copy { color: #6e7569; font-size: 11px; line-height: 1.6; }
+.survival-rank-list { display: grid; gap: 0; margin: 13px 0 4px; padding: 0; list-style: none; }
+.survival-rank-list li { min-width: 0; display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 7px; min-height: 36px; border-bottom: 1px solid rgb(133 119 89 / 21%); font-size: 12px; }
+.survival-rank-list li:first-child .rank-number { color: var(--survival-accent); font-weight: 800; }
+.rank-number { color: #8a8b76; font: 13px Georgia, serif; }
+.rank-name { overflow: hidden; color: #47534a; text-overflow: ellipsis; white-space: nowrap; }
+.rank-meta { color: #798073; font-size: 10px; white-space: nowrap; }
+.rank-score { color: #8d4939; font-weight: 700; font-variant-numeric: tabular-nums; }
+.survival-rank-list .survival-empty-rank { display: block; padding: 13px 0; color: #7b8073; font-size: 12px; line-height: 1.6; }
+.survival-clear-rank { margin-top: 8px; padding: 5px 0; color: #7a7467; border: 0; background: none; text-decoration: underline; font-size: 10px; cursor: pointer; }
+.survival-storage-note { min-height: 0; margin: 3px 0 0; color: var(--survival-accent); font-size: 10px; line-height: 1.5; }
+.survival-sources { max-height: min(54vh, 470px); overflow: hidden; }
+.survival-sources[open] { overflow-y: auto; }
+.survival-sources summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; list-style: none; }
+.survival-sources summary::-webkit-details-marker { display: none; }
+.survival-sources summary span:first-child { display: grid; gap: 2px; }
+.survival-sources summary small { color: var(--survival-muted); font-size: 10px; letter-spacing: .1em; }
+.survival-sources summary strong { font: 19px/1.2 "STSong", "SimSun", serif; }
+.survival-count { color: #77633f; font: 16px Georgia, serif; }
+.survival-record-list { display: grid; gap: 3px; margin: 11px 0 0; padding: 0; list-style: none; }
+.survival-record-list a { display: grid; grid-template-columns: 37px minmax(0,1fr); align-items: start; gap: 6px; padding: 6px 5px; color: #4f5a50; border-bottom: 1px solid rgb(133 119 89 / 14%); text-decoration: none; font-size: 10px; line-height: 1.45; }
+.survival-record-list a:hover { color: var(--survival-accent); background: rgb(255 255 255 / 45%); }
+.survival-record-list em { color: #8d4939; font-style: normal; font-variant-numeric: tabular-nums; }
+.survival-record-list small { grid-column: 2; color: #848779; font-size: 9px; }
+.survival-boundary { margin-top: 15px; padding: 11px 14px; border-left: 3px solid #927055; color: #687267; background: rgb(248 243 231 / 65%); font-size: 11px; line-height: 1.65; }
+.survival-boundary strong { color: #48564b; }
+.survival-boundary p { margin: 4px 0 0; }
+.survival-footer { display: flex; justify-content: space-between; gap: 15px; padding: 16px clamp(16px, 4vw, 48px) 22px; color: #7b8073; border-top: 1px solid var(--survival-line); font-size: 11px; }
+.survival-footer a { color: #6d6f5f; }
+
+@media (max-width: 850px) {
+  .survival-layout { grid-template-columns: minmax(0, 1fr) 260px; gap: 10px; }
+  .survival-side-card { padding: 12px; }
+  .survival-hud { gap: 10px; padding-inline: 10px; }
+  .survival-hud > span { min-width: 39px; }
+}
+@media (max-width: 700px) {
+  .survival-header { min-height: 64px; }
+  .survival-brand-mark { width: 37px; height: 37px; }
+  .survival-brand strong { font-size: 19px; }
+  .survival-back { max-width: 112px; text-align: right; font-size: 11px; line-height: 1.4; }
+  .survival-main { padding: 16px 10px 20px; }
+  .survival-heading { margin-bottom: 12px; }
+  .survival-heading p:not(.survival-eyebrow) { max-width: 84vw; font-size: 12px; }
+  .survival-seal { width: 38px; height: 38px; font-size: 21px; }
+  .survival-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .survival-play { position: relative; }
+  .survival-hud { min-height: 52px; gap: 10px; }
+  .survival-hud > span { min-width: 35px; }
+  .survival-hud small { font-size: 9px; }
+  .survival-hud b { font-size: 12px; }
+  .survival-health i { height: 6px; }
+  .survival-pause { padding: 6px 9px; font-size: 11px; }
+  .survival-overlay { padding: 12px; }
+  .survival-overlay-card { padding: 20px 17px; }
+  .survival-overlay-card > p:not(.survival-eyebrow) { font-size: 12px; }
+  .survival-touch { display: grid; justify-items: center; gap: 4px; position: absolute; z-index: 3; left: 12px; bottom: 38px; width: 112px; color: #e6dec9; font-size: 9px; pointer-events: none; }
+  .survival-stick { position: relative; width: 90px; height: 90px; pointer-events: auto; touch-action: none; }
+  .survival-stick-base, .survival-stick-knob { position: absolute; display: block; border-radius: 50%; }
+  .survival-stick-base { inset: 0; border: 1px solid rgb(232 214 168 / 58%); background: rgb(35 51 43 / 58%); box-shadow: inset 0 0 0 7px rgb(232 214 168 / 8%); }
+  .survival-stick-knob { left: 26px; top: 26px; width: 38px; height: 38px; border: 1px solid #d4bd84; background: rgb(153 118 67 / 80%); box-shadow: 0 3px 8px rgb(0 0 0 / 28%); }
+  .survival-controls-note { gap: 6px 12px; font-size: 9px; }
+  .survival-aside { grid-template-columns: minmax(0, 1fr); }
+  .survival-sources { max-height: 54vh; }
+  .survival-footer { font-size: 9px; }
+}
+@media (pointer: coarse) and (orientation: portrait) {
+  .survival-landscape-note { display: block; }
+}
+@media (max-width: 420px) {
+  .survival-heading h1 { font-size: 27px; }
+  .survival-hud { gap: 6px; padding-inline: 7px; }
+  .survival-hud > span { min-width: 30px; }
+  .survival-hud .survival-health { min-width: 82px; }
+  .survival-upgrades { grid-template-columns: 1fr; }
+  .survival-upgrades button { min-height: 78px; }
+  .survival-footer { align-items: flex-start; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}

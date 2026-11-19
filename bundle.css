@@ -850,96 +850,29 @@ html[data-ui-theme=mural] body.has-sidebar {
   }
 }
 
-/* ===== court-game.css ===== */
-.court-game {
-  --court-ink:var(--ui-ink,#30241e);
-  margin-top:34px;
-  padding:clamp(18px,4vw,34px);
-  border:1px solid var(--ui-line,#b89d70);
-  border-top:3px solid var(--ui-accent,#8a352d);
-  border-radius:6px;
-  background-color:var(--ui-surface,#fff8e9);
-  background-image:linear-gradient(140deg,var(--ui-surface,#fff8e9),color-mix(in srgb,var(--ui-surface,#fff8e9) 90%,transparent)),url('assets/mineral-paper.webp');
-  background-size:auto,100% auto;
-  color:var(--court-ink);
-  scroll-margin-top:82px;
+/* ===== survival-portal.css ===== */
+.survival-launch-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 24px;
+  width: 100%;
+  padding: clamp(15px, 2.4vw, 24px);
+  border: 1px solid #a99368;
+  background: linear-gradient(112deg, rgb(239 231 210 / 95%), rgb(249 244 230 / 96%) 58%, rgb(222 211 183 / 72%));
+  box-shadow: inset 0 0 0 4px rgb(173 152 109 / 9%), 0 8px 22px rgb(48 42 31 / 7%);
 }
-.court-game * { box-sizing:border-box; }
-.court-game h3 { color:var(--court-ink);font-family:var(--serif,serif);font-size:clamp(25px,3.5vw,40px);line-height:1.45;margin:8px 0 15px;scroll-margin-top:85px; }
-.court-game h4 { margin:0 0 9px;font-size:17px;line-height:1.6;color:var(--court-ink); }
-.court-game p { margin:8px 0 14px;line-height:1.85;font-size:14px;color:var(--court-ink); }
-.court-game button,.court-game select {
-  font:inherit;
-  font-size:14px;
-  line-height:1.6;
-  min-height:44px;
-  border:1px solid var(--ui-line,#b89d70);
-  background:var(--ui-surface,#fff8e9);
-  color:var(--court-ink);
-  border-radius:4px;
-  padding:9px 14px;
+.survival-launch-copy { min-width: 0; }
+.survival-launch-copy .eyebrow { margin: 0 0 5px; color: #8c4a3b; font-size: 11px; letter-spacing: .15em; }
+.survival-launch-copy h3 { margin: 0; color: #28362f; font: clamp(20px, 3vw, 27px)/1.25 "STSong", "SimSun", serif; letter-spacing: .08em; }
+.survival-launch-copy p:last-child { max-width: 730px; margin: 6px 0 0; color: #626b60; font-size: 13px; line-height: 1.65; }
+.survival-launch-link { display: inline-flex; align-items: center; justify-content: center; gap: 11px; min-height: 44px; padding: 10px 17px; color: #fff4df; border: 1px solid #714034; background: #834738; box-shadow: inset 0 0 0 3px rgb(255 235 201 / 11%); text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; transition: background .18s ease, transform .18s ease; }
+.survival-launch-link:hover { background: #9b5945; transform: translateY(-1px); }
+.survival-launch-link:focus-visible { outline: 3px solid #315e50; outline-offset: 3px; }
+.survival-launch-icon { font-size: 19px; line-height: 1; }
+.survival-launch-note { grid-column: 1 / -1; margin: 0; padding-top: 8px; border-top: 1px solid rgb(128 107 72 / 24%); color: #76786a; font-size: 10px; line-height: 1.5; }
+@media (max-width: 640px) {
+  .survival-launch-card { grid-template-columns: minmax(0, 1fr); }
+  .survival-launch-link { width: 100%; }
+  .survival-launch-note { grid-column: auto; }
 }
-.court-game button { cursor:pointer; }
-.court-game button:hover { border-color:var(--ui-accent); }
-.court-game button:disabled { opacity:.55;cursor:default; }
-.court-game :focus-visible { outline:3px solid var(--ui-accent);outline-offset:3px; }
-.court-game .court-primary,.court-game .court-seal {
-  background:var(--ui-accent,#8a352d);
-  color:var(--ui-on-accent,#fff8e9);
-  border-color:var(--ui-accent,#8a352d);
-}
-.court-game .court-kicker { color:var(--ui-accent);font-size:12px;letter-spacing:.08em;font-weight:700; }
-.court-intro { display:grid;grid-template-columns:minmax(0,1.3fr) minmax(200px,1fr);gap:30px; }
-.court-game .court-boundary,.court-game .court-storage { color:var(--ui-muted,#5c4a3d);font-size:12px; }
-.court-setup { display:flex;flex-direction:column;align-items:stretch;gap:10px; }
-.court-setup p { margin:0;font-size:12px; }
-.court-rules { margin-top:20px;border-top:1px solid var(--ui-line);padding-top:14px; }
-.court-rules summary,.court-result summary { cursor:pointer;min-height:44px;line-height:1.8; }
-.court-metrics { display:flex;flex-wrap:wrap;gap:12px 22px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--ui-line);font-size:13px; }
-.court-metrics b { font-variant-numeric:tabular-nums; }
-.court-metrics label { display:grid;grid-template-columns:auto auto;column-gap:6px; }
-.court-metrics meter { grid-column:1/-1;width:100px;height:8px;accent-color:var(--ui-accent); }
-.court-round-heading { display:flex;align-items:start;justify-content:space-between;gap:16px; }
-.court-round-heading>button { flex:none;font-size:12px; }
-.court-game .court-pressure { padding:10px 14px;border-left:3px solid var(--ui-accent);background:var(--ui-tint);font-size:13px; }
-.court-game .court-claim { padding:16px;background:var(--ui-explore,#1b383c);color:var(--ui-explore-ink,#fff8e9);border-radius:4px;font-size:18px; }
-.court-claim strong { display:block;margin-bottom:6px;font-size:12px;letter-spacing:.06em; }
-.court-clues { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px; }
-.court-clue { padding:16px;border:1px solid var(--ui-line);border-radius:4px;background:var(--ui-surface); }
-.court-clue.is-open { cursor:grab; }
-.court-clue.is-selected { border-color:var(--ui-accent);box-shadow:inset 3px 0 var(--ui-accent); }
-.court-clue.is-sealed { border-style:dashed;background:var(--ui-tint); }
-.court-clue label { display:flex;gap:8px;align-items:center;min-height:44px;font-size:13px;cursor:pointer; }
-.court-game input { accent-color:var(--ui-accent);width:18px;height:18px;flex:none; }
-.court-evidence { padding:16px;margin:16px 0;border:1px dashed var(--ui-accent);border-radius:4px;background:var(--ui-tint); }
-.court-evidence p { margin-bottom:5px; }
-.court-evidence small { font-size:12px;color:var(--ui-muted); }
-.court-options { border:0;margin:18px 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;min-width:0; }
-.court-options legend { padding:0;margin-bottom:12px;font-weight:700;font-size:15px; }
-.court-options label { display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--ui-line);border-radius:4px;cursor:pointer;font-size:14px;background:var(--ui-surface); }
-.court-options label:has(input:checked) { border-color:var(--ui-accent);background:var(--ui-tint); }
-.court-decrees { grid-template-columns:repeat(3,minmax(0,1fr)); }
-.court-decrees small { display:block;font-size:12px;color:var(--ui-muted); }
-.court-submit { display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:25px; }
-.court-submit p { font-size:12px;margin:0; }
-.court-game .court-seal { min-height:64px;padding:15px 24px;font-size:18px;border:3px double var(--ui-on-accent);box-shadow:0 2px 0 var(--ui-accent); }
-.court-game .court-live { margin:16px 0 0;font-size:14px;min-height:1.8em;font-weight:700;color:var(--ui-accent); }
-.court-result { position:relative; }
-.court-stamp { float:right;display:grid;place-items:center;width:76px;height:76px;border:4px double var(--ui-accent);font:700 22px var(--serif);color:var(--ui-accent);transform:rotate(-10deg);margin:8px;animation:court-stamp .3s ease-out; }
-@keyframes court-stamp { from { opacity:0;transform:scale(1.3) rotate(-10deg); } to { opacity:1;transform:scale(1) rotate(-10deg); } }
-.court-score { display:flex;align-items:center;gap:14px;margin:20px 0; }
-.court-score>b { font:700 52px/1.2 var(--serif,serif);color:var(--ui-accent); }
-.court-score>span { font-size:13px;line-height:1.8; }
-.court-source-links,.court-replay { display:flex;flex-wrap:wrap;gap:10px;margin:16px 0; }
-.court-recap { margin:20px 0;padding-left:22px; }
-.court-recap li { padding:18px 0;border-top:1px solid var(--ui-line); }
-.reading-large .court-game :is(p,label,button,select,legend) { font-size:18px; }
-.reading-large .court-game small { font-size:15px; }
-@media(max-width:700px) {
-  .court-intro,.court-clues,.court-options,.court-decrees { grid-template-columns:1fr; }
-  .court-round-heading { flex-wrap:wrap; }
-  .court-game { padding:18px 14px; }
-  .court-stamp { width:62px;height:62px;font-size:19px; }
-}
-@media(prefers-reduced-motion:reduce) { .court-stamp { animation:none; } }
-@media print { .court-game,[data-court-open] { display:none!important; } }

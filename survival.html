@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15221d">
+  <meta name="description" content="《越过宫门》：受北齐史料启发的非写实生存闯关游戏。">
+  <title>越过宫门 · 北齐生存闯关</title>
+  <link rel="stylesheet" href="survival.css?v=20261119survival2">
+  <script src="survival-game-data.js?v=20261119survival2" defer></script>
+  <script src="survival-engine.js?v=20261119survival2" defer></script>
+  <script src="survival.js?v=20261119survival2" defer></script>
+</head>
+<body class="survival-page">
+  <header class="survival-header">
+    <a class="survival-brand" href="index.html" aria-label="返回帝怒之后主站">
+      <span class="survival-brand-mark" aria-hidden="true">齐</span>
+      <span><strong>越过宫门</strong><small>北齐史料主题 · 生存闯关</small></span>
+    </a>
+    <a class="survival-back" href="index.html#violence-gallery">返回事件动画与游戏区 <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="survival-main">
+    <section class="survival-heading" aria-labelledby="game-title">
+      <div>
+        <p class="survival-eyebrow">全屏游玩 · 随机地图 · 1—5级</p>
+        <h1 id="game-title">越过宫门</h1>
+        <p>躲开随机出现的危险区域，拾取武器并接近关底皇帝。存活越久、突破层数越多，得分越高。</p>
+      </div>
+      <span class="survival-seal" aria-hidden="true">闯</span>
+    </section>
+
+    <div class="survival-layout">
+      <section class="survival-play" aria-label="闯关游戏">
+        <div class="survival-hud" aria-label="当前游戏状态">
+          <span><small>层数</small><b data-hud-layer>—</b></span>
+          <span><small>等级</small><b data-hud-level>— / 5</b></span>
+          <span><small>得分</small><b data-hud-score>0</b></span>
+          <span class="survival-health"><small>体力</small><b data-hud-hp>100 / 100</b><i><span data-hud-health-fill></span></i></span>
+          <button type="button" data-game-action="pause" class="survival-pause" disabled>暂停</button>
+        </div>
+
+        <div class="survival-stage" data-stage-wrap>
+          <canvas id="survival-canvas" width="1100" height="640" tabindex="0" aria-label="游戏地图：使用W、A、S、D移动被囚者，躲避危险区域、拾取武器并接近皇帝。">
+            当前浏览器不支持画布，请使用更新的浏览器打开游戏。
+          </canvas>
+          <section class="survival-overlay survival-start" data-overlay="start" aria-labelledby="start-title">
+            <div class="survival-overlay-card">
+              <p class="survival-eyebrow">每局地图与危险区域都会变化</p>
+              <h2 id="start-title">准备进入宫禁</h2>
+              <p>主要使用传统 WASD：W 向上、A 向左、S 向下、D 向右；方向键也可操作。手机可用左下角摇杆。危险区域会先提示，再短暂生效；碰到危险会损失体力。</p>
+              <p>每击败一位关底皇帝，等级升一级并选择“移速”或“闪避”；最高五级，之后继续闯层。</p>
+              <label for="player-name">玩家名称</label>
+              <input id="player-name" name="player-name" type="text" maxlength="16" autocomplete="nickname" placeholder="输入一个名称" required>
+              <button type="button" data-game-action="start" class="survival-primary">开始闯关</button>
+              <p class="survival-local-note">排行榜只保存在本机浏览器，不会上传。关闭浏览器存储后，记录可能无法保留。</p>
+            </div>
+          </section>
+
+          <section class="survival-overlay survival-choice" data-overlay="upgrade" hidden aria-labelledby="upgrade-title">
+            <div class="survival-overlay-card">
+              <p class="survival-eyebrow">关底已通过 · 下一层开启</p>
+              <h2 id="upgrade-title">选择一项加成</h2>
+              <p>等级提升后，生命值保留。选择后立即进入新的随机地图。</p>
+              <div class="survival-upgrades">
+                <button type="button" data-game-upgrade="speed"><strong>移速提升</strong><span>移动更快，方便穿过宫道。</span></button>
+                <button type="button" data-game-upgrade="dodge"><strong>闪避提升</strong><span>有 10% 几率躲过一次伤害，可逐级叠加。</span></button>
+              </div>
+            </div>
+          </section>
+
+          <section class="survival-overlay survival-paused" data-overlay="pause" hidden aria-labelledby="pause-title">
+            <div class="survival-overlay-card">
+              <p class="survival-eyebrow">本局暂时停止计时</p>
+              <h2 id="pause-title">暂停</h2>
+              <button type="button" data-game-action="resume" class="survival-primary">继续游戏</button>
+              <button type="button" data-game-action="exit-fullscreen" class="survival-secondary">退出全屏</button>
+              <button type="button" data-game-action="restart" class="survival-secondary">结束本局并重新开始</button>
+            </div>
+          </section>
+
+          <section class="survival-overlay survival-result" data-overlay="over" hidden aria-labelledby="over-title">
+            <div class="survival-overlay-card">
+              <p class="survival-eyebrow">本局结束 · 分数已记录在本机</p>
+              <h2 id="over-title">闯关结束</h2>
+              <p class="survival-final-score" data-final-score>0</p>
+              <p data-final-summary></p>
+              <button type="button" data-game-action="again" class="survival-primary">再来一局</button>
+              <a href="index.html#violence-gallery" class="survival-secondary-link">回到动画与游戏区</a>
+            </div>
+          </section>
+
+          <div class="survival-touch" aria-label="手机移动控制">
+            <div class="survival-stick" data-stick role="application" aria-label="移动摇杆：按住并向方向拖动">
+              <span class="survival-stick-base" aria-hidden="true"></span><span class="survival-stick-knob" data-stick-knob aria-hidden="true"></span>
+            </div>
+            <p>按住并拖动移动</p>
+          </div>
+          <p class="survival-live" data-game-live role="status" aria-live="polite">输入名称后开始。地图中的危险表现为抽象区域，不复原施刑现场。</p>
+        </div>
+        <p class="survival-landscape-note">手机横屏游玩，地图会更宽、更容易看清。</p>
+        <div class="survival-controls-note"><span>⌨ WASD：W↑ A← S↓ D→</span><span>方向键也可操作</span><span>▱ 手机：按住摇杆移动</span><span>Esc：暂停</span></div>
+      </section>
+
+      <aside class="survival-aside" aria-label="本机排行榜和史料索引">
+        <section class="survival-side-card survival-ranking" aria-labelledby="ranking-title">
+          <div class="survival-side-heading"><div><p class="survival-eyebrow">当前浏览器</p><h2 id="ranking-title">本机排行榜</h2></div><span class="survival-rank-icon" aria-hidden="true">榜</span></div>
+          <p class="survival-side-copy">分数、存活时间和闯关层数保存在这台设备的浏览器中。</p>
+          <ol data-local-rankings class="survival-rank-list"><li class="survival-empty-rank">还没有记录。完成一局后会显示前十名。</li></ol>
+          <button type="button" class="survival-clear-rank" data-game-action="clear-rank">清空本机记录</button>
+          <p class="survival-storage-note" data-storage-note></p>
+        </section>
+
+        <section class="survival-side-card survival-current" aria-labelledby="current-records-title">
+          <div class="survival-side-heading"><div><p class="survival-eyebrow">地图随机生成</p><h2 id="current-records-title">本层危险主题</h2></div></div>
+          <p class="survival-side-copy" data-current-layer-note>开始游戏后显示本层随机出现的史料主题。</p>
+          <ul data-current-hazards class="survival-current-list"><li>危险区域只作抽象游戏机制。</li></ul>
+          <p class="survival-side-copy" data-found-records>触碰背景档案可查看非暴力材料；不影响分数。</p>
+        </section>
+
+        <details class="survival-side-card survival-sources" open>
+          <summary><span><small>项目资料</small><strong>41 条材料索引</strong></span><span class="survival-count" data-record-count>41</span></summary>
+          <p class="survival-side-copy">27 条暴力事件仅作为随机危险主题；其余材料只作为无伤害的背景线索。点击名称回到网站核对史料。</p>
+          <ul data-record-index class="survival-record-list"></ul>
+        </details>
+      </aside>
+    </div>
+
+    <section class="survival-boundary" aria-label="游戏与史料说明">
+      <strong>史料与游戏边界</strong>
+      <p>游戏把本站整理的事件主题抽象成短暂出现的危险区域，动作、地图和得分均为虚构机制。史料记载有分歧、待核或只记伤害未记死亡时，游戏不能据此补出历史现场；请点右侧材料索引回到事件卡查看出处与核验状态。没有血腥画面。</p>
+    </section>
+  </main>
+
+  <footer class="survival-footer"><span>帝怒之后 · 北齐皇室暴力史料与交互网页</span><a href="index.html#sources">查看主站资料来源</a></footer>
+</body>
+</html>
