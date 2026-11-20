@@ -15,8 +15,26 @@
   });
   const ARROW_DAMAGE = Object.freeze({soldier: 17, general: 20, marshal: 25, emperor: 13});
   const ARROW_TRAVEL = .18;
-  const STRENGTH_MULTIPLIER = 1.3;
-  const TALENT_WEIGHTS = Object.freeze({common: 45, rare: 30, epic: 20, legendary: 5});
+  const MUTINY_INTERVAL = 1;
+  const TALENT_WEIGHTS = Object.freeze({common: 45, rare: 30, epic: 25});
+  const TALENT_CARDS = {
+    common: [
+      {id: 'vitality', rarity: 'common', title: '强健体魄', description: '最大体力 +15，并立即恢复 15 点。'},
+      {id: 'regeneration', rarity: 'common', title: '调息', description: '每点每秒恢复 0.75 点体力。'},
+      {id: 'swift', rarity: 'common', title: '轻身', description: '每点移动速度 +10。'},
+      {id: 'evasion', rarity: 'common', title: '身法', description: '每点在已有闪避之外，再提供一次 5% 的闪避机会。'}
+    ],
+    rare: [
+      {id: 'strength', rarity: 'rare', title: '力量', description: '每点让本局近战和弓箭伤害各提高 30%。'},
+      {id: 'startSword', rarity: 'rare', title: '佩剑随行', description: '每层自带宝剑，每点近战伤害 +10%。'},
+      {id: 'startBow', rarity: 'rare', title: '备箭', description: '每层自带弓，每点在该层开始时提供 10 支箭。'}
+    ],
+    epic: [
+      {id: 'startPoleaxe', rarity: 'epic', title: '长柄重器', description: '每层自带长柄斧，每点近战伤害 +10%。'},
+      {id: 'revive', rarity: 'epic', title: '续命', description: '每点获得一次复起机会，恢复至 60% 体力并保护 2 秒。'},
+      {id: 'mutiny', rarity: 'epic', title: '宫门兵变', description: '每点每秒独立召唤一名援军，10% 将领、90% 小兵。'}
+    ]
+  };
   const HAZARD_PROFILES = Object.freeze({
     dog: {name: '纵犬', damagePerSecond: 9, sources: ['D23', 'D24']},
     scorpion: {name: '蝎蜇', damagePerSecond: 12, sources: ['D18']},
@@ -126,7 +144,7 @@
 
   function addFormation(run, center, {general = false, soldiers = 2, marshal = false, leaderId = null, friendly = false} = {}) {
     const group = {
-      id: `group-${run.groups.length + 1}`, friendly,
+      id: `group-${run.groupSequence++}`, friendly,
       x: center.x, y: center.y, alerted: false, noticeRadius: 340, members: []
     };
     run.groups.push(group);
@@ -216,9 +234,8 @@
     };
     run.nextImperialGeneralAt = run.elapsed + 5;
     run.layerGeneralsSpawned = 0;
-    run.nextMutinyAt = run.talents.mutiny ? run.elapsed + 5 : Infinity;
     run.player.meleeWeapon = run.talents.startPoleaxe ? 'poleaxe' : run.talents.startSword ? 'sword' : null;
-    run.player.bowAmmo = run.talents.startBow ? 10 : 0;
+    run.player.bowAmmo = run.talents.startBow * 10;
     run.player.hasWeapon = Boolean(run.player.meleeWeapon || run.player.bowAmmo);
     run.player.swingStartedAt = null;
     run.player.swingResolved = false;
@@ -271,13 +288,11 @@
       name, seed: seed >>> 0, random: randomFor(seed),
       elapsed: 0, stageElapsed: 0, layer: 1, level: 1, score: 0,
       bossKills: 0, marshalKills: 0, generalKills: 0, enemyKills: 0,
-      upgrades: {speed: 0, dodge: 0}, talents: {
-        maxHealth: 0, regeneration: 0, speed: 0, dodge: 0,
-        startSword: false, startBow: false, startPoleaxe: false, strength: false,
-        reviveCharges: 0, mutiny: false
-      },
+      upgrades: {speed: 0, dodge: 0},
+      talents: Object.fromEntries(Object.values(TALENT_CARDS).flat().map(({id}) => [id, 0])),
+      reviveCharges: 0, nextMutinyAt: Infinity,
       upgradeChoices: [], nextAttackAt: 0, combatCues: [], projectileEffects: [],
-      enemySequence: 1, lastHitAt: -Infinity, lastContactAt: -Infinity, flashUntil: 0,
+      enemySequence: 1, groupSequence: 1, lastHitAt: -Infinity, lastContactAt: -Infinity, flashUntil: 0,
       player: {
         x: WORLD.width / 2, y: WORLD.height / 2, radius: 16, hp: 100, maxHp: 100,
         speed: 128, dodge: 0, hasWeapon: false, meleeWeapon: null, bowAmmo: 0,
@@ -353,12 +368,12 @@
 
   function reviveOrEnd(run, now) {
     if (run.player.hp > 0) return;
-    if (run.talents.reviveCharges > 0) {
-      run.talents.reviveCharges--;
+    if (run.reviveCharges > 0) {
+      run.reviveCharges--;
       run.player.hp = Math.ceil(run.player.maxHp * .6);
       run.player.invulnerableUntil = now + 2;
       run.flashUntil = now + 2;
-      run.message = `续命触发：恢复至 ${run.player.hp} 点体力，并获得 2 秒保护。剩余 ${run.talents.reviveCharges} 次。`;
+      run.message = `续命触发：恢复至 ${run.player.hp} 点体力，并获得 2 秒保护。剩余 ${run.reviveCharges} 次。`;
       return;
     }
     run.phase = 'over';
@@ -379,30 +394,10 @@
   }
 
   function createTalentChoices(run) {
-    const cards = {
-      common: [
-        {id: 'vitality', rarity: 'common', title: '强健体魄', description: '最大体力 +15，并立即恢复 15 点。'},
-        {id: 'regeneration', rarity: 'common', title: '调息', description: '每秒恢复 0.75 点体力。'},
-        {id: 'swift', rarity: 'common', title: '轻身', description: '移动速度 +10。'},
-        {id: 'evasion', rarity: 'common', title: '身法', description: '闪避率 +5%，最高 50%。'}
-      ],
-      rare: [
-        ...(!run.talents.strength ? [{id: 'strength', rarity: 'rare', title: '力量', description: '本局近战和弓箭伤害 +30%。每局仅能选择一次。'}] : []),
-        ...(!run.talents.startSword ? [{id: 'startSword', rarity: 'rare', title: '佩剑随行', description: '今后每层开始时自带宝剑。'}] : []),
-        ...(!run.talents.startBow ? [{id: 'startBow', rarity: 'rare', title: '备箭', description: '今后每层开始时自带弓，并获得 10 支箭。'}] : [])
-      ],
-      epic: [
-        ...(!run.talents.startPoleaxe ? [{id: 'startPoleaxe', rarity: 'epic', title: '长柄重器', description: '今后每层开始时自带长柄斧。'}] : []),
-        {id: 'revive', rarity: 'epic', title: '续命', description: '获得一次复起机会：恢复 60% 体力并保护 2 秒，可叠加。'}
-      ],
-      legendary: [
-        ...(!run.talents.mutiny ? [{id: 'mutiny', rarity: 'legendary', title: '宫门兵变', description: '每 5 秒在身边召来一名援军，追兵 90%，将领 10%。'}] : [])
-      ]
-    };
     const selected = [];
     while (selected.length < 3) {
-      const availableByRarity = Object.fromEntries(Object.keys(cards).map(rarity => [
-        rarity, cards[rarity].filter(card => !selected.some(item => item.id === card.id))
+      const availableByRarity = Object.fromEntries(Object.entries(TALENT_CARDS).map(([rarity, cards]) => [
+        rarity, cards.filter(card => !selected.some(item => item.id === card.id))
       ]));
       const availableRarities = Object.keys(availableByRarity).filter(rarity => availableByRarity[rarity].length);
       if (!availableRarities.length) break;
@@ -414,7 +409,7 @@
         if (roll < 0) { rarity = candidate; break; }
       }
       const pool = availableByRarity[rarity];
-      selected.push(pool[Math.floor(run.random() * pool.length)]);
+      selected.push({...pool[Math.floor(run.random() * pool.length)]});
     }
     return selected;
   }
@@ -427,7 +422,7 @@
       run.level = run.layer + 1;
       run.upgradeChoices = [
         {id: 'speed', rarity: 'basic', title: '移速提升', description: '移动速度 +20，方便穿过宫道。'},
-        {id: 'dodge', rarity: 'basic', title: '闪避提升', description: '闪避率 +10%，最高 50%。'}
+        {id: 'dodge', rarity: 'basic', title: '闪避提升', description: '闪避率 +10 个百分点。'}
       ];
       run.message = `第 ${run.layer} 层皇帝已击败。等级提升至 ${run.level}，选择移速或闪避。`;
     } else {
@@ -480,18 +475,27 @@
 
   function nearestTarget(from, targets) {
     let closest = null;
+    let bestSquared = Infinity;
     for (const target of targets) {
       if (target.alive === false) continue;
-      const span = distance(from, target);
-      if (!closest || span < closest.span) closest = {target, span};
+      const dx = target.x - from.x, dy = target.y - from.y;
+      const squared = dx * dx + dy * dy;
+      if (squared < bestSquared) {
+        bestSquared = squared;
+        closest = target;
+      }
     }
-    return closest;
+    return closest ? {target: closest, span: Math.sqrt(bestSquared)} : null;
+  }
+
+  function damageBonus(run, weapon) {
+    const {strength, startSword, startPoleaxe} = run.talents;
+    return 30 * strength + (weapon === 'bow' ? 0 : 10 * (startSword + startPoleaxe));
   }
 
   function performAttack(run, now) {
     if (now < run.nextAttackAt) return;
     const targets = targetList(run);
-    const damageMultiplier = run.talents.strength ? STRENGTH_MULTIPLIER : 1;
     const melee = run.player.meleeWeapon ? MELEE_WEAPONS[run.player.meleeWeapon] : null;
     const inMeleeRange = melee ? targets.filter(target => distance(run.player, target) <= melee.range + target.radius) : [];
     if (inMeleeRange.length) {
@@ -505,6 +509,7 @@
       run.player.swingRange = melee.range;
       run.player.swingWeapon = run.player.meleeWeapon;
       combatCue(run, 'swing', run.player.swingWeapon, run.player);
+      const damageMultiplier = 1 + damageBonus(run, run.player.swingWeapon) / 100;
       for (const hit of inMeleeRange) {
         damageTarget(run, hit, melee.damage * damageMultiplier, now, run.player.swingWeapon);
         if (run.phase !== 'playing') return;
@@ -527,7 +532,7 @@
     run.nextAttackAt = now + .72;
     combatCue(run, 'swing', 'bow', run.player);
     run.projectileEffects.push({x1: run.player.x, y1: run.player.y, x2: target.x, y2: target.y, startedAt: now, until: now + ARROW_TRAVEL});
-    damageTarget(run, target, (ARROW_DAMAGE[target.type] || 13) * damageMultiplier, now, 'bow');
+    damageTarget(run, target, (ARROW_DAMAGE[target.type] || 13) * (1 + damageBonus(run, 'bow') / 100), now, 'bow');
   }
 
   function moveToward(entity, point, speed, dt) {
@@ -632,16 +637,27 @@
     run.healingItems.push({...position(run.random, avoid), createdAt: run.elapsed, collected: false});
   }
 
-  function spawnMutinyAlly(run) {
+  function spawnMutinyAlly(run, general) {
     const angle = run.random() * Math.PI * 2;
     const point = {
       x: clamp(run.player.x + Math.cos(angle) * 54, WORLD.margin + 28, WORLD.width - WORLD.margin - 28),
       y: clamp(run.player.y + Math.sin(angle) * 54, WORLD.margin + 28, WORLD.height - WORLD.margin - 28)
     };
-    const general = run.random() < .1;
     const group = addFormation(run, point, {general, soldiers: general ? 0 : 1, friendly: true});
     group.kind = 'mutiny';
-    run.message = `兵变响应：${general ? '将领' : '追兵'}援军已在身边加入。`;
+  }
+
+  function spawnMutinyAllies(run) {
+    const count = run.talents.mutiny;
+    let generals = 0;
+    run.enemies = run.enemies.filter(enemy => enemy.alive);
+    run.groups = run.groups.filter(group => group.members.some(enemy => enemy.alive));
+    for (let i = 0; i < count; i++) {
+      const general = run.random() < .1;
+      if (general) generals++;
+      spawnMutinyAlly(run, general);
+    }
+    run.message = `宫门兵变：援军加入，小兵 ${count - generals} 名、将领 ${generals} 名。`;
   }
 
   function advance(run, input, deltaSeconds) {
@@ -683,7 +699,7 @@
       run.message = `拾取回血药：体力恢复 ${Math.ceil(run.player.hp - before)} 点。`;
     }
     if (run.talents.regeneration > 0 && run.player.hp > 0 && run.player.hp < run.player.maxHp) {
-      run.player.hp = Math.min(run.player.maxHp, run.player.hp + run.talents.regeneration * dt);
+      run.player.hp = Math.min(run.player.maxHp, run.player.hp + .75 * run.talents.regeneration * dt);
     }
     updateEnemies(run, now, dt);
     if (run.phase !== 'playing') return;
@@ -692,9 +708,9 @@
       spawnImperialGeneral(run);
       run.nextImperialGeneralAt = now + 5;
     }
-    if (run.talents.mutiny && now >= run.nextMutinyAt) {
-      spawnMutinyAlly(run);
-      run.nextMutinyAt = now + 5;
+    if (now + 1e-9 >= run.nextMutinyAt) {
+      spawnMutinyAllies(run);
+      run.nextMutinyAt += MUTINY_INTERVAL;
     }
     if (now >= run.nextHealthSpawnAt) {
       spawnHealingPack(run);
@@ -723,23 +739,19 @@
   }
 
   function applyTalent(run, choice) {
+    run.talents[choice.id]++;
     if (choice.id === 'vitality') {
       run.player.maxHp += 15;
       run.player.hp = Math.min(run.player.maxHp, run.player.hp + 15);
-      run.talents.maxHealth += 15;
-    } else if (choice.id === 'regeneration') run.talents.regeneration += .75;
-    else if (choice.id === 'swift') {
-      run.player.speed = Math.min(300, run.player.speed + 10);
-      run.talents.speed += 10;
+    } else if (choice.id === 'swift') {
+      run.player.speed += 10;
     } else if (choice.id === 'evasion') {
-      run.player.dodge = Math.min(.5, run.player.dodge + .05);
-      run.talents.dodge += .05;
-    } else if (choice.id === 'startSword') run.talents.startSword = true;
-    else if (choice.id === 'startBow') run.talents.startBow = true;
-    else if (choice.id === 'strength') run.talents.strength = true;
-    else if (choice.id === 'startPoleaxe') run.talents.startPoleaxe = true;
-    else if (choice.id === 'revive') run.talents.reviveCharges++;
-    else if (choice.id === 'mutiny') run.talents.mutiny = true;
+      run.player.dodge += (1 - run.player.dodge) * .05;
+    } else if (choice.id === 'revive') {
+      run.reviveCharges++;
+    } else if (choice.id === 'mutiny' && run.talents.mutiny === 1) {
+      run.nextMutinyAt = run.elapsed + MUTINY_INTERVAL;
+    }
   }
 
   function chooseUpgrade(run, choiceId) {
@@ -748,15 +760,15 @@
       if (!['speed', 'dodge'].includes(choiceId)) return false;
       run.level = Math.min(5, run.level + 1);
       if (choiceId === 'speed') {
-        run.player.speed = Math.min(280, run.player.speed + 20);
+        run.player.speed += 20;
         run.upgrades.speed++;
       } else {
-        run.player.dodge = Math.min(.5, run.player.dodge + .1);
+        run.player.dodge += .1;
         run.upgrades.dodge++;
       }
     } else {
       const choice = run.upgradeChoices.find(card => card.id === choiceId);
-      if (!choice || (choice.id === 'strength' && run.talents.strength)) return false;
+      if (!choice || !Object.hasOwn(run.talents, choiceId)) return false;
       applyTalent(run, choice);
       run.level = 5;
     }
@@ -765,5 +777,5 @@
     return true;
   }
 
-  return Object.freeze({WORLD, FOG, MELEE_WEAPONS, createRun, advance, chooseUpgrade, hazardState});
+  return Object.freeze({WORLD, FOG, MELEE_WEAPONS, createRun, advance, chooseUpgrade, hazardState, damageBonus});
 });

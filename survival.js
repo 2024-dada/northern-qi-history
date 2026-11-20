@@ -187,14 +187,21 @@
   function updateHud() {
     if (!run) return;
     const weapon = run.player.meleeWeapon ? engine.MELEE_WEAPONS[run.player.meleeWeapon].label : '未拾取';
-    const next = `${run.layer}|${run.level}|${run.score}|${Math.ceil(run.player.hp)}|${run.player.hp}|${run.player.maxHp}|${weapon}|${run.player.bowAmmo}|${run.talents.strength}`;
+    const meleeBonus = engine.damageBonus(run, 'sword');
+    const bowBonus = engine.damageBonus(run, 'bow');
+    const mutiny = run.talents.mutiny;
+    const next = `${run.layer}|${run.level}|${run.score}|${Math.ceil(run.player.hp)}|${run.player.hp}|${run.player.maxHp}|${weapon}|${run.player.bowAmmo}|${meleeBonus}|${bowBonus}|${mutiny}`;
     if (next === lastHud) return;
     $('[data-hud-layer]').textContent = String(run.layer);
     $('[data-hud-level]').textContent = run.layer > 5 ? '5 · 进阶' : `${run.level} / 5`;
     $('[data-hud-score]').textContent = run.score.toLocaleString('zh-CN');
     $('[data-hud-weapon]').textContent = weapon;
     $('[data-hud-arrows]').textContent = String(run.player.bowAmmo);
-    $('[data-hud-strength]').hidden = !run.talents.strength;
+    $('[data-hud-strength]').hidden = !meleeBonus;
+    if (meleeBonus) $('[data-hud-strength] b').textContent = meleeBonus === bowBonus
+      ? `+${meleeBonus}%` : `近战 +${meleeBonus}% · 弓箭 +${bowBonus}%`;
+    $('[data-hud-mutiny]').hidden = !mutiny;
+    if (mutiny) $('[data-hud-mutiny] b').textContent = `${mutiny} 名/秒`;
     $('[data-hud-hp]').textContent = `${Math.ceil(run.player.hp)} / ${run.player.maxHp}`;
     $('[data-hud-health-fill]').style.width = `${Math.max(0, run.player.hp / run.player.maxHp * 100)}%`;
     $('[data-hud-health-fill]').style.background = run.player.hp / run.player.maxHp <= .3
@@ -213,10 +220,15 @@
     // The animation loop checks the upgrade phase every frame. Keep the existing
     // buttons while the choices are unchanged so pointerup/click can reach them.
     if (renderedUpgradeChoices === run.upgradeChoices) return;
-    choices.innerHTML = run.upgradeChoices.map(choice => `<button type="button" data-game-upgrade="${escapeHtml(choice.id)}" class="talent-${escapeHtml(choice.rarity)}">
-      <small>${choice.rarity === 'basic' ? '基础加成' : ({common: '普通天赋', rare: '稀有天赋', epic: '史诗天赋', legendary: '传说天赋'}[choice.rarity] || '')}</small>
-      <strong>${escapeHtml(choice.title)}</strong><span>${escapeHtml(choice.description)}</span>
-    </button>`).join('');
+    const ranks = {basic: '基础加成', common: '普通天赋', rare: '稀有天赋', epic: '史诗天赋'};
+    choices.innerHTML = run.upgradeChoices.map(choice => {
+      const count = (choice.rarity === 'basic' ? run.upgrades : run.talents)[choice.id];
+      return `<button type="button" data-game-upgrade="${escapeHtml(choice.id)}" class="talent-${escapeHtml(choice.rarity)}">
+        <small>${ranks[choice.rarity]}</small><strong>${escapeHtml(choice.title)}</strong>
+        <span>${escapeHtml(choice.description)}</span>
+        ${count ? `<span class="talent-stack">已选 ${count} 点</span>` : ''}
+      </button>`;
+    }).join('');
     renderedUpgradeChoices = run.upgradeChoices;
   }
 
@@ -227,6 +239,7 @@
     $('[data-hud-weapon]').textContent = '未拾取';
     $('[data-hud-arrows]').textContent = '0';
     $('[data-hud-strength]').hidden = true;
+    $('[data-hud-mutiny]').hidden = true;
     $('[data-hud-hp]').textContent = '100 / 100';
     $('[data-hud-health-fill]').style.width = '100%';
     lastHud = '';
