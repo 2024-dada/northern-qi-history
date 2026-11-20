@@ -9,6 +9,21 @@
   const recordsById = new Map(records.map(record => [record.id, record]));
 
   const ctx = canvas.getContext('2d', {alpha: false});
+  const mapArt = new Image();
+  mapArt.decoding = 'async';
+  let mapTop, mapBottom, mapTrim;
+  function updateMapTheme() {
+    const styles = getComputedStyle(document.documentElement);
+    mapTop = styles.getPropertyValue('--ui-map-top').trim() || '#23332c';
+    mapBottom = styles.getPropertyValue('--ui-map-bottom').trim() || '#17231f';
+    mapTrim = styles.getPropertyValue('--ui-map-trim').trim() || '#d4c394';
+    const art = styles.getPropertyValue('--ui-landscape').trim().match(/^url\(["']?(.*?)["']?\)$/);
+    if (!art) return;
+    const url = new URL(art[1], document.baseURI).href;
+    if (mapArt.src !== url) mapArt.src = url;
+  }
+  updateMapTheme();
+  document.addEventListener('ui-theme-change', updateMapTheme);
   const fogCanvas = document.createElement('canvas');
   fogCanvas.width = engine.WORLD.width;
   fogCanvas.height = engine.WORLD.height;
@@ -306,15 +321,24 @@
 
   function drawBackdrop(time) {
     const gradient = ctx.createLinearGradient(0, 0, 0, H);
-    gradient.addColorStop(0, '#23332c');
-    gradient.addColorStop(.48, '#1b2a24');
-    gradient.addColorStop(1, '#17231f');
+    gradient.addColorStop(0, mapTop);
+    gradient.addColorStop(1, mapBottom);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, W, H);
 
+    if (mapArt.complete && mapArt.naturalWidth) {
+      const scale = Math.max(W / mapArt.naturalWidth, H / mapArt.naturalHeight);
+      const width = mapArt.naturalWidth * scale;
+      const height = mapArt.naturalHeight * scale;
+      ctx.save();
+      ctx.globalAlpha = run ? .12 : .25;
+      ctx.drawImage(mapArt, (W - width) / 2, (H - height) / 2, width, height);
+      ctx.restore();
+    }
+
     ctx.save();
     ctx.globalAlpha = .12;
-    ctx.strokeStyle = '#d4c394';
+    ctx.strokeStyle = mapTrim;
     ctx.lineWidth = 1;
     for (let x = 28; x < W; x += 54) {
       for (let y = 28; y < H; y += 54) {
@@ -324,22 +348,22 @@
     }
     ctx.restore();
 
-    ctx.strokeStyle = 'rgba(217,195,145,.48)';
+    ctx.strokeStyle = `${mapTrim}7a`;
     ctx.lineWidth = 2;
     ctx.strokeRect(22, 22, W - 44, H - 44);
-    ctx.strokeStyle = 'rgba(217,195,145,.18)';
+    ctx.strokeStyle = `${mapTrim}2e`;
     ctx.lineWidth = 1;
     ctx.strokeRect(32, 32, W - 64, H - 64);
     for (const x of [82, W - 82]) {
-      ctx.fillStyle = 'rgba(207,184,129,.16)';
+      ctx.fillStyle = `${mapTrim}29`;
       ctx.fillRect(x - 12, 35, 24, H - 70);
-      ctx.strokeStyle = 'rgba(224,202,151,.18)';
+      ctx.strokeStyle = `${mapTrim}2e`;
       ctx.strokeRect(x - 12, 35, 24, H - 70);
     }
     // Palace courtyard axis, patterned after the site's architectural illustration.
     ctx.save();
     ctx.globalAlpha = .12;
-    ctx.strokeStyle = '#d5c18c';
+    ctx.strokeStyle = mapTrim;
     ctx.setLineDash([5, 13]);
     ctx.beginPath();
     ctx.moveTo(W / 2, 48);
@@ -348,7 +372,7 @@
     ctx.lineTo(W - 105, H / 2);
     ctx.stroke();
     ctx.setLineDash([]);
-    circle(W / 2, H / 2, 118 + Math.sin(time * .3) * 3, null, 'rgba(208,184,126,.14)', 1);
+    circle(W / 2, H / 2, 118 + Math.sin(time * .3) * 3, null, mapTrim, 1);
     ctx.restore();
     text('北齐宫苑 · 游戏示意地图', 47, 48, 'rgba(235,222,190,.48)', 10, 'left', 400);
   }
@@ -712,6 +736,9 @@
 
   document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) setFullscreenLayout(false);
+  });
+  document.addEventListener('ui-settings-toggle', event => {
+    if (event.detail.open) pauseGame();
   });
 
   nameInput.addEventListener('input', () => nameInput.setCustomValidity(''));

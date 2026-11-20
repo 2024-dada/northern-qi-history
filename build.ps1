@@ -4,7 +4,7 @@
 
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
-$cssOrder = @('styles.css', 'animation.css', 'violence.css', 'dossier.css', 'theme.css', 'ai-help.css', 'music.css', 'sidebar.css', 'surfaces.css', 'survival-portal.css')
+$cssOrder = @('styles.css', 'animation.css', 'violence.css', 'dossier.css', 'theme.css', 'ai-help.css', 'music.css', 'sidebar.css', 'surfaces.css', 'survival-portal.css', 'theme-landscapes.css')
 $jsOrder = @('data.js', 'violence.js', 'dossier.js', 'app.js', 'animation.js', 'theme.js', 'ai-help.js', 'music.js', 'sidebar.js')
 
 $css = foreach ($file in $cssOrder) {
@@ -38,13 +38,20 @@ if ([regex]::IsMatch($html, $bootstrapPattern)) {
 
 $resources = "<link rel=`"stylesheet`" href=`"bundle.css?v=$Version`">`n<script src=`"bundle.js?v=$Version`" defer></script>`n"
 $html = $html.Replace('</head>', "$resources</head>")
-$html = [regex]::Replace($html, '(survival\.html\?v=)[^"#]+', ('${1}' + $Version))
+$html = [regex]::Replace($html, '((?:survival|lecture-stone|webpage/index)\.html\?v=)[^"#]+', ('${1}' + $Version))
 [IO.File]::WriteAllText($htmlPath, $html, [Text.UTF8Encoding]::new($false))
 
 $survivalHtmlPath = Join-Path $root 'survival.html'
 $survivalHtml = [IO.File]::ReadAllText($survivalHtmlPath, [Text.Encoding]::UTF8)
 $survivalHtml = [regex]::Replace($survivalHtml, '(survival(?:\.css|-game-data\.js|-engine\.js|-hazards\.js|\.js)\?v=)[^"#]+', ('${1}' + $Version))
 [IO.File]::WriteAllText($survivalHtmlPath, $survivalHtml, [Text.UTF8Encoding]::new($false))
+
+foreach ($page in @('survival.html', 'lecture-stone.html', 'webpage/index.html')) {
+  $pagePath = Join-Path $root $page
+  $pageHtml = [IO.File]::ReadAllText($pagePath, [Text.Encoding]::UTF8)
+  $pageHtml = [regex]::Replace($pageHtml, '((?:theme(?:-landscapes)?\.css|theme\.js|surfaces\.css)\?v=)[^"#]+', ('${1}' + $Version))
+  [IO.File]::WriteAllText($pagePath, $pageHtml, [Text.UTF8Encoding]::new($false))
+}
 
 $survivalNode = Get-Command node -ErrorAction SilentlyContinue
 if ($survivalNode) {
