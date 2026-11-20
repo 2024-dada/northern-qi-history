@@ -457,3 +457,29 @@ html[data-ui-theme]:where(:not([data-ui-theme=mural])) .has-sidebar .glossary {
 
 /* ---------- 12. Reading time chip ---------- */
 .qi-readtime { display:inline-flex; align-items:center; gap:5px; margin-left:10px; padding:1px 9px; border:1px solid color-mix(in srgb,var(--ui-line) 90%,transparent); border-radius:999px; font-size:11.5px; letter-spacing:.04em; color:var(--ui-muted); vertical-align:2px; white-space:nowrap; }
+
+/* ---------- 13. Legibility floor for small labels (≥ 11.5 px) ---------- */
+@media screen {
+  .has-sidebar .violence-card .v-card-top>span,
+  .has-sidebar .violence-card .v-subtitle,
+  .has-sidebar .violence-card .v-card-link { font-size:12.5px; }
+  .has-sidebar .violence-card .v-status { font-size:11.5px; }
+  .has-sidebar :is(.explore-views button,.timeline button,.segmented button,.scene-steps button span,.scene-duration,.scene-scrubber output,.result-count,.archive-toolbar p) { font-size:12.5px; }
+  .has-sidebar .scene-citation .scene-boundary { font-size:12.5px; line-height:1.8; }
+  .has-sidebar :is(.cause-order>div>span,.reading-conclusion>span,.brother-scene small,.scene-screen-note) { font-size:12px; }
+  .has-sidebar sup button { font-size:12px; }
+  .has-sidebar .chapter-rail nav b { font-size:11.5px; }
+  .has-sidebar .survival-launch-note { font-size:12.5px; line-height:1.8; }
+  .has-sidebar .reading-note { font-size:12px; }
+  .has-sidebar .brand small { font-size:11.5px; }
+  .has-sidebar :is(.sidebar-heading,.sidebar-tools-heading) { font-size:11.5px; }
+  .has-sidebar .sidebar-game-link small { font-size:12px; }
+  .has-sidebar .music-control :is(.music-volume span,.music-volume output) { font-size:11.5px; }
+  .has-sidebar .music-control .music-credit,.has-sidebar .music-control .music-credit a { font-size:11.5px; line-height:1.7; }
+}
+
+/* ---------- 14. Hero full stop sits right after 之后 instead of floating ---------- */
+@media screen and (min-width:651px) {
+  .has-sidebar .hero h1 i { display:none; }
+  .has-sidebar .hero h1 span::after { content:"。"; color:var(--ui-accent,#9d4236); font-size:.55em; margin-left:.02em; vertical-align:baseline; }
+}
