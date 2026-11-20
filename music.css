@@ -1,6 +1,6 @@
 .music-control{display:flex;align-items:center;gap:10px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;background:var(--paper-light);letter-spacing:0;white-space:nowrap}
 .music-control [data-music-toggle]{display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:2px 4px;color:var(--muted);font:inherit;font-size:11px;cursor:pointer}
-.music-control [data-music-toggle]>span:first-child{font-size:17px;color:var(--red)}
+.music-control [data-music-toggle]>span[aria-hidden=true]:not(.sidebar-item-number){font-size:17px;color:var(--red)}
 .music-control [data-music-toggle].is-playing{color:var(--ink)}
 .music-control [data-music-toggle].is-pending{color:var(--red)}
 .music-control [data-music-toggle]:disabled{opacity:.55;cursor:not-allowed}

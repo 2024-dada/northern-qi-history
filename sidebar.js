@@ -1,4 +1,12 @@
 (()=>{'use strict';const body=document.body;if(!body.classList.contains('has-sidebar'))return;const toggle=document.querySelector('.sidebar-toggle'),panel=document.querySelector('#site-sidebar'),backdrop=document.querySelector('.sidebar-backdrop');const mobile=matchMedia('(max-width:1100px)');
+const menuItems = panel.querySelectorAll('nav > a, nav > button, nav > .music-control > [data-music-toggle]');
+menuItems.forEach((item, index) => {
+  const badge = document.createElement('span');
+  badge.className = 'sidebar-item-number';
+  badge.setAttribute('aria-hidden', 'true');
+  badge.textContent = String(index + 1);
+  item.prepend(badge);
+});
 function setOpen(open,restore=false){body.classList.toggle('sidebar-open',open);toggle.setAttribute('aria-expanded',String(open));backdrop.hidden=!open;if(mobile.matches)panel.inert=!open;else panel.inert=false;if(open)panel.querySelector('a')?.focus();else if(restore)toggle.focus();}
 toggle.addEventListener('click',()=>setOpen(!body.classList.contains('sidebar-open')));backdrop.addEventListener('click',()=>setOpen(false,true));document.addEventListener('keydown',e=>{if(!body.classList.contains('sidebar-open'))return;if(e.key==='Escape'){setOpen(false,true);return;}if(e.key==='Tab'&&mobile.matches){const list=[...panel.querySelectorAll('a[href],button:not([disabled]),input:not([disabled])')].filter(el=>el.getClientRects().length);const first=list[0],last=list.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}});
 panel.addEventListener('click',e=>{if(e.target.closest('nav>a')&&mobile.matches)setOpen(false);if(e.target.closest('[data-ui-settings],[data-open-method],[data-ai-help]')&&mobile.matches)setOpen(false);});mobile.addEventListener('change',()=>setOpen(false));setOpen(false);

@@ -8,13 +8,11 @@
 .has-sidebar .site-header nav>a,.has-sidebar .site-header nav>button{display:flex;align-items:center;gap:10px;min-height:43px;width:100%;padding:10px 13px;text-align:left;border:1px solid transparent;border-radius:10px;font:inherit;color:var(--ui-ink,var(--ink));background:transparent;line-height:1.6;white-space:normal;margin:0;transition:background .18s,color .18s}
 .has-sidebar .site-header nav>a:hover,.has-sidebar .site-header nav>button:hover{background:var(--ui-tint,#e4ddcc);color:var(--ui-accent,var(--red))}
 .has-sidebar .site-header nav>a.is-current{background:var(--ui-tint,#e4ddcc);border-color:var(--ui-line,var(--line));color:var(--ui-accent,var(--red));font-weight:600}
-.has-sidebar .site-header nav>a::before{content:'↗';font-size:12px;opacity:.5;width:15px;flex-shrink:0}
-.has-sidebar .site-header nav>a[href^='#']::before{content:'·';font-size:24px;line-height:15px}
-.has-sidebar .site-header nav>.lecture-stone-link::before{content:none}
+.site-header .sidebar-item-number{display:grid;place-items:center;flex:0 0 24px;height:24px;border-radius:3px;background:var(--ui-accent,var(--red));color:var(--ui-on-accent,var(--paper-light));font:800 12px/1 var(--sans,sans-serif);font-variant-numeric:tabular-nums;letter-spacing:0}
 .has-sidebar .lecture-stone-icon{width:22px;height:22px;flex-shrink:0}
 .has-sidebar .site-header nav>[data-text-size]{margin-top:18px;border-top-color:var(--ui-line,var(--line))}
 .has-sidebar .music-control{margin:3px 0 8px;padding:12px;flex-direction:column;align-items:stretch;gap:8px;border-radius:12px;border-color:var(--ui-line,var(--line));background:var(--ui-bg,var(--paper))}
-.has-sidebar .music-control [data-music-toggle]{font-size:12px;justify-content:flex-start}.has-sidebar .music-volume{display:flex;width:100%;gap:7px}.has-sidebar .music-volume input{width:100%;min-width:0;flex:1}.has-sidebar .music-volume output{font-size:10px}
+.has-sidebar .music-control [data-music-toggle]{font-size:12px;justify-content:flex-start;gap:10px;padding-inline:0}.has-sidebar .music-volume{display:flex;width:100%;gap:7px}.has-sidebar .music-volume input{width:100%;min-width:0;flex:1}.has-sidebar .music-volume output{font-size:10px}
 .has-sidebar .page-progress{position:fixed;left:var(--sidebar-width,256px);right:0;top:0;bottom:auto;height:3px}
 .has-sidebar .hero{padding:65px 6% 75px;gap:20px}.has-sidebar .hero-actions{flex-wrap:wrap;gap:15px}.has-sidebar .hero h1{font-size:clamp(60px,7vw,104px)}
 .sidebar-toggle,.sidebar-backdrop{display:none}html:has(.has-sidebar){--header-height:0px!important;scroll-padding-top:24px}.has-sidebar .chapter{scroll-margin-top:24px}

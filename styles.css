@@ -228,3 +228,57 @@ html[data-ui-theme] #detail-dialog .event-reading .event-reading-quote blockquot
 .event-row .event-id{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border-radius:3px;background:var(--red);color:var(--paper-light);font-family:var(--sans);font-size:12px;font-weight:800;line-height:1}
 .timeline-panel .large-number{display:grid;place-items:center;width:52px;height:62px;border-radius:3px;background:var(--red);color:var(--paper-light);font-family:var(--serif);font-size:42px;font-weight:700;line-height:1}
 @media(max-width:650px){.event-row .event-id{width:20px;height:20px;font-size:11px}.timeline-panel .large-number{width:42px;height:52px;font-size:34px}}
+
+.family div > span { font-size:clamp(19px,2.2vw,24px); font-weight:700; }
+.family small { color:var(--ink); font-size:13px; font-weight:700; white-space:normal; }
+.network { container-type:inline-size; }
+.network .network-node {
+  width:min(140px,29%);
+  padding:9px 4px;
+  line-height:1.4;
+  transition:background-color .2s,border-color .2s,color .2s;
+}
+.network .network-node small {
+  color:inherit;
+  font:700 clamp(13px,3.6cqi,16px)/1.35 var(--sans,sans-serif);
+  letter-spacing:0;
+}
+.network .network-node strong {
+  display:block;
+  margin-top:4px;
+  font-size:clamp(17px,5.8cqi,25px);
+  font-weight:700;
+}
+.network .network-label {
+  z-index:1;
+  transform:translate(-50%,-50%);
+  padding:2px 5px;
+  max-width:none;
+  border-radius:3px;
+  color:var(--ink);
+  font:700 clamp(13px,3.6cqi,16px)/1.35 var(--sans,sans-serif);
+  letter-spacing:0;
+  white-space:nowrap;
+}
+.network .label-a { top:65%; left:33%; }
+.network .label-b { top:49%; left:70%; }
+.network .label-c { top:91%; left:66%; }
+.network .network-path-compact { display:none; }
+@container (max-width:600px) {
+  .network .network-node { width:min(142px,39%); }
+  .network .network-node strong { font-size:clamp(18px,4.6cqi,25px); }
+  .network .network-node.origin,
+  .network .network-node.victim { left:27%; }
+  .network .network-node.court,
+  .network .network-node.execution { left:73%; }
+  .network .network-node.origin,
+  .network .network-node.court { top:16%; }
+  .network .network-node.ruler { top:48%; }
+  .network .network-node.victim,
+  .network .network-node.execution { top:79%; }
+  .network .network-path-wide { display:none; }
+  .network .network-path-compact { display:inline; }
+  .network .label-a { top:31%; left:62%; }
+  .network .label-b { top:63%; left:60%; }
+  .network .label-c { top:96%; left:50%; }
+}
