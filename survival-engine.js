@@ -14,6 +14,7 @@
     poleaxe: {label: '长柄斧', range: 96, damage: 25, cooldown: .88}
   });
   const ARROW_DAMAGE = Object.freeze({soldier: 17, general: 20, marshal: 25, emperor: 13});
+  const ARROW_TRAVEL = .18;
   const STRENGTH_MULTIPLIER = 1.3;
   const TALENT_WEIGHTS = Object.freeze({common: 45, rare: 30, epic: 20, legendary: 5});
   const HAZARD_PROFILES = Object.freeze({
@@ -221,6 +222,7 @@
     run.player.hasWeapon = Boolean(run.player.meleeWeapon || run.player.bowAmmo);
     run.player.swingStartedAt = null;
     run.player.swingResolved = false;
+    run.projectileEffects.length = 0;
     run.player.invulnerableUntil = Math.max(run.player.invulnerableUntil || 0, run.elapsed);
     run.weaponPickups = [];
     run.healingItems = [];
@@ -274,7 +276,7 @@
         startSword: false, startBow: false, startPoleaxe: false, strength: false,
         reviveCharges: 0, mutiny: false
       },
-      upgradeChoices: [], nextAttackAt: 0, attackFlash: null, projectileEffects: [],
+      upgradeChoices: [], nextAttackAt: 0, combatCues: [], projectileEffects: [],
       enemySequence: 1, lastHitAt: -Infinity, lastContactAt: -Infinity, flashUntil: 0,
       player: {
         x: WORLD.width / 2, y: WORLD.height / 2, radius: 16, hp: 100, maxHp: 100,
@@ -436,13 +438,18 @@
     return true;
   }
 
-  function damageTarget(run, target, amount, now) {
+  function combatCue(run, kind, weapon, actor, delay = 0) {
+    run.combatCues.push({kind, weapon, x: actor.x, y: actor.y, delay});
+  }
+
+  function damageTarget(run, target, amount, now, weapon) {
     if (!target.alive) return;
     const dealt = Math.min(Math.ceil(amount), target.hp);
     target.hp = Math.max(0, target.hp - dealt);
     target.hitUntil = now + .2;
-    run.attackFlash = {x: target.x, y: target.y, until: now + .2};
-    run.hitText = {x: target.x, y: target.y, value: `−${dealt}`, until: now + .72};
+    const delay = weapon === 'bow' ? ARROW_TRAVEL : 0;
+    combatCue(run, 'impact', weapon, target, delay);
+    run.hitText = {x: target.x, y: target.y, value: `−${dealt}`, start: now + delay, until: now + delay + .72};
     if (target.type === 'emperor' && target.hp > 0 && run.layer >= 5 && target.phase === 1 && target.hp <= target.maxHp / 2) {
       target.phase = 2;
       run.message = `皇帝进入第二阶段：召来 ${target.phaseSummonCount} 名将领。`;
@@ -496,8 +503,10 @@
       run.player.facing = Math.atan2(target.y - run.player.y, target.x - run.player.x);
       run.player.swingFacing = run.player.facing;
       run.player.swingRange = melee.range;
+      run.player.swingWeapon = run.player.meleeWeapon;
+      combatCue(run, 'swing', run.player.swingWeapon, run.player);
       for (const hit of inMeleeRange) {
-        damageTarget(run, hit, melee.damage * damageMultiplier, now);
+        damageTarget(run, hit, melee.damage * damageMultiplier, now, run.player.swingWeapon);
         if (run.phase !== 'playing') return;
       }
       return;
@@ -514,9 +523,11 @@
     run.player.swingUntil = now + .24;
     run.player.swingFacing = run.player.facing;
     run.player.swingRange = closest.span;
+    run.player.swingWeapon = 'bow';
     run.nextAttackAt = now + .72;
-    run.projectileEffects.push({x1: run.player.x, y1: run.player.y, x2: target.x, y2: target.y, startedAt: now, until: now + .24});
-    damageTarget(run, target, (ARROW_DAMAGE[target.type] || 13) * damageMultiplier, now);
+    combatCue(run, 'swing', 'bow', run.player);
+    run.projectileEffects.push({x1: run.player.x, y1: run.player.y, x2: target.x, y2: target.y, startedAt: now, until: now + ARROW_TRAVEL});
+    damageTarget(run, target, (ARROW_DAMAGE[target.type] || 13) * damageMultiplier, now, 'bow');
   }
 
   function moveToward(entity, point, speed, dt) {
@@ -533,13 +544,14 @@
       const swingTime = now - actor.swingStartedAt;
       if (!actor.swingResolved && swingTime >= actor.swingWindup) {
         actor.swingResolved = true;
+        combatCue(run, 'swing', 'guard', actor);
         const hit = actor.swingTarget;
         if (hit && hit.alive !== false && distance(actor, hit) <= actor.attackRange + hit.radius) {
           if (hit === run.player) {
-            takeHit(run, now, actor.damage, `${actor.label}挥砍命中`);
+            if (takeHit(run, now, actor.damage, `${actor.label}挥砍命中`))combatCue(run, 'impact', 'guard', hit);
           } else {
             const damage = actor.friendly ? (actor.type === 'general' ? 26 : 18) : actor.damage;
-            damageTarget(run, hit, damage, now);
+            damageTarget(run, hit, damage, now, 'guard');
           }
         }
       }
@@ -633,6 +645,7 @@
   }
 
   function advance(run, input, deltaSeconds) {
+    run.combatCues.length = 0;
     if (run.phase !== 'playing') return;
     const dt = clamp(Number(deltaSeconds) || 0, 0, .05);
     if (!dt) return;

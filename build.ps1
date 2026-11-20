@@ -43,7 +43,7 @@ $html = [regex]::Replace($html, '((?:survival|lecture-stone|webpage/index)\.html
 
 $survivalHtmlPath = Join-Path $root 'survival.html'
 $survivalHtml = [IO.File]::ReadAllText($survivalHtmlPath, [Text.Encoding]::UTF8)
-$survivalHtml = [regex]::Replace($survivalHtml, '(survival(?:\.css|-game-data\.js|-engine\.js|-hazards\.js|\.js)\?v=)[^"#]+', ('${1}' + $Version))
+$survivalHtml = [regex]::Replace($survivalHtml, '(survival(?:\.css|-game-data\.js|-engine\.js|-hazards\.js|-audio\.js|\.js)\?v=)[^"#]+', ('${1}' + $Version))
 [IO.File]::WriteAllText($survivalHtmlPath, $survivalHtml, [Text.UTF8Encoding]::new($false))
 
 foreach ($page in @('survival.html', 'lecture-stone.html', 'webpage/index.html')) {

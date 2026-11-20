@@ -3,6 +3,7 @@
 
   const engine = window.SURVIVAL_ENGINE;
   const hazardArt = window.SURVIVAL_HAZARD_ART;
+  const audio = window.SURVIVAL_AUDIO;
   const records = window.SURVIVAL_RECORDS;
   const canvas = document.querySelector('#survival-canvas');
   if (!canvas || !engine || !hazardArt || !Array.isArray(records)) return;
@@ -40,6 +41,15 @@
   const overlay = name => $(`[data-overlay="${name}"]`);
   const storageKey = 'qi-survival-rank-v1';
   const pressed = new Set();
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const weaponEffects = {
+    sword: {color: '#f4e8b4', width: 3, burst: 19, sparks: 4},
+    longSword: {color: '#b8e2e0', width: 4, burst: 25, sparks: 5},
+    poleaxe: {color: '#fac080', width: 7, burst: 35, sparks: 7},
+    bow: {color: '#ffe3a0', width: 2, burst: 14, sparks: 4},
+    guard: {color: '#e9a688', width: 3, burst: 15, sparks: 3}
+  };
+  const impacts = [];
   let run = null;
   let mode = 'ready';
   let stickPointer = null;
@@ -239,6 +249,8 @@
       return;
     }
     mode = 'playing';
+    impacts.length = 0;
+    audio?.setPlaying(true);
     requestFullscreen();
     pressed.clear();
     stickVector = {x: 0, y: 0};
@@ -255,6 +267,7 @@
   function endGame() {
     if (mode === 'over') return;
     mode = 'over';
+    audio?.setPlaying(false);
     pressed.clear();
     stickVector = {x: 0, y: 0};
     $('[data-game-action="pause"]').disabled = true;
@@ -268,6 +281,7 @@
   function pauseGame() {
     if (mode !== 'playing') return;
     mode = 'paused';
+    audio?.setPlaying(false);
     pressed.clear();
     stickVector = {x: 0, y: 0};
     showOnly('pause');
@@ -277,6 +291,7 @@
   function resumeGame() {
     if (mode !== 'paused') return;
     mode = 'playing';
+    audio?.setPlaying(true);
     showOnly(run?.phase === 'upgrade' ? 'upgrade' : null);
     lastMessage = '';
     setLive(run?.phase === 'upgrade' ? '请选择移速或闪避加成。' : '继续闯关。');
@@ -285,6 +300,8 @@
 
   function resetToReady() {
     mode = 'ready';
+    audio?.setPlaying(false);
+    impacts.length = 0;
     run = null;
     pressed.clear();
     stickVector = {x: 0, y: 0};
@@ -525,6 +542,66 @@
     ctx.restore();
   }
 
+  function drawPlayerSweep(time) {
+    const player = run.player;
+    const finish = weaponEffects[player.swingWeapon];
+    if (player.swingStartedAt === null || !finish || player.swingWeapon === 'bow') return;
+    const progress = Math.min(1, (time - player.swingStartedAt) / .28);
+    const radius = player.swingRange;
+    const facing = player.swingFacing;
+    const end = facing - 1.15 + Math.min(progress * 2, 1) * 2.3;
+    const start = Math.max(facing - 1.25, end - 1.3);
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = finish.color;
+    ctx.globalAlpha = (1 - progress) * .28;
+    ctx.lineWidth = finish.width * 3.1;
+    ctx.beginPath(); ctx.arc(player.x, player.y, radius - finish.width, start, end); ctx.stroke();
+    ctx.globalAlpha = (1 - progress) * .98;
+    ctx.lineWidth = finish.width;
+    ctx.beginPath(); ctx.arc(player.x, player.y, radius, start, end); ctx.stroke();
+    ctx.restore();
+  }
+
+  function cueCombat() {
+    const player = run.player;
+    for (const cue of run.combatCues) {
+      const distance = Math.hypot(cue.x - player.x, cue.y - player.y);
+      const gain = Math.max(0, 1 - distance / 350) * (cue.weapon === 'guard' ? .62 : 1);
+      audio?.cue(cue.kind, cue.weapon, gain, cue.delay);
+      if (cue.kind === 'impact') {
+        if (impacts.length === 32) impacts.shift();
+        impacts.push({...cue, start: run.elapsed + cue.delay});
+      }
+    }
+  }
+
+  function drawImpacts(time) {
+    for (const impact of impacts) {
+      const progress = (time - impact.start) / .26;
+      if (progress < 0 || progress >= 1) continue;
+      const effect = weaponEffects[impact.weapon];
+      const {x, y} = impact;
+      ctx.save();
+      ctx.globalAlpha = (1 - progress) * .86;
+      circle(x, y, 5 + effect.burst * progress, null, effect.color, effect.width * .5);
+      if (!reducedMotion.matches) {
+        ctx.strokeStyle = effect.color;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        for (let i = 0; i < effect.sparks; i++) {
+          const angle = i * Math.PI * 2 / effect.sparks + x * .1;
+          const from = 4 + effect.burst * progress;
+          const to = from + 9 * (1 - progress);
+          ctx.moveTo(x + Math.cos(angle) * from, y + Math.sin(angle) * from);
+          ctx.lineTo(x + Math.cos(angle) * to, y + Math.sin(angle) * to);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
   function drawArrowEffects(time) {
     for (const arrow of run.projectileEffects) {
       const progress = Math.min(1, (time - arrow.startedAt) / (arrow.until - arrow.startedAt));
@@ -532,6 +609,14 @@
       const y = arrow.y1 + (arrow.y2 - arrow.y1) * progress;
       const angle = Math.atan2(arrow.y2 - arrow.y1, arrow.x2 - arrow.x1);
       ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+      if (!reducedMotion.matches) {
+        const trail = ctx.createLinearGradient(-38, 0, 0, 0);
+        trail.addColorStop(0, 'rgba(247,206,128,0)');
+        trail.addColorStop(1, 'rgba(247,206,128,.72)');
+        ctx.strokeStyle = trail;
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(-38, 0); ctx.lineTo(0, 0); ctx.stroke();
+      }
       ctx.strokeStyle = 'rgba(248,226,167,.94)'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(9, 0); ctx.stroke();
       ctx.fillStyle = '#f2d18b'; ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(5, -3); ctx.lineTo(5, 3); ctx.closePath(); ctx.fill();
@@ -654,19 +739,13 @@
       drawSwingTelegraph(enemy, time, enemy.friendly ? 'rgba(146,220,157,.32)' : 'rgba(225,124,92,.3)');
     }
     if (run.emperor.alive) drawSwingTelegraph(run.emperor, time, 'rgba(224,95,72,.36)');
-    drawSwingTelegraph(run.player, time, 'rgba(237,209,143,.32)');
+    drawPlayerSweep(time);
     for (const enemy of run.enemies) drawEnemy(enemy, time);
     drawEmperor(time);
     drawPlayer(time);
     drawArrowEffects(time);
-    if (run.attackFlash && run.attackFlash.until > run.elapsed) {
-      ctx.save();
-      ctx.strokeStyle = `rgba(234,211,151,${Math.max(.25, (run.attackFlash.until - run.elapsed) / .16)})`;
-      ctx.lineWidth = 3;
-      circle(run.attackFlash.x, run.attackFlash.y, 28 + (run.elapsed * 80 % 8), null, ctx.strokeStyle, 3);
-      ctx.restore();
-    }
-    if (run.hitText && run.hitText.until > run.elapsed) {
+    drawImpacts(time);
+    if (run.hitText && run.hitText.start <= run.elapsed && run.hitText.until > run.elapsed) {
       const progress = 1 - (run.hitText.until - run.elapsed) / .72;
       text(run.hitText.value, run.hitText.x, run.hitText.y - 27 - progress * 17, '#ffe09a', 17, 'center', 800);
     }
@@ -684,6 +763,10 @@
     priorFrame = now;
     if (mode === 'playing' && run) {
       engine.advance(run, moveVector(), dt);
+      for (let i = impacts.length - 1; i >= 0; i--) {
+        if (run.elapsed - impacts[i].start >= .26) impacts.splice(i, 1);
+      }
+      cueCombat();
       updateHud();
       if (run.message) setLive(run.message);
       if (run.phase === 'upgrade') {
@@ -718,6 +801,7 @@
       const selectedTitle = run.upgradeChoices.find(choice => choice.id === selected)?.title
         || (selected === 'speed' ? '移速提升' : '闪避提升');
       if (!engine.chooseUpgrade(run, selected)) return;
+      impacts.length = 0;
       mode = 'playing';
       showOnly(null);
       updateHud();
