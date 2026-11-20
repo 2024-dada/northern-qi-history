@@ -196,3 +196,24 @@ html.is-game-fullscreen .survival-touch { bottom: max(42px, calc(env(safe-area-i
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Start and result overlays: lead, key caps, compact form, collapsible rules. */
+.survival-overlay-card .survival-lead { font-size: 15px !important; line-height: 1.85 !important; margin: 0 0 12px; }
+.survival-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 4px 0 4px; font-size: 13px; opacity: .92; }
+.survival-keycaps { display: inline-flex; gap: 4px; }
+.survival-keys kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border: 1px solid currentColor; border-bottom-width: 3px; border-radius: 5px; font: 700 12px/1 ui-monospace, "Cascadia Mono", Consolas, monospace; opacity: .85; }
+.survival-keys-sep { opacity: .45; }
+.survival-start-form { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; align-items: end; }
+.survival-start-form label { grid-column: 1 / -1; }
+.survival-start-form .survival-primary { width: auto; min-width: 128px; margin-top: 0; min-height: 42px; }
+.survival-rules { margin-top: 14px; border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent); padding-top: 10px; }
+.survival-rules summary { cursor: pointer; font-size: 13px; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+.survival-rules summary::-webkit-details-marker { display: none; }
+.survival-rules summary::after { content: "＋"; opacity: .7; }
+.survival-rules[open] summary::after { content: "－"; }
+.survival-rules p { font-size: 13px; line-height: 1.75; margin: 10px 0 0; opacity: .9; }
+.survival-result .survival-overlay-card { text-align: center; }
+.survival-result .survival-final-score { font: 600 64px/1.05 "STSong", "Songti SC", Georgia, serif !important; letter-spacing: .04em; margin: 6px 0 8px !important; text-shadow: 0 2px 0 rgb(0 0 0 / 12%); }
+.survival-result .survival-final-score::after { content: "分"; font-size: 18px; margin-left: 6px; letter-spacing: 0; opacity: .7; }
+.survival-result [data-final-summary] { max-width: 34em; margin: 0 auto 6px; }
+@media (max-width: 520px) { .survival-start-form { grid-template-columns: 1fr; } .survival-start-form .survival-primary { width: 100%; margin-top: 10px; } .survival-result .survival-final-score { font-size: 52px !important; } }
