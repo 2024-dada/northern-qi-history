@@ -32,6 +32,7 @@
   let lastHud = '';
   let lastFoundCount = 0;
   let lastMessage = '';
+  let renderedUpgradeChoices = null;
   let priorFrame = performance.now();
   let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -183,13 +184,18 @@
   function renderUpgradeChoices() {
     const choices = $('[data-upgrade-choices]');
     if (!run?.upgradeChoices?.length) {
-      choices.replaceChildren();
+      if (choices.childElementCount) choices.replaceChildren();
+      renderedUpgradeChoices = null;
       return;
     }
+    // The animation loop checks the upgrade phase every frame. Keep the existing
+    // buttons while the choices are unchanged so pointerup/click can reach them.
+    if (renderedUpgradeChoices === run.upgradeChoices) return;
     choices.innerHTML = run.upgradeChoices.map(choice => `<button type="button" data-game-upgrade="${escapeHtml(choice.id)}" class="talent-${escapeHtml(choice.rarity)}">
       <small>${choice.rarity === 'basic' ? '基础加成' : ({common: '普通天赋', rare: '稀有天赋', epic: '史诗天赋', legendary: '传说天赋'}[choice.rarity] || '')}</small>
       <strong>${escapeHtml(choice.title)}</strong><span>${escapeHtml(choice.description)}</span>
     </button>`).join('');
+    renderedUpgradeChoices = run.upgradeChoices;
   }
 
   function resetHud() {
