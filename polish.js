@@ -31,3 +31,17 @@
   });
   window.addEventListener('beforeprint', revealAll);
 })();
+
+/* Copy the site citation. */
+(() => {
+  'use strict';
+  const button = document.querySelector('[data-copy-citation]');
+  if (!button) return;
+  button.addEventListener('click', async () => {
+    const day = new Date().toISOString().slice(0, 10);
+    const text = `《帝怒之后：北齐高氏暴力事件与史料叙述》，中国历史概论课程交互网页，2026。https://2024-dada.github.io/northern-qi-history/（${day}访问）。`;
+    try { await navigator.clipboard.writeText(text); button.textContent = '已复制引用格式'; }
+    catch { button.textContent = '无法自动复制，请手动选取上方文字'; }
+    setTimeout(() => { button.textContent = '复制引用格式'; }, 2400);
+  });
+})();
