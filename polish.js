@@ -58,7 +58,25 @@
     if (!title || !text) continue;
     for (const part of title.split(/\s*[\/·]\s*/)) defs.set(part.trim(), {title, text});
   }
-  const terms = ['后妃传', '本纪', '列传', '《北齐书》', '《北史》', '《资治通鉴》', '《魏书》', '太上皇', '宗室', '近臣', '天保', '禅让', '影印', '录文', '异文'].filter(t => defs.has(t));
+  // People: reign years and roles follow the standard accounts in 《北齐书》《北史》.
+  const people = {
+    '高欢': ['东魏权臣，北齐政权的奠基者', '547 年去世，高洋称帝后追尊为神武帝。他的儿子高澄、高洋、高演、高湛先后掌权。', '#people'],
+    '高澄': ['高欢长子，东魏权臣', '北齐建立前掌握东魏朝政，549 年遇刺身亡，后被追尊为文襄帝。', '#people'],
+    '高洋': ['北齐文宣帝，550—559 年在位', '高欢次子，550 年受东魏禅让建立北齐。本站第一案（高德政）与第四案（薛嫔）都发生在他在位时。', '#chapter-1'],
+    '高演': ['北齐孝昭帝，560—561 年在位', '高欢之子，废黜高洋之子高殷后即位，在位约一年。', '#people'],
+    '高湛': ['北齐武成帝，561—565 年在位', '高欢之子。565 年传位给儿子高纬，自称太上皇，仍掌实权，569 年去世。', '#people'],
+    '高纬': ['北齐后主，565—577 年在位', '高湛之子。第二案（斛律光）、第三案（高俨）都由他下令；577 年北齐被北周所灭。', '#chapter-2'],
+    '高俨': ['琅琊王，高纬之弟', '曾诛杀权臣和士开并调动军队，571 年被高纬下令杀害。本站第三案。', '#chapter-3'],
+    '高德政': ['北齐开国旧臣', '曾协助高洋受禅建国，后因多次劝谏与高洋冲突，559 年与妻、子一同被杀。本站第一案。', '#chapter-1'],
+    '斛律光': ['北齐名将，掌兵重臣', '名将斛律金之子，女儿是高纬的皇后。572 年被召入宫杀害，史书记其时年五十八。本站第二案。', '#chapter-2'],
+    '祖珽': ['北齐大臣，后主时掌权', '与斛律光不和，利用北周散布的谣言进言；高俨案中又以古代杀亲典故劝高纬。', '#chapter-2'],
+    '和士开': ['武成帝、后主的宠臣', '长期左右朝政，571 年被高俨假传命令诛杀，高俨案由此而起。', '#chapter-3'],
+    '韦孝宽': ['北周名将', '史书记他编造并散布针对斛律光的歌谣，是斛律光案中“敌方谣言”的来源。', '#chapter-2'],
+    '刘桃枝': ['北齐宫中力士', '多次奉命执行杀害，斛律光案中“自后拉而杀之”的执行者。', '#chapter-2'],
+    '薛嫔': ['高洋的嫔妃', '被高洋杀害。《北史》本纪与后妃传对其遇害的时间和情由记载不同。本站第四案。', '#chapter-4']
+  };
+  for (const [name, [role, text, link]] of Object.entries(people)) defs.set(name, {title: name, role, text, link});
+  const terms = ['后妃传', '本纪', '列传', '《北齐书》', '《北史》', '《资治通鉴》', '《魏书》', '太上皇', '宗室', '近臣', '天保', '禅让', '影印', '录文', '异文', ...Object.keys(people).sort((a, b) => b.length - a.length)].filter(t => defs.has(t));
   if (!terms.length) return;
   const pattern = new RegExp(terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'));
   const scopes = document.querySelectorAll('.has-sidebar :is(.orientation,.case-preview,.chapter,.visit-guide,.sources>p,.violence-intro)');
@@ -86,7 +104,7 @@
         const tail = after.splitText(word.length);
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'qi-term';
+        button.className = people[word] ? 'qi-term qi-person' : 'qi-term';
         button.dataset.term = word;
         button.setAttribute('aria-expanded', 'false');
         button.setAttribute('aria-controls', 'qi-term-pop');
@@ -102,7 +120,7 @@
   pop.className = 'qi-term-pop';
   pop.setAttribute('role', 'dialog');
   pop.hidden = true;
-  pop.innerHTML = '<strong></strong><p></p><a href="#glossary">在读史小词典中查看全部词条 ↓</a>';
+  pop.innerHTML = '<strong></strong><em></em><p></p><a href="#glossary">在读史小词典中查看全部词条 ↓</a>';
   document.body.append(pop);
   let current = null;
   function close() {
@@ -119,7 +137,14 @@
     current = button;
     button.setAttribute('aria-expanded', 'true');
     pop.querySelector('strong').textContent = def.title;
+    const role = pop.querySelector('em');
+    role.textContent = def.role || '';
+    role.hidden = !def.role;
     pop.querySelector('p').textContent = def.text;
+    const link = pop.querySelector('a');
+    link.href = def.link || '#glossary';
+    link.textContent = def.link ? (def.link === '#people' ? '回到人物关系与族谱 ↑' : '查看相关案例 ↗') : '在读史小词典中查看全部词条 ↓';
+    pop.classList.toggle('is-person', Boolean(def.role));
     pop.setAttribute('aria-label', def.title + ' 的解释');
     pop.hidden = false;
     const box = button.getBoundingClientRect();
