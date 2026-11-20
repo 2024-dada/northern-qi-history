@@ -448,11 +448,14 @@
       run.message = `皇帝进入第二阶段：召来 ${target.phaseSummonCount} 名将领。`;
     }
     if (target.hp > 0) {
-      run.message = `命中${target.label}：−${dealt}，剩余 ${Math.ceil(target.hp)} / ${target.maxHp}。`;
+      const hit = target.friendly ? '援军受击' : `命中${target.label}`;
+      run.message = `${hit}：−${dealt}，剩余 ${Math.ceil(target.hp)} / ${target.maxHp}。`;
       return;
     }
     target.alive = false;
-    if (target.type === 'emperor') {
+    if (target.friendly) {
+      run.message = '援军已被击退。';
+    } else if (target.type === 'emperor') {
       run.bossKills++;
       run.score += 300;
       run.message = `皇帝已被击败，第 ${run.layer} 层结束。`;
@@ -467,8 +470,13 @@
   }
 
   function nearestTarget(from, targets) {
-    return targets.map(target => ({target, span: distance(from, target)}))
-      .sort((a, b) => a.span - b.span)[0] || null;
+    let closest = null;
+    for (const target of targets) {
+      if (target.alive === false) continue;
+      const span = distance(from, target);
+      if (!closest || span < closest.span) closest = {target, span};
+    }
+    return closest;
   }
 
   function performAttack(run, now) {
@@ -517,22 +525,30 @@
     entity.y = clamp(entity.y + dy / span * speed * dt, WORLD.margin, WORLD.height - WORLD.margin);
   }
 
-  function updateMeleeActor(run, actor, target, now, dt, friendly = false) {
-    if (!target || target.alive === false) return;
-    const span = distance(actor, target);
-    actor.facing = Math.atan2(target.y - actor.y, target.x - actor.x);
+  function updateMeleeActor(run, actor, target, now, dt) {
     if (actor.swingStartedAt !== null) {
       const swingTime = now - actor.swingStartedAt;
       if (!actor.swingResolved && swingTime >= actor.swingWindup) {
         actor.swingResolved = true;
-        if (span <= actor.attackRange + target.radius) {
-          if (friendly) damageTarget(run, target, actor.type === 'general' ? 26 : 18, now);
-          else takeHit(run, now, actor.damage, `${actor.label}挥砍命中`);
+        const hit = actor.swingTarget;
+        if (hit && hit.alive !== false && distance(actor, hit) <= actor.attackRange + hit.radius) {
+          if (hit === run.player) {
+            takeHit(run, now, actor.damage, `${actor.label}挥砍命中`);
+          } else {
+            const damage = actor.friendly ? (actor.type === 'general' ? 26 : 18) : actor.damage;
+            damageTarget(run, hit, damage, now);
+          }
         }
       }
-      if (swingTime >= actor.swingWindup + .2) actor.swingStartedAt = null;
+      if (swingTime >= actor.swingWindup + .2) {
+        actor.swingStartedAt = null;
+        actor.swingTarget = null;
+      }
       return;
     }
+    if (!target) return;
+    const span = distance(actor, target);
+    actor.facing = Math.atan2(target.y - actor.y, target.x - actor.x);
     if (span > actor.attackRange + target.radius) {
       moveToward(actor, target, actor.speed, dt);
       return;
@@ -542,23 +558,29 @@
       actor.swingStartedAt = now;
       actor.swingResolved = false;
       actor.swingFacing = actor.facing;
+      actor.swingTarget = target;
     }
   }
 
   function updateEnemies(run, now, dt) {
+    const defenders = [run.player, ...run.enemies.filter(unit => unit.friendly && unit.alive)];
+    const imperial = defenders.length > 1 ? targetList(run) : [];
     for (const group of run.groups) {
       if (group.friendly) {
         for (const ally of group.members) {
           if (!ally.alive) continue;
-          const target = nearestTarget(ally, targetList(run))?.target;
-          if (target) updateMeleeActor(run, ally, target, now, dt, true);
+          const target = nearestTarget(ally, imperial)?.target;
+          updateMeleeActor(run, ally, target, now, dt);
           if (run.phase !== 'playing') return;
         }
         continue;
       }
-      if (!group.alerted && distance(run.player, group) <= group.noticeRadius) {
+      const spotted = !group.alerted && defenders.find(unit =>
+        unit.alive !== false && distance(unit, group) <= group.noticeRadius
+      );
+      if (spotted) {
         group.alerted = true;
-        run.message = group.command
+        run.message = spotted.friendly ? '敌军发现了援军，开始迎战。' : group.command
           ? '大将军的亲兵发现了你，附近的将领小队也正赶来。'
           : group.kind?.startsWith('emperor')
             ? '皇帝召来的将领发现了你，正在追击。'
@@ -568,11 +590,15 @@
       }
       for (const enemy of group.members) {
         if (!enemy.alive || !group.alerted) continue;
-        updateMeleeActor(run, enemy, run.player, now, dt, false);
+        const target = nearestTarget(enemy, defenders)?.target;
+        updateMeleeActor(run, enemy, target, now, dt);
         if (run.phase === 'over') return;
       }
     }
-    if (run.emperor.alive) updateMeleeActor(run, run.emperor, run.player, now, dt, false);
+    if (run.emperor.alive) {
+      const target = nearestTarget(run.emperor, defenders)?.target;
+      updateMeleeActor(run, run.emperor, target, now, dt);
+    }
   }
 
   function spawnHealingPack(run) {
