@@ -6,6 +6,8 @@
   const slider = document.querySelector('[data-game-sound-volume]');
   const soundtrack = document.querySelector('[data-game-music]');
   const musicToggle = document.querySelector('[data-game-music-toggle]');
+  const musicMix = .17;
+  const windMix = .075;
   const options = {
     sword: {air: 1950, length: .105, knock: 285, ring: 1640, tail: .15},
     longSword: {air: 1180, length: .18, knock: 185, ring: 1160, tail: .25},
@@ -80,7 +82,7 @@
       wind = makeNoise('lowpass', 360);
       wind.source.loop = true;
       wind.gain.value = 0;
-      wind.gain.setTargetAtTime(.2, context.currentTime, .3);
+      wind.gain.setTargetAtTime(windMix, context.currentTime, .3);
       wind.source.start();
     } catch { /* Unsupported audio must leave play available. */ }
   }
@@ -90,7 +92,7 @@
       soundtrack.pause();
       return;
     }
-    const level = volume / 100 * .46;
+    const level = volume / 100 * musicMix;
     // The media gain gives mobile browsers a volume control of their own.
     if (!musicGain && AudioContextClass && location.protocol !== 'file:') {
       try {
@@ -103,12 +105,22 @@
       } catch { /* Use the media element directly if a graph can't be created. */ }
     }
     if (musicGain) {
+      musicGain.gain.cancelScheduledValues(context.currentTime);
       musicGain.gain.setTargetAtTime(level, context.currentTime, .05);
       context.resume().catch(() => {});
     } else {
       soundtrack.volume = level;
     }
     if (soundtrack.paused) soundtrack.play().catch(() => {});
+  }
+
+  function duckMusic(at) {
+    if (!musicGain || soundtrack.paused) return;
+    const level = volume / 100 * musicMix;
+    const gain = musicGain.gain;
+    gain.cancelScheduledValues(at);
+    gain.setTargetAtTime(level * .42, at, .009);
+    gain.setTargetAtTime(level, at + .12, .075);
   }
 
   function pulse(type, frequency, endFrequency, duration, level, at) {
@@ -149,9 +161,10 @@
       pulse('bandpass', sound.air, sound.air * .43, sound.length, .17 * gain, at);
       if (weapon === 'bow') tone(560, 210, .07, .11 * gain, at);
     } else {
-      pulse('bandpass', sound.ring, sound.ring * .52, sound.tail, .11 * gain, at);
-      tone(sound.knock, sound.knock * .64, Math.min(.12, sound.tail), .22 * gain, at);
-      if (weapon !== 'bow') tone(sound.ring, sound.ring * .83, sound.tail, .043 * gain, at + .006);
+      if (weapon !== 'guard') duckMusic(at);
+      pulse('bandpass', sound.ring, sound.ring * .52, sound.tail, .14 * gain, at);
+      tone(sound.knock, sound.knock * .64, Math.min(.12, sound.tail), .30 * gain, at);
+      if (weapon !== 'bow') tone(sound.ring, sound.ring * .83, sound.tail, .055 * gain, at + .006);
     }
   }
 
