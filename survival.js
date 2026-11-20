@@ -22,7 +22,10 @@
     if (!art) return;
     const url = new URL(art[1], document.baseURI).href;
     if (mapArt.src !== url) mapArt.src = url;
+    floorDirty = true;
   }
+  let floorDirty = true;
+  mapArt.addEventListener('load', () => { floorDirty = true; });
   updateMapTheme();
   document.addEventListener('ui-theme-change', updateMapTheme);
   const fogCanvas = document.createElement('canvas');
@@ -33,6 +36,24 @@
   memoryCanvas.width = engine.WORLD.width;
   memoryCanvas.height = engine.WORLD.height;
   const memoryCtx = memoryCanvas.getContext('2d');
+  // Soft brush for explored ground, so the remembered map has feathered edges instead of square cells.
+  const fogBrush = document.createElement('canvas');
+  {
+    const size = engine.FOG.cellSize * 3;
+    fogBrush.width = fogBrush.height = size;
+    const b = fogBrush.getContext('2d');
+    const g = b.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    g.addColorStop(0, 'rgba(0,0,0,1)');
+    g.addColorStop(.45, 'rgba(0,0,0,.85)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    b.fillStyle = g;
+    b.fillRect(0, 0, size, size);
+  }
+  // The courtyard floor is painted once per theme and reused every frame.
+  const floorCanvas = document.createElement('canvas');
+  floorCanvas.width = engine.WORLD.width;
+  floorCanvas.height = engine.WORLD.height;
+  const floorCtx = floorCanvas.getContext('2d');
   const $ = selector => document.querySelector(selector);
   const W = engine.WORLD.width;
   const H = engine.WORLD.height;
@@ -263,6 +284,7 @@
     }
     mode = 'playing';
     impacts.length = 0;
+    eventState = null;
     audio?.setPlaying(true, {restart: true});
     requestFullscreen();
     pressed.clear();
@@ -351,55 +373,104 @@
     ctx.fillText(content, x, y, 230 * scale);
   }
 
-  function drawBackdrop(time) {
-    const gradient = ctx.createLinearGradient(0, 0, 0, H);
-    gradient.addColorStop(0, mapTop);
-    gradient.addColorStop(1, mapBottom);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, W, H);
+  function hexToRgb(color) {
+    const hex = color.replace('#', '');
+    const full = hex.length === 3 ? hex.split('').map(c => c + c).join('') : hex.slice(0, 6);
+    const n = parseInt(full, 16);
+    return Number.isFinite(n) ? [(n >> 16) & 255, (n >> 8) & 255, n & 255] : [212, 195, 148];
+  }
 
+  function buildFloor() {
+    const f = floorCtx;
+    let seed = 20261121;
+    const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const [tr, tg, tb] = hexToRgb(mapTrim);
+    const trim = a => `rgba(${tr},${tg},${tb},${a})`;
+    f.setTransform(1, 0, 0, 1, 0, 0);
+    const base = f.createLinearGradient(0, 0, 0, H);
+    base.addColorStop(0, mapTop);
+    base.addColorStop(1, mapBottom);
+    f.fillStyle = base;
+    f.fillRect(0, 0, W, H);
     if (mapArt.complete && mapArt.naturalWidth) {
       const scale = Math.max(W / mapArt.naturalWidth, H / mapArt.naturalHeight);
-      const width = mapArt.naturalWidth * scale;
-      const height = mapArt.naturalHeight * scale;
-      ctx.save();
-      ctx.globalAlpha = run ? .12 : .25;
-      ctx.drawImage(mapArt, (W - width) / 2, (H - height) / 2, width, height);
-      ctx.restore();
+      f.globalAlpha = .1;
+      f.drawImage(mapArt, (W - mapArt.naturalWidth * scale) / 2, (H - mapArt.naturalHeight * scale) / 2, mapArt.naturalWidth * scale, mapArt.naturalHeight * scale);
+      f.globalAlpha = 1;
     }
-
-    ctx.save();
-    ctx.globalAlpha = .12;
-    ctx.strokeStyle = mapTrim;
-    ctx.lineWidth = 1;
-    for (let x = 28; x < W; x += 54) {
-      for (let y = 28; y < H; y += 54) {
-        const offset = ((Math.floor(x / 54) + Math.floor(y / 54)) % 2) * 2;
-        ctx.strokeRect(x + offset, y + offset, 25, 25);
+    // Staggered flagstones with worn, uneven tones.
+    const rowH = 48;
+    for (let y = 36, row = 0; y < H - 36; y += rowH, row++) {
+      let x = 36 - (row % 2) * 34;
+      while (x < W - 36) {
+        const w = 58 + Math.floor(rand() * 4) * 14;
+        const x0 = Math.max(36, x), x1 = Math.min(W - 36, x + w);
+        f.fillStyle = trim((.025 + rand() * .045).toFixed(3));
+        f.fillRect(x0 + 1, y + 1, x1 - x0 - 2, rowH - 2);
+        f.fillStyle = 'rgba(0,0,0,.28)';
+        f.fillRect(x0, y + rowH - 1.5, x1 - x0, 1.5);
+        f.fillRect(x1 - 1.5, y, 1.5, rowH);
+        f.fillStyle = trim(.07);
+        f.fillRect(x0 + 1, y + 1, x1 - x0 - 2, 1);
+        x += w;
       }
     }
-    ctx.restore();
-
-    ctx.strokeStyle = `${mapTrim}7a`;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(22, 22, W - 44, H - 44);
-    ctx.strokeStyle = `${mapTrim}2e`;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(32, 32, W - 64, H - 64);
-    for (const x of [82, W - 82]) {
-      ctx.fillStyle = `${mapTrim}29`;
-      ctx.fillRect(x - 12, 35, 24, H - 70);
-      ctx.strokeStyle = `${mapTrim}2e`;
-      ctx.strokeRect(x - 12, 35, 24, H - 70);
+    // Imperial road (御道) along the courtyard axis.
+    const road = 128;
+    f.fillStyle = 'rgba(0,0,0,.18)';
+    f.fillRect(W / 2 - road / 2, 36, road, H - 72);
+    f.strokeStyle = trim(.26);
+    f.lineWidth = 1.5;
+    f.strokeRect(W / 2 - road / 2, 36, road, H - 72);
+    f.strokeStyle = trim(.12);
+    f.lineWidth = 1;
+    f.strokeRect(W / 2 - road / 2 + 7, 36, road - 14, H - 72);
+    for (let y = 70; y < H - 60; y += 96) { // carved cloud medallions on the road
+      f.beginPath();
+      f.ellipse(W / 2, y, 22, 12, 0, 0, Math.PI * 2);
+      f.moveTo(W / 2 - 12, y); f.quadraticCurveTo(W / 2 - 4, y - 9, W / 2 + 4, y); f.quadraticCurveTo(W / 2 + 10, y + 7, W / 2 + 14, y - 2);
+      f.strokeStyle = trim(.16);
+      f.stroke();
     }
-    // Palace courtyard axis, patterned after the site's architectural illustration.
+    // Speckled grit.
+    for (let i = 0; i < 2600; i++) {
+      f.fillStyle = rand() > .5 ? trim((rand() * .09).toFixed(3)) : `rgba(0,0,0,${(rand() * .22).toFixed(3)})`;
+      f.fillRect(rand() * W, rand() * H, 1 + rand() * 1.4, 1 + rand() * 1.4);
+    }
+    // Walls and colonnades.
+    f.strokeStyle = trim(.48);
+    f.lineWidth = 2;
+    f.strokeRect(22, 22, W - 44, H - 44);
+    f.strokeStyle = trim(.18);
+    f.lineWidth = 1;
+    f.strokeRect(32, 32, W - 64, H - 64);
+    for (const x of [82, W - 82]) {
+      for (let y = 60; y < H - 50; y += 82) {
+        f.fillStyle = 'rgba(0,0,0,.35)';
+        f.beginPath(); f.ellipse(x + 3, y + 5, 13, 7, 0, 0, Math.PI * 2); f.fill();
+        f.fillStyle = trim(.2);
+        f.beginPath(); f.arc(x, y, 10, 0, Math.PI * 2); f.fill();
+        f.strokeStyle = trim(.34);
+        f.stroke();
+      }
+    }
+    // Vignette: corners fall into shadow.
+    const v = f.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .28, W / 2, H / 2, Math.hypot(W, H) * .56);
+    v.addColorStop(0, 'rgba(0,0,0,0)');
+    v.addColorStop(1, 'rgba(0,0,0,.5)');
+    f.fillStyle = v;
+    f.fillRect(0, 0, W, H);
+    floorDirty = false;
+  }
+
+  function drawBackdrop(time) {
+    if (floorDirty) buildFloor();
+    ctx.drawImage(floorCanvas, 0, 0, W, H);
     ctx.save();
     ctx.globalAlpha = .12;
     ctx.strokeStyle = mapTrim;
     ctx.setLineDash([5, 13]);
     ctx.beginPath();
-    ctx.moveTo(W / 2, 48);
-    ctx.lineTo(W / 2, H - 48);
     ctx.moveTo(105, H / 2);
     ctx.lineTo(W - 105, H / 2);
     ctx.stroke();
@@ -407,6 +478,33 @@
     circle(W / 2, H / 2, 118 + Math.sin(time * .3) * 3, null, mapTrim, 1);
     ctx.restore();
     text('北齐宫苑 · 游戏示意地图', 47, 48, 'rgba(235,222,190,.48)', 10, 'left', 400);
+  }
+
+  // Warm torchlight around the player, with a faint flicker.
+  function drawLight(time) {
+    const p = run.player;
+    const flicker = reducedMotion.matches ? 0 : Math.sin(time * 9.1) * 4 + Math.sin(time * 23.7) * 2;
+    const r = engine.FOG.revealRadius + 26 + flicker;
+    const g = ctx.createRadialGradient(p.x, p.y - 6, 8, p.x, p.y, r);
+    g.addColorStop(0, 'rgba(255,214,150,.16)');
+    g.addColorStop(.5, 'rgba(255,190,120,.07)');
+    g.addColorStop(1, 'rgba(255,170,100,0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = g;
+    ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
+    ctx.restore();
+  }
+
+  function drawHurtVignette() {
+    const left = run.flashUntil - run.elapsed;
+    if (left <= 0 || left > .3) return;
+    const a = Math.min(1, left / .24) * .42;
+    const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .32, W / 2, H / 2, Math.hypot(W, H) * .55);
+    g.addColorStop(0, 'rgba(140,20,12,0)');
+    g.addColorStop(1, `rgba(140,20,12,${a.toFixed(3)})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
   }
 
   function drawWeapon(weapon, time) {
@@ -576,6 +674,34 @@
     ctx.restore();
   }
 
+  // Derive game events from state changes so the engine stays untouched.
+  let eventState = null;
+  function snapshot() {
+    return {
+      hp: run.player.hp, phase: run.phase, layer: run.layer,
+      melee: run.player.meleeWeapon, ammo: run.player.bowAmmo,
+      alive: run.enemies.reduce((n, e) => n + (e.alive && !e.friendly ? 1 : 0), 0) + (run.emperor.alive ? 1 : 0),
+      bossPhase: run.emperor.phase, revives: run.reviveCharges
+    };
+  }
+  function cueEvents() {
+    if (!audio?.event) return;
+    const now = snapshot();
+    const before = eventState;
+    eventState = now;
+    if (!before) return;
+    if (now.phase === 'over' && before.phase !== 'over') { audio.event('over'); return; }
+    if (now.phase === 'upgrade' && before.phase !== 'upgrade') { audio.event('clear'); return; }
+    if (now.phase === 'playing' && before.phase === 'upgrade') { audio.event('levelup'); return; }
+    if (now.layer !== before.layer || now.phase !== 'playing') return;
+    if (now.revives < before.revives) audio.event('revive');
+    else if (now.hp < before.hp - .5) audio.event('hurt', Math.min(1, (before.hp - now.hp) / 12));
+    else if (now.hp > before.hp + .5) audio.event('heal');
+    if (now.melee !== before.melee && now.melee || now.ammo > before.ammo + .5) audio.event('pickup');
+    if (now.alive < before.alive) audio.event('defeat');
+    if (now.bossPhase === 2 && before.bossPhase !== 2) audio.event('drum');
+  }
+
   function cueCombat() {
     const player = run.player;
     for (const cue of run.combatCues) {
@@ -643,11 +769,11 @@
     const rows = Math.ceil(H / fog.cellSize);
     if (run.exploredDirty) {
       memoryCtx.clearRect(0, 0, W, H);
-      memoryCtx.fillStyle = 'rgba(0,0,0,.48)';
+      const brush = fogBrush.width, half = brush / 2, centre = fog.cellSize / 2;
       for (let row = 0; row < rows; row++) {
         for (let column = 0; column < columns; column++) {
           if (run.explored[row * columns + column]) {
-            memoryCtx.fillRect(column * fog.cellSize, row * fog.cellSize, fog.cellSize + .5, fog.cellSize + .5);
+            memoryCtx.drawImage(fogBrush, column * fog.cellSize + centre - half, row * fog.cellSize + centre - half, brush, brush);
           }
         }
       }
@@ -655,15 +781,16 @@
     }
     fogCtx.globalCompositeOperation = 'source-over';
     fogCtx.globalAlpha = 1;
-    fogCtx.fillStyle = '#020405';
+    fogCtx.fillStyle = '#040807';
     fogCtx.fillRect(0, 0, W, H);
     fogCtx.globalCompositeOperation = 'destination-out';
+    fogCtx.globalAlpha = .5;
     fogCtx.drawImage(memoryCanvas, 0, 0, W, H);
     fogCtx.globalAlpha = 1;
     const radius = fog.revealRadius;
-    const gradient = fogCtx.createRadialGradient(run.player.x, run.player.y, radius - fog.fade, run.player.x, run.player.y, radius);
+    const gradient = fogCtx.createRadialGradient(run.player.x, run.player.y, radius - fog.fade * 2.2, run.player.x, run.player.y, radius);
     gradient.addColorStop(0, 'rgba(0,0,0,1)');
-    gradient.addColorStop(.82, 'rgba(0,0,0,.98)');
+    gradient.addColorStop(.55, 'rgba(0,0,0,.92)');
     gradient.addColorStop(1, 'rgba(0,0,0,0)');
     fogCtx.fillStyle = gradient;
     fogCtx.beginPath();
@@ -762,7 +889,9 @@
       const progress = 1 - (run.hitText.until - run.elapsed) / .72;
       text(run.hitText.value, run.hitText.x, run.hitText.y - 27 - progress * 17, '#ffe09a', 17, 'center', 800);
     }
+    drawLight(time);
     drawFog();
+    drawHurtVignette();
     text('未探索区域被黑雾遮挡', W - 28, 48, 'rgba(226,220,197,.68)', 10, 'right', 500);
     if (run.phase === 'upgrade') {
       ctx.fillStyle = 'rgba(213,190,130,.8)';
@@ -780,6 +909,7 @@
         if (run.elapsed - impacts[i].start >= .26) impacts.splice(i, 1);
       }
       cueCombat();
+      cueEvents();
       updateHud();
       if (run.message) setLive(run.message);
       if (run.phase === 'upgrade') {

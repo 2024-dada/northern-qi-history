@@ -4,8 +4,8 @@
 
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
-$cssOrder = @('styles.css', 'animation.css', 'violence.css', 'dossier.css', 'theme.css', 'ai-help.css', 'music.css', 'sidebar.css', 'surfaces.css', 'survival-portal.css', 'theme-landscapes.css')
-$jsOrder = @('data.js', 'violence.js', 'dossier.js', 'event-readings.js', 'app.js', 'animation.js', 'theme.js', 'ai-help.js', 'music.js', 'sidebar.js')
+$cssOrder = @('styles.css', 'animation.css', 'violence.css', 'dossier.css', 'theme.css', 'ai-help.css', 'music.css', 'sidebar.css', 'surfaces.css', 'survival-portal.css', 'theme-landscapes.css', 'polish.css')
+$jsOrder = @('data.js', 'violence.js', 'dossier.js', 'event-readings.js', 'app.js', 'animation.js', 'theme.js', 'ai-help.js', 'music.js', 'sidebar.js', 'ui-sound.js', 'polish.js')
 
 $css = foreach ($file in $cssOrder) {
   "/* ===== $file ===== */"
@@ -21,8 +21,8 @@ $js = foreach ($file in $jsOrder) {
 
 $htmlPath = Join-Path $root 'index.html'
 $html = [IO.File]::ReadAllText($htmlPath, [Text.Encoding]::UTF8)
-$html = [regex]::Replace($html, '<link rel="stylesheet" href="(?:styles|animation|violence|dossier|theme|ai-help|music|bundle)\.css(?:\?[^\"]*)?"[ \t]*/?>', '')
-$html = [regex]::Replace($html, '<script src="(?:data|violence|dossier|event-readings|app|animation|theme|ai-help|music|bundle)\.js(?:\?[^\"]*)?"(?: defer)?></script>', '')
+$html = [regex]::Replace($html, '<link rel="stylesheet" href="(?:styles|animation|violence|dossier|theme|ai-help|music|polish|bundle)\.css(?:\?[^\"]*)?"[ \t]*/?>', '')
+$html = [regex]::Replace($html, '<script src="(?:data|violence|dossier|event-readings|app|animation|theme|ai-help|music|ui-sound|polish|bundle)\.js(?:\?[^\"]*)?"(?: defer)?></script>', '')
 
 $bootstrap = @'
 <script data-theme-bootstrap>
@@ -49,7 +49,7 @@ $survivalHtml = [regex]::Replace($survivalHtml, '(survival(?:\.css|-game-data\.j
 foreach ($page in @('survival.html', 'lecture-stone.html', 'webpage/index.html')) {
   $pagePath = Join-Path $root $page
   $pageHtml = [IO.File]::ReadAllText($pagePath, [Text.Encoding]::UTF8)
-  $pageHtml = [regex]::Replace($pageHtml, '((?:theme(?:-landscapes)?\.css|theme\.js|surfaces\.css)\?v=)[^"#]+', ('${1}' + $Version))
+  $pageHtml = [regex]::Replace($pageHtml, '((?:theme(?:-landscapes)?\.css|theme\.js|surfaces\.css|polish\.css)\?v=)[^"#]+', ('${1}' + $Version))
   [IO.File]::WriteAllText($pagePath, $pageHtml, [Text.UTF8Encoding]::new($false))
 }
 

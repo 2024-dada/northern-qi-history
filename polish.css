@@ -1,0 +1,354 @@
+/* ===== 2026-11 polish: texture, reading rhythm, surfaces and motion =====
+   Loaded last in the bundle so it can refine earlier layers without rewriting them. */
+
+/* ---------- 1. Paper texture: a seamless fibre tile replaces the repeated pigment sheet ---------- */
+@media screen {
+  :root {
+    --paper-grain:url("assets/paper-fiber.webp");
+    --qi-grain-size:512px;
+    --qi-shadow-soft:0 1px 0 color-mix(in srgb,#fff 55%,transparent) inset,
+      0 1px 2px color-mix(in srgb,#2a1d10 7%,transparent),
+      0 10px 28px -14px color-mix(in srgb,#2a1d10 26%,transparent);
+    --qi-shadow-lift:0 1px 0 color-mix(in srgb,#fff 55%,transparent) inset,
+      0 2px 4px color-mix(in srgb,#2a1d10 8%,transparent),
+      0 18px 38px -16px color-mix(in srgb,#2a1d10 34%,transparent);
+    --qi-ease:cubic-bezier(.22,.7,.2,1);
+  }
+  :root[data-ui-theme=night] {
+    --qi-shadow-soft:0 1px 0 #ffffff0d inset,0 1px 2px #0005,0 12px 30px -14px #000a;
+    --qi-shadow-lift:0 1px 0 #ffffff12 inset,0 2px 5px #0006,0 20px 40px -16px #000c;
+  }
+
+  /* Reading surfaces in the mineral theme: grain tile, no repeated pigment corners. */
+  html[data-ui-theme=mural] .has-sidebar :is(.chapter,.orientation,.sources,.royal-dossier,.violence-gallery),
+  html[data-ui-theme=mural] .has-sidebar :is(.visit-guide,.family-stories,.case-preview,.site-header),
+  html[data-ui-theme=mural] :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog),
+  html[data-ui-theme=mural] .qi-companion :is(.hero,.tl-hero,.tl-index-wrap,.legend,.story-card,.modal),
+  html[data-ui-theme=mural] .lecture-page main {
+    background-color:var(--ui-surface);
+    background-image:
+      radial-gradient(120% 70% at 100% 0%,#c89a481f,transparent 60%),
+      radial-gradient(90% 60% at 0% 100%,#2456620f,transparent 62%),
+      linear-gradient(#fffaf0b8,#fffaf0b8),
+      var(--paper-grain);
+    background-size:100% 100%,100% 100%,auto,var(--qi-grain-size);
+    background-repeat:no-repeat,no-repeat,no-repeat,repeat;
+    background-blend-mode:normal,normal,normal,multiply;
+  }
+  html[data-ui-theme=mural] .has-sidebar .site-header {
+    background-image:
+      linear-gradient(180deg,#fffaf0d9,#f6eedfe6 60%,#efe3cde6),
+      var(--paper-grain);
+    background-size:auto,var(--qi-grain-size);
+    background-repeat:no-repeat,repeat;
+  }
+
+  /* Page ground: a painted sheet fixed to the viewport (composited, no repaint on scroll). */
+  html[data-ui-theme=mural] { background-color:#efe2c8; }
+  html[data-ui-theme=mural] body.has-sidebar { background:transparent; }
+  html[data-ui-theme=mural] :is(body.has-sidebar,body.qi-companion,body.lecture-page)::before {
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background-image:
+      var(--paper-grain),
+      radial-gradient(70% 62% at 56% 48%,#f4e8d0d9 25%,#f4e8d000 82%),
+      url("assets/mineral-paper.webp");
+    background-size:var(--qi-grain-size),100% 100%,cover;
+    background-position:0 0,center,center;
+    background-repeat:repeat,no-repeat,no-repeat;
+    background-blend-mode:multiply,normal,normal;
+  }
+  html[data-ui-theme=mural] :is(body.qi-companion,body.lecture-page) { background:transparent; }
+
+  /* Illustrated themes: same landscape, moved from background-attachment:fixed to a fixed layer. */
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) { background-color:var(--ui-bg); }
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(body.has-sidebar,body.qi-companion),
+  html[data-ui-theme] :is(body.lecture-page,body.survival-page) {
+    background:transparent;
+  }
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(body.has-sidebar,body.qi-companion)::before,
+  html[data-ui-theme] :is(body.lecture-page,body.survival-page)::before {
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background-image:linear-gradient(108deg,
+      color-mix(in srgb,var(--ui-bg) 93%,transparent),
+      color-mix(in srgb,var(--ui-bg) 22%,transparent) 75%,
+      color-mix(in srgb,var(--ui-bg) 48%,transparent)),var(--ui-landscape);
+    background-size:cover,cover;
+    background-position:center,var(--ui-landscape-position);
+    background-repeat:no-repeat;
+  }
+  html[data-ui-theme=mural] body.survival-page::before {
+    background-image:var(--paper-grain),radial-gradient(75% 65% at 50% 45%,#f3e7cfd9 30%,#f3e7cf00 82%),url("assets/mineral-paper.webp");
+    background-size:var(--qi-grain-size),100% 100%,cover;
+    background-repeat:repeat,no-repeat,no-repeat;
+    background-position:0 0,center,center;
+    background-blend-mode:multiply,normal,normal;
+  }
+}
+
+/* ---------- 2. Reading rhythm: larger body copy, calmer measure ---------- */
+@media screen {
+  .has-sidebar { font-size:16px; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  .has-sidebar :is(.hero-description) { font-size:15px; line-height:2; max-width:36em; }
+  .has-sidebar .eyebrow { font-size:12px; letter-spacing:.16em; }
+  .has-sidebar :is(.section-intro,.section-task) { font-size:15px; line-height:2; max-width:44em; }
+  .has-sidebar .section-intro strong,.has-sidebar .section-task strong { color:var(--ui-ink); }
+  .has-sidebar .timeline-panel p:not(.eyebrow) { font-size:14.5px; line-height:2; }
+  .has-sidebar .timeline-panel blockquote { font-size:18px; }
+  .has-sidebar .interpretation { font-size:14.5px; line-height:2; }
+  .has-sidebar .interpretation .uncertain { font-size:12.5px; }
+  .has-sidebar .margin-label { font-size:12px; letter-spacing:.12em; }
+  .has-sidebar .source-link { font-size:12.5px; }
+  .has-sidebar .network-detail>p:not(.eyebrow) { font-size:14.5px; line-height:2; }
+  .has-sidebar .quote-panel details { font-size:14px; }
+  .has-sidebar .quote-panel details p { font-size:14px; line-height:1.95; }
+  .has-sidebar .comparison article>p:not(.eyebrow) { font-size:14px; line-height:1.95; }
+  .has-sidebar .reading-conclusion { font-size:14.5px; }
+  .has-sidebar .takeaways p { font-size:14.5px; line-height:2; }
+  .has-sidebar .cause-order>div { font-size:14.5px; }
+  .has-sidebar .cause-order small { font-size:12px; }
+  .has-sidebar :is(.small-note,.analysis-note,.conclusion-note) { font-size:13px; line-height:1.95; }
+  .has-sidebar .diagram-caption { font-size:12px; }
+  .has-sidebar .case-preview small { font-size:13.5px; line-height:1.85; }
+  .has-sidebar .visit-guide li small { font-size:13px; }
+  .has-sidebar .sources>p:not(.eyebrow) { font-size:14.5px; line-height:2; }
+  .has-sidebar .sources li { font-size:13px; }
+  .has-sidebar .sources li button { font-size:14px; }
+  .has-sidebar .sources li small { font-size:12px; }
+  .has-sidebar .research-status p { font-size:13px; }
+  .has-sidebar .research-status strong { font-size:14px; }
+  .has-sidebar .explore-heading>p,.has-sidebar .search-help { font-size:14px; line-height:1.9; }
+  .has-sidebar .event-row .event-meta,.has-sidebar .event-row .event-year { font-size:12px; }
+  .has-sidebar .violence-intro p { font-size:14.5px; line-height:1.95; }
+  .has-sidebar .violence-boundary { font-size:13px; line-height:1.9; }
+  .has-sidebar .site-footer { font-size:12px; }
+  .has-sidebar .chapter-rail nav a { font-size:13px; }
+  .has-sidebar .chapter-rail>small { font-size:11px; }
+  .has-sidebar .orientation-content>p span { font-size:15px; line-height:1.9; }
+  #dialog-body p { font-size:14.5px; line-height:2; }
+  #dialog-body li, #dialog-body ul { font-size:14px; }
+  #dialog-body .source-state { font-size:13px; }
+
+  .has-sidebar :is(h1,h2,h3) { text-wrap:balance; }
+  .has-sidebar :is(.section-intro,.section-task,.interpretation p,.hero-description,.case-preview-intro) { text-wrap:pretty; }
+  ::selection { background:color-mix(in srgb,var(--ui-accent,#9d4236) 26%,transparent); color:inherit; }
+}
+
+/* ---------- 3. Family tree and chronology ---------- */
+.has-sidebar .orientation-content { flex-direction:column; align-items:stretch; gap:26px; }
+.has-sidebar .orientation-content>p { max-width:40em; }
+.family-tree {
+  display:grid;
+  gap:0;
+  padding:22px clamp(14px,3vw,28px) 20px;
+  border:1px solid var(--ui-line);
+  border-radius:var(--ui-radius,6px);
+  background:var(--ui-surface);
+  box-shadow:var(--qi-shadow-soft);
+}
+.ft-row { display:grid; gap:12px; position:relative; }
+.ft-root { grid-template-columns:minmax(0,220px); justify-content:center; }
+.ft-sons { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.ft-grandsons { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.ft-grandsons .ft-person:first-child { grid-column:3 / span 1; }
+.ft-grandsons .ft-person:nth-child(2) { grid-column:4 / span 1; }
+.ft-person {
+  position:relative;
+  padding:10px 12px 11px;
+  border:1px solid color-mix(in srgb,var(--ui-line) 85%,transparent);
+  border-radius:calc(var(--ui-radius,6px) + 1px);
+  background:var(--ui-surface);
+  text-align:center;
+  line-height:1.55;
+}
+.ft-person span { display:block; font-family:var(--serif); font-size:20px; color:var(--ui-ink); letter-spacing:.06em; }
+.ft-person small { display:block; margin-top:3px; color:var(--ui-muted); font-size:12px; line-height:1.6; }
+.ft-person em {
+  display:inline-block; margin-top:6px; padding:1px 8px;
+  border-radius:999px; font-style:normal; font-size:11.5px; letter-spacing:.04em;
+  color:var(--ui-on-accent); background:var(--ui-accent);
+}
+.ft-key { border-color:color-mix(in srgb,var(--ui-accent) 55%,var(--ui-line)); box-shadow:0 0 0 3px color-mix(in srgb,var(--ui-accent) 9%,transparent); }
+.ft-branch {
+  position:relative;
+  margin:14px 0 12px;
+  text-align:center;
+  font-size:12px;
+  letter-spacing:.14em;
+  color:var(--ui-muted);
+}
+.ft-branch::before {
+  content:"";
+  position:absolute;
+  left:12.5%; right:12.5%; top:50%;
+  border-top:1px solid color-mix(in srgb,var(--ui-accent) 40%,var(--ui-line));
+}
+.ft-branch span { position:relative; padding:0 12px; background:var(--ui-surface); }
+.ft-branch-end { padding-left:50%; }
+.ft-branch-end::before { left:62.5%; }
+
+.qi-chronology { margin-top:4px; }
+.qi-chronology ol {
+  display:grid;
+  grid-template-columns:repeat(8,minmax(0,1fr));
+  gap:0;
+  margin:12px 0 0;
+  padding:0;
+  list-style:none;
+  position:relative;
+}
+.qi-chronology ol::before {
+  content:"";
+  position:absolute;
+  left:0; right:0; top:13px;
+  height:2px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ui-line) 90%,transparent) 6% 94%,transparent);
+}
+.qi-chronology li { position:relative; padding:30px 8px 0 0; font-size:13px; line-height:1.7; color:var(--ui-muted); }
+.qi-chronology li::before {
+  content:"";
+  position:absolute; left:0; top:8px;
+  width:10px; height:10px; border-radius:50%;
+  background:var(--ui-surface);
+  border:2px solid color-mix(in srgb,var(--ui-line) 100%,transparent);
+}
+.qi-chronology li b { display:block; font-family:var(--serif); font-weight:500; font-size:17px; color:var(--ui-ink); letter-spacing:.02em; }
+.qi-chronology li.is-case::before { background:var(--ui-accent); border-color:var(--ui-accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--ui-accent) 16%,transparent); }
+.qi-chronology li.is-case b { color:var(--ui-accent); }
+.qi-chronology a { color:var(--ui-accent); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px; }
+.qi-chronology a:hover { text-decoration-thickness:2px; }
+.qi-chronology .small-note { margin-top:16px; }
+@media (max-width:900px) {
+  .ft-sons { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ft-grandsons { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ft-grandsons .ft-person:first-child,.ft-grandsons .ft-person:nth-child(2) { grid-column:auto; }
+  .ft-branch::before,.ft-branch-end::before { left:8%; right:8%; }
+  .ft-branch-end { padding-left:0; }
+  .qi-chronology ol { grid-template-columns:1fr; padding-left:4px; }
+  .qi-chronology ol::before { left:8px; right:auto; top:8px; bottom:8px; width:2px; height:auto; background:color-mix(in srgb,var(--ui-line) 90%,transparent); }
+  .qi-chronology li { display:grid; grid-template-columns:92px 1fr; gap:12px; padding:6px 0 6px 28px; }
+  .qi-chronology li::before { left:3px; top:13px; }
+  .qi-chronology li b { font-size:16px; }
+}
+.reading-large .ft-person span { font-size:24px; }
+.reading-large .ft-person small,.reading-large .qi-chronology li { font-size:15px; }
+
+/* ---------- 4. Surfaces, cards and controls ---------- */
+@media screen {
+  .has-sidebar :is(.chapter,.case-preview,.visit-guide,.orientation,.family-stories,.sources,.violence-gallery) {
+    box-shadow:var(--qi-shadow-soft);
+  }
+  .has-sidebar :is(.timeline-panel,.network-wrap,.cultural-scene,.comparison article,.case-summary-grid article,.scene-animation) {
+    box-shadow:var(--qi-shadow-soft);
+  }
+  .has-sidebar :is(.case-preview a,.visit-guide li a,.takeaways>div) {
+    transition:transform .28s var(--qi-ease),box-shadow .28s var(--qi-ease),border-color .2s,background-color .2s;
+  }
+  .has-sidebar :is(.case-preview a,.visit-guide li a):hover {
+    transform:translateY(-2px);
+    box-shadow:var(--qi-shadow-lift);
+    border-color:color-mix(in srgb,var(--ui-accent) 45%,var(--ui-line));
+  }
+  .has-sidebar :is(.primary-button,.survival-launch-link) {
+    transition:background-color .2s,border-color .2s,transform .2s var(--qi-ease),box-shadow .2s;
+    box-shadow:0 6px 18px -10px color-mix(in srgb,var(--ui-ink) 70%,transparent);
+  }
+  .has-sidebar :is(.primary-button,.survival-launch-link):hover { transform:translateY(-1px); }
+  .has-sidebar .primary-button:active { transform:translateY(0); }
+
+  /* Chapter heading: a thin brush rule under the case number. */
+  .has-sidebar .chapter>h2 { position:relative; padding-bottom:.35em; }
+  .has-sidebar .chapter>h2::after {
+    content:"";
+    position:absolute; left:0; bottom:0;
+    width:clamp(56px,9vw,96px); height:3px; border-radius:3px;
+    background:linear-gradient(90deg,var(--ui-accent),color-mix(in srgb,var(--ui-accent) 0%,transparent));
+    opacity:.75;
+  }
+
+  /* Bridge to the next case: carries the question forward. */
+  .has-sidebar .next-chapter {
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:2px 18px;
+    margin-top:36px;
+    padding:16px 20px;
+    border:1px solid color-mix(in srgb,var(--ui-line) 85%,transparent);
+    border-inline-start:3px solid var(--ui-accent);
+    border-radius:var(--ui-radius,6px);
+    background:color-mix(in srgb,var(--ui-surface) 72%,transparent);
+    color:var(--ui-ink);
+    font-size:15px;
+    transition:transform .25s var(--qi-ease),box-shadow .25s var(--qi-ease),background-color .2s;
+  }
+  .has-sidebar .next-chapter small { grid-column:1; color:var(--ui-muted); font-size:12.5px; letter-spacing:.06em; }
+  .has-sidebar .next-chapter .next-chapter-title { grid-column:1; font-family:var(--serif); font-size:18px; }
+  .has-sidebar .next-chapter>span[aria-hidden] { grid-column:2; grid-row:1 / span 2; font-size:20px; color:var(--ui-accent); }
+  .has-sidebar .next-chapter:hover { transform:translateY(-2px); box-shadow:var(--qi-shadow-lift); background:var(--ui-surface); }
+
+  /* Quotes read like quotations, not form fields. */
+  .has-sidebar :is(.timeline-panel blockquote,.quote-panel blockquote,.comparison blockquote) {
+    font-feature-settings:"palt" 0;
+    letter-spacing:.04em;
+  }
+
+  /* Sidebar: quieter rhythm, clearer current item. */
+  .has-sidebar .site-header nav>a.is-current { box-shadow:inset 3px 0 0 var(--ui-accent); }
+  .has-sidebar .site-header { scrollbar-width:thin; scrollbar-color:color-mix(in srgb,var(--ui-line) 80%,transparent) transparent; }
+
+  /* Focus that is visible on every theme. */
+  .has-sidebar :is(a,button,input,summary,[tabindex]):focus-visible {
+    outline:2px solid var(--ui-accent);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  /* Mobile chapter rail: opaque, with a soft edge instead of see-through text. */
+  @media (max-width:650px) {
+    html[data-ui-theme] .has-sidebar .chapter-rail {
+      background:var(--ui-surface);
+      box-shadow:0 8px 16px -12px color-mix(in srgb,var(--ui-ink) 45%,transparent);
+    }
+    .has-sidebar .chapter-rail nav a { font-size:12.5px; }
+    .has-sidebar .next-chapter { padding:14px 16px; }
+    .has-sidebar .next-chapter .next-chapter-title { font-size:16px; }
+    .has-sidebar :is(.section-intro,.section-task) { font-size:14.5px; }
+  }
+}
+
+/* ---------- 5. Gentle reveal on scroll (only when JS has opted in) ---------- */
+@media screen and (prefers-reduced-motion:no-preference) {
+  html.qi-reveal-ready .qi-reveal {
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity .7s var(--qi-ease),transform .7s var(--qi-ease);
+  }
+  html.qi-reveal-ready .qi-reveal.is-revealed { opacity:1; transform:none; }
+}
+
+/* ---------- 6. Explore heading keeps its two-line title intact ---------- */
+@media (min-width:651px) {
+  .has-sidebar .explore-heading>div { flex:0 0 auto; }
+  .has-sidebar .explore-heading>p { flex:1 1 18em; max-width:34em; }
+}
+
+/* ---------- 7. Interaction sound toggle in the sidebar ---------- */
+.has-sidebar .site-header nav>button[data-ui-sfx] { gap:10px; }
+[data-ui-sfx] .sfx-icon { display:inline-grid; place-items:center; width:22px; height:22px; color:var(--ui-accent); font-size:15px; }
+[data-ui-sfx][aria-pressed=false] .sfx-icon { opacity:.5; }
+
+@media (prefers-reduced-motion:reduce) {
+  .has-sidebar :is(.case-preview a,.visit-guide li a,.next-chapter,.primary-button,.survival-launch-link) { transition:none; }
+  .has-sidebar :is(.case-preview a,.visit-guide li a,.next-chapter,.primary-button,.survival-launch-link):hover { transform:none; }
+}
+@media print {
+  body::before { display:none !important; }
+}

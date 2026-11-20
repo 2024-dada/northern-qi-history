@@ -50,11 +50,31 @@
     } catch { /* Media-element volume is still available. */ }
   }
 
+  // Fade in on start and out on stop, so the guqin never cuts in or off abruptly.
+  function fadeTo(level, seconds) {
+    if (!graph) return;
+    const gain = graph.gain.gain, now = graph.context.currentTime;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(gain.value, now);
+    gain.linearRampToValueAtTime(level, now + seconds);
+  }
+
+  let stopTimer = 0;
+  function stop() {
+    clearTimeout(stopTimer);
+    if (!graph || music.paused) { music.pause(); return; }
+    fadeTo(0, .7);
+    stopTimer = setTimeout(() => { if (!enabled || document.hidden) music.pause(); }, 720);
+  }
+
   function play(fromGesture = false) {
     if (!enabled || document.hidden) return;
+    clearTimeout(stopTimer);
     if (fromGesture) prepareVolumeGraph();
     graph?.context.resume().catch(() => {});
-    music.play().then(() => { blocked = false; render(); }).catch(error => {
+    const wasPaused = music.paused;
+    if (graph && wasPaused) { graph.gain.gain.cancelScheduledValues(graph.context.currentTime); graph.gain.gain.setValueAtTime(0, graph.context.currentTime); }
+    music.play().then(() => { blocked = false; if (graph) fadeTo(volume / 100, wasPaused ? 2.4 : .3); render(); }).catch(error => {
       if (error.name === 'NotAllowedError') blocked = true;
       render();
     });
@@ -73,7 +93,7 @@
     enabled = !enabled;
     try { localStorage.setItem('qi-background-music-enabled', String(enabled)); } catch {}
     if (enabled) play(true);
-    else music.pause();
+    else stop();
     render();
   });
   slider.addEventListener('input', () => {
