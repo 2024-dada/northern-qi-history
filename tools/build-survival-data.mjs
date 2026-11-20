@@ -81,4 +81,4 @@ const records = fs.readdirSync(cardDir)
 if (records.length !== 41) throw new Error(`预期41条史料卡，实际读取 ${records.length} 条`);
 const output = `/* Generated from knowledge-base/05_事件卡 and dossier.js. Run node tools/build-survival-data.mjs after source-card changes. */\nwindow.SURVIVAL_RECORDS = Object.freeze(${JSON.stringify(records, null, 2)});\n`;
 fs.writeFileSync(path.join(root, 'survival-game-data.js'), output, 'utf8');
-console.log(`已生成 ${records.length} 条游戏史料索引（${records.filter(item => item.violent).length} 条危险主题，${records.filter(item => !item.violent).length} 条背景材料）。`);
+console.log(`已生成 ${records.length} 条史料索引，供游戏侧栏查阅。`);

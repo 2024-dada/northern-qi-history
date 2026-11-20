@@ -16,24 +16,16 @@
   const ARROW_DAMAGE = Object.freeze({soldier: 17, general: 20, marshal: 25, emperor: 13});
   const TALENT_WEIGHTS = Object.freeze({common: 45, rare: 30, epic: 20, legendary: 5});
   const HAZARD_PROFILES = Object.freeze({
-    cauldron: {damagePerSecond: 9, tier: '高危', name: '刑具与灼热意象'},
-    cage: {damagePerSecond: 8, tier: '高危', name: '铁笼与火焰意象'},
-    river: {damagePerSecond: 5, tier: '中危', name: '河流与姓名牌意象'},
-    saw: {damagePerSecond: 10, tier: '极高', name: '刑具意象'},
-    beat: {damagePerSecond: 6, tier: '中危', name: '鞭杖与冲击意象'},
-    arrow: {damagePerSecond: 7, tier: '高危', name: '弓矢攻防意象'},
-    scorpion: {damagePerSecond: 12, tier: '极高', name: '蝎盆意象'},
-    dog: {damagePerSecond: 9, tier: '高危', name: '犬影追逐意象'},
-    animal: {damagePerSecond: 8, tier: '高危', name: '动物伤害意象'},
-    wrestle: {damagePerSecond: 8, tier: '高危', name: '角力意象'},
-    assassin: {damagePerSecond: 9, tier: '高危', name: '刺杀意象'},
-    seal: {damagePerSecond: 6, tier: '中危', name: '诏令与权力意象'},
-    mask: {damagePerSecond: 5, tier: '中危', name: '面具与身份意象'},
-    archive: {damagePerSecond: 5, tier: '中危', name: '史料档案意象'}
+    dog: {name: '纵犬', damagePerSecond: 9, sources: ['D23', 'D24']},
+    scorpion: {name: '蝎蜇', damagePerSecond: 12, sources: ['D18']},
+    fire: {name: '火焰', damagePerSecond: 11, sources: ['D04']},
+    rods: {name: '杖击', damagePerSecond: 6, sources: ['D11', 'E06']},
+    arrows: {name: '箭雨', damagePerSecond: 7, sources: ['D15']},
+    blade: {name: '斩刑', damagePerSecond: 10, sources: ['E03', 'E10']},
+    poison: {name: '赐毒', damagePerSecond: 8, sources: ['E09']}
   });
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-  const hazardProfile = record => HAZARD_PROFILES[record?.scene] || HAZARD_PROFILES.archive;
 
   function randomFor(seed) {
     let value = seed >>> 0;
@@ -186,37 +178,28 @@
     }
   }
 
+  function spawnHazards(random, player) {
+    const slots = [];
+    for (const y of [153, 327, 501]) {
+      for (const x of [143, 414, 686, 957]) {
+        const point = {x: x + (random() - .5) * 60, y: y + (random() - .5) * 10};
+        if (distance(point, player) >= 160) slots.push(point);
+      }
+    }
+    const spots = shuffle(slots, random);
+    return shuffle(Object.keys(HAZARD_PROFILES), random).slice(0, 4).map((type, index) => ({
+      ...spots[index],
+      type,
+      ...HAZARD_PROFILES[type],
+      radius: 69 + random() * 11,
+      offset: random() * 12,
+      damagePulseAt: 0
+    }));
+  }
+
   function spawnLayer(run) {
     const random = run.random;
-    const hazardRecords = shuffle(run.violentRecords, random).slice(0, Math.min(4, run.violentRecords.length));
-    run.layerRecords = hazardRecords;
-    run.hazards = hazardRecords.map(record => {
-      const point = position(random, [{...run.player, minimum: 175}]);
-      const profile = hazardProfile(record);
-      const radius = 68 + random() * 34;
-      const creatures = record.scene === 'scorpion'
-        ? Array.from({length: 8 + Math.floor(random() * 5)}, () => {
-          const angle = random() * Math.PI * 2;
-          const spread = random() * radius * .72;
-          return {x: Math.cos(angle) * spread, y: Math.sin(angle) * spread, phase: random() * Math.PI * 2, scale: .72 + random() * .45};
-        })
-        : [];
-      return {
-        ...point, record,
-        radius,
-        offset: random() * 12,
-        shape: random() < .28 ? 'square' : 'circle',
-        damagePerSecond: profile.damagePerSecond,
-        tier: profile.tier,
-        illustration: profile.name,
-        creatures,
-        damagePulseAt: 0
-      };
-    });
-    const contextRecords = shuffle(run.contextRecords, random).slice(0, Math.min(2, run.contextRecords.length));
-    run.contexts = contextRecords.map(record => ({
-      ...position(random, [{...run.player, minimum: 180}]), record, collected: false
-    }));
+    run.hazards = spawnHazards(random, run.player);
 
     const bossPoint = position(random, [{...run.player, minimum: 320}]);
     const bossBaseHp = 125 * (1.12 ** Math.max(0, run.layer - 1));
@@ -280,14 +263,11 @@
     run.message = `第 ${run.layer} 层：未探索区域被黑雾遮住。${formationNote}皇帝每 5 秒会召来一名将领；回血药每 5 秒刷新。寻找近战武器与弓箭；靠近时自动挥砍，较远时自动射箭。`;
   }
 
-  function createRun(name, seed, records) {
-    const violentRecords = records.filter(record => record.violent);
-    const contextRecords = records.filter(record => !record.violent);
-    if (violentRecords.length < 4 || records.length !== 41) throw new Error('游戏需要完整的41条史料索引。');
+  function createRun(name, seed) {
     const run = {
-      name, seed: seed >>> 0, random: randomFor(seed), violentRecords, contextRecords,
+      name, seed: seed >>> 0, random: randomFor(seed),
       elapsed: 0, stageElapsed: 0, layer: 1, level: 1, score: 0,
-      bossKills: 0, marshalKills: 0, generalKills: 0, enemyKills: 0, foundRecords: [],
+      bossKills: 0, marshalKills: 0, generalKills: 0, enemyKills: 0,
       upgrades: {speed: 0, dodge: 0}, talents: {
         maxHealth: 0, regeneration: 0, speed: 0, dodge: 0,
         startSword: false, startBow: false, startPoleaxe: false,
@@ -301,7 +281,7 @@
         facing: -Math.PI / 2, swingStartedAt: null, swingResolved: false,
         invulnerableUntil: 0, regenRemainder: 0
       },
-      hazards: [], contexts: [], layerRecords: [], emperor: null, marshal: null,
+      hazards: [], emperor: null, marshal: null,
       enemies: [], groups: [], weaponPickups: [], healingItems: [], explored: new Uint8Array(0), exploredDirty: true,
       phase: 'playing', message: ''
     };
@@ -660,13 +640,6 @@
       run.player.hp = Math.min(run.player.maxHp, run.player.hp + 32);
       run.message = `拾取回血药：体力恢复 ${Math.ceil(run.player.hp - before)} 点。`;
     }
-    for (const context of run.contexts) {
-      if (context.collected || distance(run.player, context) >= 28) continue;
-      context.collected = true;
-      if (!run.foundRecords.some(record => record.id === context.record.id)) run.foundRecords.push(context.record);
-      run.message = `拾取背景档案：${context.record.title}。这条材料不是危险区域。`;
-    }
-
     if (run.talents.regeneration > 0 && run.player.hp > 0 && run.player.hp < run.player.maxHp) {
       run.player.hp = Math.min(run.player.maxHp, run.player.hp + run.talents.regeneration * dt);
     }
@@ -695,7 +668,7 @@
         if (now >= hazard.damagePulseAt) {
           hazard.damagePulseAt = now + .5;
           run.flashUntil = now + .12;
-          run.message = `进入「${hazard.record.title}」场景：游戏伤害 ${hazard.damagePerSecond} 点体力/秒。`;
+          run.message = `${hazard.name}区生效，每秒扣除 ${hazard.damagePerSecond} 点体力。`;
         }
         if (run.player.hp <= 0) {
           reviveOrEnd(run, now);
@@ -749,5 +722,5 @@
     return true;
   }
 
-  return Object.freeze({WORLD, FOG, HAZARD_PROFILES, MELEE_WEAPONS, createRun, advance, chooseUpgrade, hazardState, hazardProfile});
+  return Object.freeze({WORLD, FOG, MELEE_WEAPONS, createRun, advance, chooseUpgrade, hazardState});
 });

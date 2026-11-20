@@ -97,6 +97,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .survival-rank-list .survival-empty-rank { display: block; padding: 13px 0; color: #7b8073; font-size: 12px; line-height: 1.6; }
 .survival-clear-rank { margin-top: 8px; padding: 5px 0; color: #7a7467; border: 0; background: none; text-decoration: underline; font-size: 10px; cursor: pointer; }
 .survival-storage-note { min-height: 0; margin: 3px 0 0; color: var(--survival-accent); font-size: 10px; line-height: 1.5; }
+.survival-current-list { display: grid; gap: 6px; margin: 9px 0 0; padding: 0; list-style: none; }
+.survival-current-list li { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; padding: 7px 0; border-bottom: 1px solid var(--survival-line); color: #46564b; font-size: 12px; }
+.survival-current-list strong { color: #2b3b31; }
+.survival-current-list small { color: #795039; font-size: 11px; }
+.survival-hazard-sources { grid-column: 1 / -1; color: #5d675f; font-size: 11px; }
+.survival-hazard-sources a { margin-inline-start: 4px; color: #843f31; text-underline-offset: 2px; }
 .survival-sources { max-height: min(54vh, 470px); overflow: hidden; }
 .survival-sources[open] { overflow-y: auto; }
 .survival-sources summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; list-style: none; }

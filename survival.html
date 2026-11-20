@@ -6,10 +6,11 @@
   <meta name="theme-color" content="#15221d">
   <meta name="description" content="《越过宫门》：受北齐史料启发的非写实生存闯关游戏。">
   <title>越过宫门 · 北齐生存闯关</title>
-  <link rel="stylesheet" href="survival.css?v=20261120talentfix">
-  <script src="survival-game-data.js?v=20261120talentfix" defer></script>
-  <script src="survival-engine.js?v=20261120talentfix" defer></script>
-  <script src="survival.js?v=20261120talentfix" defer></script>
+  <link rel="stylesheet" href="survival.css?v=20261120hazards">
+  <script src="survival-game-data.js?v=20261120hazards" defer></script>
+  <script src="survival-engine.js?v=20261120hazards" defer></script>
+  <script src="survival-hazards.js?v=20261120hazards" defer></script>
+  <script src="survival.js?v=20261120hazards" defer></script>
 </head>
 <body class="survival-page">
   <header class="survival-header">
@@ -54,7 +55,7 @@
               <p>未探索区域会被黑雾遮住，走到附近才会显现；武器、回血药和敌人都不会提前显示。使用传统 WASD 移动：W 向上、A 向左、S 向下、D 向右；方向键也可移动。</p>
               <p>玩家只控制移动，攻击自动进行。宝剑挥击半径小、长剑中、长柄斧最大；靠近时会挥击半径内的全部敌人。弓箭自动瞄准 240 范围内最近目标，每支箭只命中一人；每个箭袋补充 5 支。初始体力下，追兵约需 3 箭、将领 5 箭、皇帝 10 箭，楼层越高敌人越强。双方会展示挥击预警，只有攻击范围内才造成伤害。</p>
               <p>皇帝每 5 秒召来一名将领。第五层起出现大将军；皇帝体力低于一半后召集 4 名将领，之后每升一层再多召 1 名。击败皇帝即可进入下一层，不必清光所有追兵。回血药每 5 秒随机刷新，地图最多保留 4 个未拾取药包。</p>
-              <p>危险场景按本站事件卡绘制：例如 D18 会出现浴斛、多人蝎影与摆尾动作；其他事件会显示与原文主题相符的器物或场景。进入生效区域后持续扣血，画面和侧栏都会标出每秒数值。这些伤害值只用于游戏平衡，不是史料记载的真实伤情。</p>
+              <p>每层从 7 种酷刑区里随机抽出 4 种。留意扑跃的猎犬、甩尾的蝎群、翻腾的火焰等动景。圆圈标出扣血范围，虚线时可通过，边缘亮起变成实线后，区内会持续扣血。侧栏可查每种危险的伤害值和相关史料。</p>
               <p>前五级每层选择移速或闪避。第五层之后进入无限闯层，每层从三张随机天赋中选一张，包含体力、持续回复、武器、复起与援军等加成。每局结束后可在侧栏查看本机前十名。</p>
               <label for="player-name">玩家名称</label>
               <input id="player-name" name="player-name" type="text" maxlength="16" autocomplete="nickname" placeholder="输入一个名称" required>
@@ -115,15 +116,14 @@
         </section>
 
         <section class="survival-side-card survival-current" aria-labelledby="current-records-title">
-          <div class="survival-side-heading"><div><p class="survival-eyebrow">地图随机生成</p><h2 id="current-records-title">本层场景与伤害</h2></div></div>
-          <p class="survival-side-copy" data-current-layer-note>开始游戏后显示本层随机出现的史料主题。</p>
-          <ul data-current-hazards class="survival-current-list"><li>开始后显示场景插画、史料编号与游戏伤害值。</li></ul>
-          <p class="survival-side-copy" data-found-records>触碰背景档案可查看非暴力材料；不影响分数。</p>
+          <div class="survival-side-heading"><h2 id="current-records-title">本层酷刑区</h2></div>
+          <p class="survival-side-copy" data-current-layer-note>每层随机出现 4 种酷刑区。</p>
+          <ul data-current-hazards class="survival-current-list"><li>开局后显示本层类型、伤害和出处。</li></ul>
         </section>
 
         <details class="survival-side-card survival-sources" open>
           <summary><span><small>项目资料</small><strong>41 条材料索引</strong></span><span class="survival-count" data-record-count>41</span></summary>
-          <p class="survival-side-copy">27 条暴力事件可生成对应主题插画；其余材料只作为无伤害的背景线索。点击名称回到网站核对史料。</p>
+          <p class="survival-side-copy">点击材料名称，回到主站查看相关原文、出处与核验状态。</p>
           <ul data-record-index class="survival-record-list"></ul>
         </details>
       </aside>
@@ -131,7 +131,7 @@
 
     <section class="survival-boundary" aria-label="游戏与史料说明">
       <strong>史料与游戏边界</strong>
-      <p>地图场景是依据本站事件卡所画的游戏示意，不代表史料记录的真实地点、人物站位或逐帧动作；遇到待核或仅记伤害的材料，不补画无法确认的处置细节。危险区域每秒扣血数值是游戏平衡设定，不是历史伤害统计。请点侧栏编号回到事件卡核对原文、出处与核验状态。画面采用非写实的剪影和器物表现。</p>
+      <p>酷刑区的动景、位置和每秒伤害是游戏设定。侧栏的材料编号链接到相关记载，可查看史料对经过及细节的不同说法。</p>
     </section>
   </main>
 
