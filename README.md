@@ -12,6 +12,8 @@
 
 ## 当前版本
 
+《越过宫门》循环配乐使用 PeriTune 的《Wuxia》官方循环版 MP3。[作品出处](https://peritune.com/blog/2018/06/24/wuxia/) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
 2026-11-20：《越过宫门》有独立游戏音效与音量控制。主页古琴《酒狂》由 Charlie Huang 演奏（2006），采用 Wikimedia Commons 提供的 MP3 转码，录音内容保持原样。[录音出处](https://commons.wikimedia.org/wiki/File:Jiu_Kuang.ogg) · [CC BY 2.5](https://creativecommons.org/licenses/by/2.5/)
 
 2026-11-20：五套主题现在拥有各自的背景、正文底板与界面配色。新增宣纸城楼、竹林江舟、青花远山、月下宫阙四张背景；赭红石青沿用原有矿物纸面。主站、人物故事、讲解石和游戏共用主题。主站侧栏新增《越过宫门》独立入口。资源版本为 `20261120landscapes`。

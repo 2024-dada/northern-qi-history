@@ -6,15 +6,15 @@
   <meta name="theme-color" content="#15221d">
   <meta name="description" content="《越过宫门》：受北齐史料启发的非写实生存闯关游戏。">
   <title>越过宫门 · 北齐生存闯关</title>
-  <link rel="stylesheet" href="survival.css?v=20261120soundscape">
-  <link rel="stylesheet" href="theme.css?v=20261120soundscape">
-  <link rel="stylesheet" href="theme-landscapes.css?v=20261120soundscape">
-  <script src="theme.js?v=20261120soundscape"></script>
-  <script src="survival-game-data.js?v=20261120soundscape" defer></script>
-  <script src="survival-engine.js?v=20261120soundscape" defer></script>
-  <script src="survival-hazards.js?v=20261120soundscape" defer></script>
-  <script src="survival-audio.js?v=20261120soundscape" defer></script>
-  <script src="survival.js?v=20261120soundscape" defer></script>
+  <link rel="stylesheet" href="survival.css?v=20261120wuxia">
+  <link rel="stylesheet" href="theme.css?v=20261120wuxia">
+  <link rel="stylesheet" href="theme-landscapes.css?v=20261120wuxia">
+  <script src="theme.js?v=20261120wuxia"></script>
+  <script src="survival-game-data.js?v=20261120wuxia" defer></script>
+  <script src="survival-engine.js?v=20261120wuxia" defer></script>
+  <script src="survival-hazards.js?v=20261120wuxia" defer></script>
+  <script src="survival-audio.js?v=20261120wuxia" defer></script>
+  <script src="survival.js?v=20261120wuxia" defer></script>
 </head>
 <body class="survival-page">
   <header class="survival-header">
@@ -50,7 +50,8 @@
           <span class="survival-health"><small>体力</small><b data-hud-hp>100 / 100</b><i><span data-hud-health-fill></span></i></span>
           <div class="survival-sound" role="group" aria-label="游戏声音">
             <button type="button" class="survival-pause" data-game-sound aria-pressed="true">音效开</button>
-            <input type="range" min="0" max="100" value="56" data-game-sound-volume aria-label="游戏音量">
+            <button type="button" class="survival-pause" data-game-music-toggle aria-pressed="true">配乐开</button>
+            <input type="range" min="0" max="100" value="56" data-game-sound-volume aria-label="游戏总音量">
           </div>
           <button type="button" data-game-action="toggle-fullscreen" class="survival-pause">全屏</button>
           <button type="button" data-game-action="pause" class="survival-pause" disabled>暂停</button>
@@ -147,6 +148,11 @@
     </section>
   </main>
 
-  <footer class="survival-footer"><span>帝怒之后 · 北齐皇室暴力史料与交互网页</span><a href="index.html#sources">查看主站资料来源</a></footer>
+  <audio data-game-music src="assets/game-wuxia-loop.mp3" loop preload="none" hidden></audio>
+  <footer class="survival-footer">
+    <span>帝怒之后 · 北齐皇室暴力史料与交互网页</span>
+    <span>游戏配乐 <a href="https://peritune.com/blog/2018/06/24/wuxia/">《Wuxia》 · PeriTune</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></span>
+    <a href="index.html#sources">查看主站资料来源</a>
+  </footer>
 </body>
 </html>

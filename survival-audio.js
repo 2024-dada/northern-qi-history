@@ -4,6 +4,8 @@
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   const toggle = document.querySelector('[data-game-sound]');
   const slider = document.querySelector('[data-game-sound-volume]');
+  const soundtrack = document.querySelector('[data-game-music]');
+  const musicToggle = document.querySelector('[data-game-music-toggle]');
   const options = {
     sword: {air: 1950, length: .105, knock: 285, ring: 1640, tail: .15},
     longSword: {air: 1180, length: .18, knock: 185, ring: 1160, tail: .25},
@@ -11,19 +13,22 @@
     bow: {air: 2280, length: .09, knock: 234, ring: 780, tail: .10},
     guard: {air: 950, length: .14, knock: 135, ring: 820, tail: .16}
   };
-  let enabled = true, volume = 56, playing = false;
-  let context, master, noiseBuffer, wind;
+  let enabled = true, musicEnabled = true, volume = 56, playing = false;
+  let context, master, noiseBuffer, wind, musicGain;
 
   try {
     enabled = localStorage.getItem('qi-survival-sound') !== 'false';
+    musicEnabled = localStorage.getItem('qi-survival-music') !== 'false';
     const saved = localStorage.getItem('qi-survival-volume');
     if (saved !== null && Number.isFinite(Number(saved))) volume = Math.min(100, Math.max(0, Number(saved)));
   } catch { /* Preferences are optional. */ }
 
   function renderControls() {
-    toggle.disabled = slider.disabled = !AudioContextClass;
+    toggle.disabled = !AudioContextClass;
     toggle.setAttribute('aria-pressed', String(enabled && Boolean(AudioContextClass)));
     toggle.textContent = !AudioContextClass ? '音效不可用' : enabled ? '音效开' : '音效关';
+    musicToggle.setAttribute('aria-pressed', String(musicEnabled));
+    musicToggle.textContent = musicEnabled ? '配乐开' : '配乐关';
     slider.value = String(volume);
   }
 
@@ -80,6 +85,32 @@
     } catch { /* Unsupported audio must leave play available. */ }
   }
 
+  function updateMusic() {
+    if (!playing || !musicEnabled || !volume) {
+      soundtrack.pause();
+      return;
+    }
+    const level = volume / 100 * .46;
+    // The media gain gives mobile browsers a volume control of their own.
+    if (!musicGain && AudioContextClass && location.protocol !== 'file:') {
+      try {
+        if (!context) setup();
+        const gain = context.createGain();
+        gain.gain.value = level;
+        context.createMediaElementSource(soundtrack).connect(gain);
+        gain.connect(context.destination);
+        musicGain = gain;
+      } catch { /* Use the media element directly if a graph can't be created. */ }
+    }
+    if (musicGain) {
+      musicGain.gain.setTargetAtTime(level, context.currentTime, .05);
+      context.resume().catch(() => {});
+    } else {
+      soundtrack.volume = level;
+    }
+    if (soundtrack.paused) soundtrack.play().catch(() => {});
+  }
+
   function pulse(type, frequency, endFrequency, duration, level, at) {
     const {source, filter, gain} = makeNoise(type, frequency);
     filter.frequency.exponentialRampToValueAtTime(endFrequency, at + duration);
@@ -134,10 +165,22 @@
     volume = Number(slider.value);
     try { localStorage.setItem('qi-survival-volume', String(volume)); } catch {}
     updateSound();
+    updateMusic();
+  });
+  musicToggle.addEventListener('click', () => {
+    musicEnabled = !musicEnabled;
+    try { localStorage.setItem('qi-survival-music', String(musicEnabled)); } catch {}
+    renderControls();
+    updateMusic();
   });
   renderControls();
   window.SURVIVAL_AUDIO = Object.freeze({
-    setPlaying(active) { playing = active; updateSound(); },
+    setPlaying(active, {restart = false} = {}) {
+      playing = active;
+      if (restart && soundtrack.currentTime > 0) soundtrack.currentTime = 0;
+      updateSound();
+      updateMusic();
+    },
     cue
   });
 })();

@@ -250,7 +250,7 @@
     }
     mode = 'playing';
     impacts.length = 0;
-    audio?.setPlaying(true);
+    audio?.setPlaying(true, {restart: true});
     requestFullscreen();
     pressed.clear();
     stickVector = {x: 0, y: 0};
