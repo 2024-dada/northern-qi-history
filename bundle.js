@@ -145,6 +145,18 @@ window.RESEARCH = {
     }
     return rigParts.get(rig);
   }
+  function sceneParts(svg){
+    const names=['cup','clock-line','sweep-soft','sweep-edge','sweep-fan','trail','execution-screen','screen-glint','history-result','contact','harm','cart','verdict','blood','blood-jet','blood-haze','blood-residue'];
+    const parts=Object.fromEntries(names.map(name=>[name,svg.querySelector('.v-'+name)]));
+    parts.dust=[...svg.querySelectorAll('[data-dust]')];
+    parts.phases=[...svg.querySelectorAll('.v-phase')];
+    parts.drops=[...svg.querySelectorAll('.v-drop')].map(element=>({
+      element,
+      x:parseFloat(element.style.getPropertyValue('--blood-x')),
+      y:parseFloat(element.style.getPropertyValue('--blood-y'))
+    }));
+    return parts;
+  }
   function bladeTip(rig,pose){const [,body,shoulder,elbow]=pose,hand=worldPoint(rig,pose,10+26*Math.cos(radians(shoulder))+24*Math.cos(radians(shoulder+elbow)),-69+26*Math.sin(radians(shoulder))+24*Math.sin(radians(shoulder+elbow))),length=Number(partsFor(rig)['weapon']?.dataset.length||0),angle=radians(body+shoulder+elbow);return {x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)};}
   function rigPose(rig,pose,drop=0){
     const [step,body,shoulder,elbow]=pose;
@@ -164,12 +176,22 @@ window.RESEARCH = {
     const hand={x:Number(rig.dataset.x)+step+Number(rig.dataset.facing)*bx,y:Number(rig.dataset.y)+drop+by};const length=Number(parts.weapon?.dataset.length||0),angle=radians(body+shoulder+elbow);return {...hand,tip:{x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)}};
   }
   function drawScene(scene){
-    const {svg,key,actor,victim}=scene,p=(scene.elapsed%cycleFor(key))/cycleFor(key),strike=['slash','behead'].includes(key)?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
-    if(svg.closest('.detail-visual')){const slider=document.querySelector('[data-scene-progress]');if(slider)slider.value=String(Math.round(p*100));const output=document.querySelector('[data-scene-time]');if(output)output.textContent=Math.round(p*100)+'%';
-      const phaseIndex=p<.32?0:p<.55?1:2,buttons=[...document.querySelectorAll('[data-scene-jump]')];
-      buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===phaseIndex)));
-      if(slider)slider.setAttribute('aria-valuetext',`${Math.round(p*100)}%，${buttons[phaseIndex]?.textContent||'动作阶段'}`);
+    const {svg,key,controls}=scene;
+    const actor=scene.actor??=svg.querySelector('.rig-actor');
+    const victim=scene.victim??=svg.querySelector('.rig-victim');
+    const parts=scene.parts??=sceneParts(svg);
+    const p=(scene.elapsed%cycleFor(key))/cycleFor(key),strike=['slash','behead'].includes(key)?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
+    const phaseIndex=p<.32?0:p<.55?1:2,percent=Math.round(p*100);
+    const phaseChanged=scene.phaseIndex!==phaseIndex;
+    if(controls){
+      const {slider,output,buttons}=controls;
+      if(slider&&slider.value!==String(percent))slider.value=String(percent);
+      if(output&&output.textContent!==percent+'%')output.textContent=percent+'%';
+      if(phaseChanged)buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===phaseIndex)));
+      if(slider&&(phaseChanged||scene.percent!==percent))slider.setAttribute('aria-valuetext',`${percent}%，${buttons[phaseIndex]?.textContent||'动作阶段'}`);
     }
+    scene.percent=percent;
+    scene.phaseIndex=phaseIndex;
     const actorPose=poseAt(key,p);actorPose[1]+=Math.sin(p*Math.PI*2)*.45;const hand=rigPose(actor,actorPose);
     const fatal=['slash','rear','poison','behead'].includes(key);
     let victimPose=[impact*4,-impact*15,65-impact*13,18+impact*9],drop=impact*5;
@@ -178,8 +200,9 @@ window.RESEARCH = {
     if(key==='punish'){victimPose=[impact*7,-impact*20,70,15];drop=impact*8;}
     if(['poison','drink'].includes(key)){const sip=wave(p,.34,.47,.63,.83);victimPose=[0,-sip*7,25-sip*80,15+sip*38];}
     const otherHand=rigPose(victim,victimPose,drop);
-    victim.querySelector('.rig-move').style.opacity=String(fatal?1-impact*.5:1-impact*.16);
-    const cup=svg.querySelector('.v-cup');
+    const victimMove=partsFor(victim).move;
+    victimMove.style.opacity=String(fatal?1-impact*.5:1-impact*.16);
+    const cup=parts.cup;
     if(['poison','drink'].includes(key)){
       const transfer=smooth((p-.34)/.13),a=p<.47?hand:otherHand;
       const cx=p<.47?hand.x+(otherHand.x-hand.x)*transfer:a.x;
@@ -187,39 +210,45 @@ window.RESEARCH = {
       cup.setAttribute('transform',`translate(${cx} ${cy-9}) rotate(${-28*wave(p,.43,.5,.63,.75)})`);
       cup.style.opacity=String(wave(p,.06,.18,.68,.79));
     }
-    svg.querySelector('.v-clock-line').setAttribute('stroke-dashoffset',String(1-p));
-    svg.querySelectorAll('[data-dust]').forEach((dust,i)=>dust.setAttribute('transform',`translate(${Math.sin(p*6.28+i)*3} ${-p*8})`));
+    parts['clock-line'].setAttribute('stroke-dashoffset',String(1-p));
+    parts.dust.forEach((dust,i)=>dust.setAttribute('transform',`translate(${Math.sin(p*6.28+i)*3} ${-p*8})`));
     const cutting=['slash','behead'].includes(key);
-    scene.trail=cutting&&p>=.32&&p<=.56?Array.from({length:9},(_,i)=>{const time=Math.max(.32,p-(8-i)*.005),pose=poseAt(key,time);pose[1]+=Math.sin(time*Math.PI*2)*.45;return bladeTip(actor,pose);}):[];
-    const path=scene.trail.map((point,i)=>`${i?'L':'M'}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
-    svg.querySelector('.v-sweep-soft').setAttribute('d',path);
-    svg.querySelector('.v-sweep-edge').setAttribute('d',path);
-    svg.querySelector('.v-sweep-fan').setAttribute('d',scene.trail.length>1?`M${hand.x} ${hand.y} ${path.replace(/^M/,'L')} Z`:'');
-    svg.querySelector('.v-trail').style.opacity=String(cutting?wave(p,.34,.4,.48,.56):0);
+    if(cutting){
+      const inSweep=p>=.32&&p<=.56;
+      if(inSweep||scene.inSweep){
+        const points=inSweep?Array.from({length:9},(_,i)=>{const time=Math.max(.32,p-(8-i)*.005),pose=poseAt(key,time);pose[1]+=Math.sin(time*Math.PI*2)*.45;return bladeTip(actor,pose);}):[];
+        const path=points.map((point,i)=>`${i?'L':'M'}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
+        parts['sweep-soft'].setAttribute('d',path);
+        parts['sweep-edge'].setAttribute('d',path);
+        parts['sweep-fan'].setAttribute('d',points.length>1?`M${hand.x} ${hand.y} ${path.replace(/^M/,'L')} Z`:'');
+        parts.trail.style.opacity=String(wave(p,.34,.4,.48,.56));
+      }
+      scene.inSweep=inSweep;
+    }
     if(key==='behead'){
       const cover=wave(p,.365,.405,.53,.65);
-      svg.querySelector('.v-execution-screen').style.opacity=String(cover);
-      svg.querySelector('.v-screen-glint').style.opacity=String(wave(p,.405,.43,.455,.49));
-      svg.querySelector('.v-history-result').style.opacity=String(wave(p,.55,.65,.91,.99));
-      victim.querySelector('.rig-move').style.opacity=String(1-smooth((p-.94)/.06));
-      if(svg.closest('.detail-visual'))document.dispatchEvent(new CustomEvent('scene-progress',{detail:{key,progress:p}}));
+      parts['execution-screen'].style.opacity=String(cover);
+      parts['screen-glint'].style.opacity=String(wave(p,.405,.43,.455,.49));
+      parts['history-result'].style.opacity=String(wave(p,.55,.65,.91,.99));
+      victimMove.style.opacity=String(1-smooth((p-.94)/.06));
+      if(controls&&phaseChanged)document.dispatchEvent(new CustomEvent('scene-progress',{detail:{key,progress:p}}));
     }
-    svg.querySelector('.v-contact').style.opacity=String(['slash','thrust'].includes(key)?wave(p,strike-.01,strike+.01,strike+.035,strike+.1):0);
-    svg.querySelector('.v-harm').style.opacity=String(key==='punish'?impact:0);
-    svg.querySelector('.v-cart').style.opacity=String(key==='drink'?wave(p,.52,.6,.74,.85):0);
-    svg.querySelector('.v-verdict').style.opacity=String(wave(p,.5,.58,.8,.92));
-    svg.querySelectorAll('.v-phase').forEach((phase,i)=>phase.style.opacity=String(i===(p<.32?0:p<.55?1:2)?1:.25));
-    const blood=svg.querySelector('.v-blood');
+    if(['slash','thrust'].includes(key))parts.contact.style.opacity=String(wave(p,strike-.01,strike+.01,strike+.035,strike+.1));
+    if(key==='punish')parts.harm.style.opacity=String(impact);
+    if(key==='drink')parts.cart.style.opacity=String(wave(p,.52,.6,.74,.85));
+    parts.verdict.style.opacity=String(wave(p,.5,.58,.8,.92));
+    if(phaseChanged)parts.phases.forEach((phase,i)=>phase.style.opacity=String(i===phaseIndex?1:.25));
+    const blood=parts.blood;
     if(blood){
       blood.setAttribute('transform',`translate(${Number(victim.dataset.x)+victimPose[0]-3} ${Number(victim.dataset.y)+drop-(key==='behead'?86:65)})`);
       const burst=wave(p,strike,strike+.025,strike+.065,strike+.2);
-      blood.querySelector('.v-blood-jet').style.opacity=String(burst);
-      blood.querySelector('.v-blood-jet').setAttribute('transform',`scale(${.3+burst*.7})`);
-      blood.querySelector('.v-blood-haze').style.opacity=String(burst*.12);
-      blood.querySelector('.v-blood-residue').style.opacity=String(wave(p,strike+.06,strike+.13,.72,.86)*.55);
-      blood.querySelectorAll('.v-drop').forEach((particle,i)=>{
+      const jet=parts['blood-jet'];
+      jet.style.opacity=String(burst);
+      jet.setAttribute('transform',`scale(${.3+burst*.7})`);
+      parts['blood-haze'].style.opacity=String(burst*.12);
+      parts['blood-residue'].style.opacity=String(wave(p,strike+.06,strike+.13,.72,.86)*.55);
+      parts.drops.forEach(({element:particle,x:dx,y:dy},i)=>{
         const t=clamp((p-strike-i%3*.007)/.18);
-        const dx=parseFloat(particle.style.getPropertyValue('--blood-x')),dy=parseFloat(particle.style.getPropertyValue('--blood-y'));
         particle.style.opacity=String(t>0&&t<1?Math.sin(t*Math.PI):0);
         particle.setAttribute('transform',`translate(${dx*t} ${dy*t+70*t*t}) scale(${.6+.4*t})`);
       });
@@ -228,34 +257,48 @@ window.RESEARCH = {
   const detailPositions=new Map();
   function collect(){
     const old=new Map(tracked.map(item=>[item.svg,item]));
-    tracked.filter(item=>item.svg.closest('.detail-visual')).forEach(item=>detailPositions.set(item.key,item.elapsed));
+    tracked.filter(item=>item.controls).forEach(item=>detailPositions.set(item.key,item.elapsed));
     let restored=false;
     tracked=[...document.querySelectorAll('.v-art')].map(svg=>{
       if(old.has(svg))return old.get(svg);
       const key=entries.find(entry=>svg.classList.contains('v-'+entry.key)).key;
-      const resume=svg.closest('.detail-visual')&&detailPositions.has(key);restored=restored||resume;
-      return {svg,key,actor:svg.querySelector('.rig-actor'),victim:svg.querySelector('.rig-victim'),elapsed:resume?detailPositions.get(key):reduce.matches?2900:0};
+      const controls=svg.closest('.detail-visual')?{
+        slider:dialog.querySelector('[data-scene-progress]'),
+        output:dialog.querySelector('[data-scene-time]'),
+        buttons:[...dialog.querySelectorAll('[data-scene-jump]')]
+      }:null;
+      const resume=controls&&detailPositions.has(key);restored=restored||resume;
+      const scene={svg,key,controls,card:svg.closest('.violence-card'),elapsed:resume?detailPositions.get(key):reduce.matches?2900:0};
+      if(controls)drawScene(scene);
+      return scene;
     });
     if(restored){paused=true;update();const status=document.querySelector('[data-scene-state]');if(status)status.textContent='已恢复本次浏览的进度，点击播放继续';}
-    tracked.forEach(drawScene);
+  }
+  function drawIfVisible(scene){
+    if(scene.controls||scene.card?.classList.contains('in-view'))drawScene(scene);
   }
   const update=()=>{scheduleFrame();toggle.setAttribute('aria-pressed',String(paused));toggle.textContent=paused?'播放卡片动画 ▷':'暂停卡片动画 Ⅱ';document.querySelectorAll('[data-animation-action=motion]').forEach(button=>button.textContent=toggle.textContent.replace('卡片',''));};
   document.querySelector('#violence-speed')?.addEventListener('click',()=>{speed=speed===1?.55:1;preferences.write('qi-animation-speed',speed);updateSpeed();});
-  document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.once=false;scene.elapsed=reduce.matches?2900:0;drawScene(scene);});const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已回到开始，点击播放查看';document.dispatchEvent(new Event('archive-replay'));});
+  document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.once=false;scene.elapsed=reduce.matches?2900:0;drawIfVisible(scene);});const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已回到开始，点击播放查看';document.dispatchEvent(new Event('archive-replay'));});
   toggle.addEventListener('click',()=>{paused=!paused;update();});
-  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=false;scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);scene.trail=[];drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent.replace('卡片','');const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已暂停，可拖动进度查看细节';});
+  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.controls).forEach(scene=>{scene.once=false;scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent.replace('卡片','');const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已暂停，可拖动进度查看细节';});
   document.addEventListener('click',event=>{
     const button=event.target.closest('[data-scene-once],[data-scene-nudge],[data-expand-scene]');if(!button)return;
     const dialog=document.querySelector('#detail-dialog');
     if(button.hasAttribute('data-expand-scene')){const expanded=dialog.classList.toggle('scene-expanded');button.setAttribute('aria-pressed',String(expanded));button.textContent=expanded?'恢复画面 ⤡':'放大画面 ⤢';requestAnimationFrame(()=>dialog.querySelector('.scene-workbench').scrollIntoView({block:'start',behavior:'instant'}));return;}
     if(button.hasAttribute('data-scene-nudge')){const slider=dialog.querySelector('[data-scene-progress]');slider.value=String(Math.max(0,Math.min(100,Number(slider.value)+Number(button.dataset.sceneNudge))));slider.dispatchEvent(new Event('input',{bubbles:true}));dialog.querySelector('[data-scene-state]').textContent='已暂停，可用进度条或 ±1% 查看细节';return;}
-    tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=true;scene.elapsed=0;drawScene(scene);});
+    tracked.filter(scene=>scene.controls).forEach(scene=>{scene.once=true;scene.elapsed=0;drawScene(scene);});
     paused=false;update();dialog.querySelector('[data-scene-state]').textContent='正在单次播放，结束后停在结果画面';
   });
   document.addEventListener('visibilitychange',scheduleFrame);
-  reduce.addEventListener('change' ,()=>{paused=reduce.matches;tracked.forEach(item=>{item.elapsed=reduce.matches?2900:0;drawScene(item);});update();});
+  reduce.addEventListener('change' ,()=>{paused=reduce.matches;tracked.forEach(item=>{item.elapsed=reduce.matches?2900:0;drawIfVisible(item);});update();});
   const observer=new IntersectionObserver(items=>{
-    items.forEach(item=>item.target.classList.toggle('in-view',item.isIntersecting));
+    items.forEach(item=>{
+      item.target.classList.toggle('in-view',item.isIntersecting);
+      if(!item.isIntersecting)return;
+      const scene=tracked.find(scene=>scene.card===item.target);
+      if(scene)drawScene(scene);
+    });
     scheduleFrame();
   },{threshold:.1});
   cards.querySelectorAll('.violence-card').forEach(card=>observer.observe(card));
@@ -266,9 +309,9 @@ window.RESEARCH = {
 
   function visibleScenes(){
     if(paused||document.hidden||root.classList.contains('ui-settings-open')||root.classList.contains('ai-help-open'))return [];
-    return tracked.filter(({svg})=>dialog.open
-      ? svg.closest('.detail-visual')
-      : svg.closest('.violence-card.in-view'));
+    return tracked.filter(scene=>dialog.open
+      ? scene.controls
+      : scene.card?.classList.contains('in-view'));
   }
   function scheduleFrame(){
     if(visibleScenes().length){
@@ -569,6 +612,7 @@ window.RESEARCH = {
   const readValues=memory.read('qi-read-events',[]);
   const readEvents=new Set(Array.isArray(readValues)?readValues.filter(id=>data.events.some(e=>e.id===id)):[]);
   let searchWords=[];
+  let searchPattern=null;
   const normalize=value=>String(value??'').normalize('NFKC').toLowerCase();
   const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh-CN',{granularity:'grapheme'}):null;
   function mappedSearchText(value){
@@ -578,10 +622,9 @@ window.RESEARCH = {
     return {text,normalized,spans};
   }
   function highlighted(value){
-    if(!searchWords.length)return escape(value);
-    const pattern=new RegExp('('+searchWords.map(word=>word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','giu');
+    if(!searchPattern)return escape(value);
     const {text,normalized,spans}=mappedSearchText(value),ranges=[];
-    for(const match of normalized.matchAll(pattern)){
+    for(const match of normalized.matchAll(searchPattern)){
       const start=spans[match.index][0],end=spans[match.index+match[0].length-1][1],previous=ranges.at(-1);
       if(previous&&start<=previous[1])previous[1]=Math.max(previous[1],end);else ranges.push([start,end]);
     }
@@ -593,6 +636,8 @@ window.RESEARCH = {
     const fields=[['原因分析（暂定）',event.primary],['促成因素',event.secondary],['责任关系',event.agency],['事件背景',event.context],['别名',event.aliases],['核验说明',event.status]];
     for(const [label,value] of fields){
       if(!value)continue;
+      const folded=normalize(value);
+      if(!searchWords.some(word=>folded.includes(word)))continue;
       const {text,normalized,spans}=mappedSearchText(value),word=searchWords.find(word=>normalized.includes(word));
       if(!word)continue;
       const match=normalized.indexOf(word),start=Math.max(0,spans[match][0]-24),end=Math.min(text.length,Math.max(start+100,spans[match+word.length-1][1]));
@@ -608,7 +653,7 @@ window.RESEARCH = {
   let closingForNavigation=false;
   let returnFocus=null, returnHash='', eventScroll=0, eventSceneProgress=null, parentEvent=null, parentVisual=null, activeEvent=null;
   let largeText=memory.read('qi-large-text',false)===true;
-  function updateTextSize(){document.documentElement.classList.toggle('reading-large',largeText);document.querySelectorAll('[data-text-size]').forEach(button=>{button.setAttribute('aria-pressed',String(largeText));button.textContent=largeText?'标准字号':'大字阅读';});}updateTextSize();
+  function updateTextSize(){document.documentElement.classList.toggle('reading-large',largeText);document.querySelectorAll('[data-text-size]').forEach(button=>{button.setAttribute('aria-pressed',String(largeText));const label=button.querySelector('[data-text-size-label]')||button;label.textContent=largeText?'标准字号':'大字阅读';});}updateTextSize();
   document.addEventListener('click',event=>{if(!event.target.closest('[data-text-size]'))return;largeText=!largeText;memory.write('qi-large-text',largeText);updateTextSize();});
   function show(content){dialog.classList.remove('scene-expanded');if(!dialog.open){returnFocus=document.activeElement;returnHash=location.hash.startsWith('#event=')?'#explore':location.hash.startsWith('#source=')?'#sources':location.hash;}body.innerHTML=content;if(!dialog.open)dialog.showModal();document.documentElement.classList.add('detail-open');dialog.scrollTop=0;dialog.querySelector('.dialog-close').focus();}
   function sourceLink(key){const url=new URL(location.pathname,location.origin);url.hash='source='+encodeURIComponent(key);return url.href;}
@@ -679,6 +724,7 @@ window.RESEARCH = {
     E09:{date:573,method:'遣使送毒药'},E10:{date:573,method:'处斩'}
   };
   data.events.forEach(e=>{if(!classifications[e.id])classifications[e.id]={date:e.date??null,method:e.method||e.type,disputed:/待核|线索|分歧|推断/.test(e.status||'')};e.category=e.category||'暴力事件';});
+  const searchIndex=new Map(data.events.map(e=>[e.id,normalize([e.name,e.ruler,e.aliases,e.type,e.year,e.context,e.agency,e.primary,e.secondary,e.status,classifications[e.id].method].join(' '))]));
   const viewNotes={person:'按人物与材料类型查找，点开可见事件经过、人物责任、原因分析和史料来源。',time:'按已定位的年份排列；具体年份未定的事件单列，不强行补入时间顺序。',method:'依据方式或行为类型分组；伤害、死亡与宫廷生活分别标注。方式未明的单列，具体器物与操作不补造。',difference:'查看日期、方式或篇章叙述有分歧，以及尚待核验的材料，点开详情核对相应来源。'};
   function eventRow(e){const snippet=searchSnippet(e);return `<button class="event-row${readEvents.has(e.id)?' event-read':''}" data-event="${e.id}" aria-label="展开${escape(e.name)}"${snippet?` aria-describedby="event-match-${escape(e.id)}"`:''}><span class="event-id">${data.events.indexOf(e)+1}</span><span class="event-ruler">${escape(e.ruler)}</span><span class="event-content"><strong>${highlighted(e.name)}${saved.has(e.id)?'<span class="event-saved" aria-label="已收藏"> ★</span>':''}</strong><span class="event-meta">${highlighted(e.type)}${readEvents.has(e.id)?'<span class="read-badge">已读</span>':''}</span>${snippet}</span><span class="event-year">${escape(e.year)}</span><span class="event-arrow" aria-hidden="true">↗</span></button>`;}
   function explorationLink(){
@@ -692,7 +738,8 @@ window.RESEARCH = {
   function renderEvents(){
     const words=normalize(document.querySelector('#event-search').value.trim()).split(/\s+/).filter(Boolean);
     searchWords=words;
-    let events=data.events.filter(e=>(!onlySaved||saved.has(e.id))&&(readStatus==='all'||readEvents.has(e.id)===(readStatus==='read'))&&(filter==='全部'||e.ruler.includes(filter))&&(topic==='全部'||e.category===topic)&&words.every(word=>normalize([e.name,e.ruler,e.aliases,e.type,e.year,e.context,e.agency,e.primary,e.secondary,e.status,classifications[e.id].method].join(' ')).includes(word)));
+    searchPattern=words.length?new RegExp('('+words.map(word=>word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','giu'):null;
+    let events=data.events.filter(e=>(!onlySaved||saved.has(e.id))&&(readStatus==='all'||readEvents.has(e.id)===(readStatus==='read'))&&(filter==='全部'||e.ruler.includes(filter))&&(topic==='全部'||e.category===topic)&&words.every(word=>searchIndex.get(e.id).includes(word)));
     if(view==='difference')events=events.filter(e=>classifications[e.id].disputed);
     if(view==='person')events.sort((a,b)=>['高澄','高洋','高湛','高纬','高绰','高演','胡太后'].indexOf(a.ruler.split('、')[0])-['高澄','高洋','高湛','高纬','高绰','高演','胡太后'].indexOf(b.ruler.split('、')[0]));
     if(view==='time')events.sort((a,b)=>(classifications[a.id].date??Infinity)-(classifications[b.id].date??Infinity));
@@ -711,13 +758,41 @@ window.RESEARCH = {
     document.querySelector('#share-explore-link').href=explorationLink();
     document.querySelector('#active-filters').innerHTML=chips.map(([key,label])=>`<button type="button" data-clear-explore="${key}" aria-label="取消${escape(label)}">${escape(label)} <span aria-hidden="true">×</span></button>`).join('');
   }
-  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;document.querySelectorAll('[data-view]').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});renderEvents();}));
-  document.querySelectorAll('[data-topic]').forEach(b=>b.addEventListener('click',()=>{topic=b.dataset.topic;document.querySelectorAll('[data-topic]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b));});renderEvents();}));
-  document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});renderEvents();}));document.querySelector('#event-search').addEventListener('input',renderEvents);renderEvents();
-  document.querySelector('#reset-explore')?.addEventListener('click',()=>{onlySaved=false;readStatus='all';document.querySelector('#read-status').value='all';document.querySelector('#saved-only').setAttribute('aria-pressed','false');document.querySelector('#event-search').value='';document.querySelector('[data-view=person]').click();document.querySelector('[data-topic="全部"]').click();document.querySelector('[data-filter="全部"]').click();});
+  const exploreChoices={
+    view:[...document.querySelectorAll('[data-view]')],
+    topic:[...document.querySelectorAll('[data-topic]')],
+    filter:[...document.querySelectorAll('[data-filter]')]
+  };
+  const searchInput=document.querySelector('#event-search');
+  function setExploreChoice(key,value){
+    if(key==='view')view=value;
+    if(key==='topic')topic=value;
+    if(key==='filter')filter=value;
+    for(const button of exploreChoices[key]){
+      const active=button.dataset[key]===value;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-pressed',String(active));
+    }
+  }
+  for(const [key,buttons] of Object.entries(exploreChoices)){
+    for(const button of buttons)button.addEventListener('click',()=>{setExploreChoice(key,button.dataset[key]);renderEvents();});
+  }
+  searchInput.addEventListener('input',renderEvents);
+  function resetExplore(query=''){
+    onlySaved=false;
+    readStatus='all';
+    document.querySelector('#read-status').value='all';
+    document.querySelector('#saved-only').setAttribute('aria-pressed','false');
+    searchInput.value=query;
+    setExploreChoice('view','person');
+    setExploreChoice('topic','全部');
+    setExploreChoice('filter','全部');
+    renderEvents();
+  }
+  document.querySelector('#reset-explore').addEventListener('click',()=>resetExplore());
   document.querySelector('#explore').addEventListener('click',event=>{
     const clear=event.target.closest('[data-clear-explore]'),prompt=event.target.closest('[data-search-prompt]');
-    if(prompt){document.querySelector('#reset-explore').click();const input=document.querySelector('#event-search');input.value=prompt.dataset.searchPrompt;renderEvents();input.focus();}
+    if(prompt){resetExplore(prompt.dataset.searchPrompt);searchInput.focus();}
     if(!clear)return;
     const key=clear.dataset.clearExplore;
     if(key==='filter')document.querySelector('[data-filter="全部"]').click();
@@ -731,8 +806,12 @@ window.RESEARCH = {
   document.querySelector('#read-status').addEventListener('change',event=>{readStatus=event.target.value;renderEvents();});
   document.querySelector('#copy-explore').addEventListener('click',()=>copyText(explorationLink(),document.querySelector('#explore-feedback'),'筛选链接已复制。收藏和已读条件只保留在当前浏览器。'));
   const sharedFilters=new URLSearchParams(location.search);
-  [['ruler','filter'],['topic','topic'],['view','view']].forEach(([key,attribute])=>{const value=sharedFilters.get(key);const button=[...document.querySelectorAll('[data-'+attribute+']')].find(b=>b.dataset[attribute]===value);button?.click();});
-  document.querySelector('#event-search').value=(sharedFilters.get('q')||'').slice(0,300);renderEvents();
+  for(const [parameter,key] of [['ruler','filter'],['topic','topic'],['view','view']]){
+    const value=sharedFilters.get(parameter);
+    if(exploreChoices[key].some(button=>button.dataset[key]===value))setExploreChoice(key,value);
+  }
+  searchInput.value=(sharedFilters.get('q')||'').slice(0,300);
+  renderEvents();
   const galleryCards=[...document.querySelectorAll('.violence-card')];
   document.querySelectorAll('[data-gallery-ruler]').forEach(button=>button.addEventListener('click',()=>{const ruler=button.dataset.galleryRuler;document.querySelectorAll('[data-gallery-ruler]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));let count=0;galleryCards.forEach(card=>{const event=data.events.find(e=>e.id===card.dataset.event);const show=ruler==='全部'||event?.ruler.includes(ruler);card.hidden=!show;if(show)count++;});document.querySelector('#gallery-count').textContent=`显示 ${count} / ${galleryCards.length} 个动画场景`;}));
   document.querySelector('#source-list').innerHTML=Object.entries(data.sources).map(([key,s])=>`<li><button data-source="${key}">${escape(s.book)}</button><small>${escape(s.title)}</small></li>`).join('');
@@ -744,8 +823,40 @@ window.RESEARCH = {
       : '');
   });
   const chapters=[...document.querySelectorAll('[data-chapter]')], railLinks=[...document.querySelectorAll('.chapter-rail nav a')];
-  function updateProgress(){const total=document.documentElement.scrollHeight-window.innerHeight;const progress=document.querySelector('#page-progress');if(progress)progress.style.width=(total>0?Math.min(100,window.scrollY/total*100):0)+'%';document.querySelector('.back-to-top')?.classList.toggle('visible',window.scrollY>window.innerHeight);const position=window.innerHeight*.35;let active=0;chapters.forEach((c,i)=>{if(c.getBoundingClientRect().top<=position)active=i;});railLinks.forEach((a,i)=>{a.classList.toggle('active',i===active);if(i===active)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');});document.querySelector('#reading-progress').style.width=`${(active+1)/chapters.length*100}%`;document.querySelector('#progress-label').textContent=`第 ${active+1} / ${chapters.length} 节`;if(!dialog.open&&chapters[0].getBoundingClientRect().top<=position&&chapters.at(-1).getBoundingClientRect().bottom>0&&lastChapter!==chapters[active].id){lastChapter=chapters[active].id;memory.write('qi-reading-chapter',lastChapter);}}
-  const storedChapter=memory.read('qi-reading-chapter',null);let scheduled=false;window.addEventListener('scroll',()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{updateProgress();scheduled=false;});},{passive:true});updateProgress();
+  const pageProgress=document.querySelector('#page-progress'), backToTop=document.querySelector('.back-to-top');
+  const readingProgress=document.querySelector('#reading-progress'), progressLabel=document.querySelector('#progress-label');
+  const storedChapter=memory.read('qi-reading-chapter',null);
+  let activeChapter=-1, progressFrame=null;
+  function updateProgress(){
+    progressFrame=null;
+    const height=window.innerHeight, y=window.scrollY, total=document.documentElement.scrollHeight-height;
+    const position=height*.35, bounds=chapters.map(chapter=>chapter.getBoundingClientRect());
+    let active=0;
+    bounds.forEach((rect,index)=>{if(rect.top<=position)active=index;});
+    const chapterId=chapters[active].id;
+    pageProgress.style.transform=`scaleX(${total>0?Math.max(0,Math.min(1,y/total)):0})`;
+    backToTop?.classList.toggle('visible',y>height);
+    if(activeChapter!==active){
+      activeChapter=active;
+      railLinks.forEach((link,i)=>{
+        link.classList.toggle('active',i===active);
+        if(i===active)link.setAttribute('aria-current','step');else link.removeAttribute('aria-current');
+      });
+      readingProgress.style.width=`${(active+1)/chapters.length*100}%`;
+      progressLabel.textContent=`第 ${active+1} / ${chapters.length} 节`;
+    }
+    if(!dialog.open&&bounds[0].top<=position&&bounds.at(-1).bottom>0&&lastChapter!==chapterId){
+      lastChapter=chapterId;
+      memory.write('qi-reading-chapter',lastChapter);
+    }
+  }
+  function scheduleProgress(){
+    if(progressFrame===null)progressFrame=requestAnimationFrame(updateProgress);
+  }
+  window.addEventListener('scroll',scheduleProgress,{passive:true});
+  window.addEventListener('resize',scheduleProgress);
+  new ResizeObserver(scheduleProgress).observe(document.querySelector('#top'));
+  updateProgress();
 
   // Stable event links and continuous browsing reuse the same evidence dialog.
   const eventObserver=new MutationObserver(()=>{
@@ -1118,8 +1229,9 @@ window.RESEARCH = {
   try {
     const savedEnabled = localStorage.getItem(enabledKey);
     if (savedEnabled !== null) enabled = savedEnabled !== 'false';
-    const savedVolume = Number(localStorage.getItem(volumeKey));
-    if (Number.isFinite(savedVolume) && savedVolume >= 0 && savedVolume <= 100) volume = savedVolume;
+    const savedVolume = localStorage.getItem(volumeKey);
+    const parsedVolume = Number(savedVolume);
+    if (savedVolume !== null && Number.isFinite(parsedVolume) && parsedVolume >= 0 && parsedVolume <= 100) volume = parsedVolume;
   } catch { /* Preferences remain usable for this visit when storage is blocked. */ }
 
   slider.value = String(volume);
@@ -1374,6 +1486,35 @@ try{const saved=Number(localStorage.getItem('qi-sidebar-width'));if(Number.isFin
 function finish(){if(!drag)return;drag=null;body.classList.remove('sidebar-resizing');applyWidth(width,true);}
 grip.addEventListener('pointerdown',e=>{if(mobile.matches||e.button!==0)return;e.preventDefault();drag={x:e.clientX,width};grip.setPointerCapture(e.pointerId);body.classList.add('sidebar-resizing');});grip.addEventListener('pointermove',e=>{if(drag)applyWidth(drag.width+e.clientX-drag.x);});grip.addEventListener('pointerup',finish);grip.addEventListener('pointercancel',finish);grip.addEventListener('lostpointercapture',finish);mobile.addEventListener('change',finish);window.addEventListener('blur',finish);
 grip.addEventListener('dblclick',()=>applyWidth(256,true));grip.addEventListener('keydown',e=>{let next;if(e.key==='ArrowLeft')next=width-(e.shiftKey?30:10);if(e.key==='ArrowRight')next=width+(e.shiftKey?30:10);if(e.key==='Home')next=220;if(e.key==='End')next=420;if(next!==undefined){e.preventDefault();applyWidth(next,true);}});
-const links=[...panel.querySelectorAll('nav>a[href^="#"]')];function mark(id){links.forEach(a=>{const active=a.getAttribute('href')==='#'+id;a.classList.toggle('is-current',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});}
-if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio);if(visible.length)mark(visible[0].target.id);},{rootMargin:'-10% 0px -55% 0px',threshold:[0,.1,.4]});links.forEach(a=>{const target=document.getElementById(a.hash.slice(1));if(target)observer.observe(target);});}
+const links=[...panel.querySelectorAll('nav>a[href^="#"]')];
+if('IntersectionObserver'in window){
+  const sections=links.map(link=>document.getElementById(link.hash.slice(1))).filter(Boolean);
+  const visible=new Set();
+  let current=null, observer;
+  function updateCurrent(entries){
+    for(const entry of entries){
+      if(entry.isIntersecting)visible.add(entry.target.id);
+      else visible.delete(entry.target.id);
+    }
+    let next=null;
+    for(const link of links)if(visible.has(link.hash.slice(1)))next=link;
+    if(next===current)return;
+    current?.classList.remove('is-current');
+    current?.removeAttribute('aria-current');
+    next?.classList.add('is-current');
+    next?.setAttribute('aria-current','location');
+    current=next;
+  }
+  function watchSections(){
+    observer?.disconnect();
+    visible.clear();
+    const height=window.innerHeight;
+    observer=new IntersectionObserver(updateCurrent,{
+      rootMargin:`-${Math.round(height*.24)}px 0px -${Math.round(height*.66)}px 0px`
+    });
+    sections.forEach(section=>observer.observe(section));
+  }
+  watchSections();
+  window.addEventListener('resize',watchSections);
+}
 })();

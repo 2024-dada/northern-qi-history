@@ -25,8 +25,9 @@
   try {
     const savedEnabled = localStorage.getItem(enabledKey);
     if (savedEnabled !== null) enabled = savedEnabled !== 'false';
-    const savedVolume = Number(localStorage.getItem(volumeKey));
-    if (Number.isFinite(savedVolume) && savedVolume >= 0 && savedVolume <= 100) volume = savedVolume;
+    const savedVolume = localStorage.getItem(volumeKey);
+    const parsedVolume = Number(savedVolume);
+    if (savedVolume !== null && Number.isFinite(parsedVolume) && parsedVolume >= 0 && parsedVolume <= 100) volume = parsedVolume;
   } catch { /* Preferences remain usable for this visit when storage is blocked. */ }
 
   slider.value = String(volume);

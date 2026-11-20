@@ -32,6 +32,7 @@
   const readValues=memory.read('qi-read-events',[]);
   const readEvents=new Set(Array.isArray(readValues)?readValues.filter(id=>data.events.some(e=>e.id===id)):[]);
   let searchWords=[];
+  let searchPattern=null;
   const normalize=value=>String(value??'').normalize('NFKC').toLowerCase();
   const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh-CN',{granularity:'grapheme'}):null;
   function mappedSearchText(value){
@@ -41,10 +42,9 @@
     return {text,normalized,spans};
   }
   function highlighted(value){
-    if(!searchWords.length)return escape(value);
-    const pattern=new RegExp('('+searchWords.map(word=>word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','giu');
+    if(!searchPattern)return escape(value);
     const {text,normalized,spans}=mappedSearchText(value),ranges=[];
-    for(const match of normalized.matchAll(pattern)){
+    for(const match of normalized.matchAll(searchPattern)){
       const start=spans[match.index][0],end=spans[match.index+match[0].length-1][1],previous=ranges.at(-1);
       if(previous&&start<=previous[1])previous[1]=Math.max(previous[1],end);else ranges.push([start,end]);
     }
@@ -56,6 +56,8 @@
     const fields=[['原因分析（暂定）',event.primary],['促成因素',event.secondary],['责任关系',event.agency],['事件背景',event.context],['别名',event.aliases],['核验说明',event.status]];
     for(const [label,value] of fields){
       if(!value)continue;
+      const folded=normalize(value);
+      if(!searchWords.some(word=>folded.includes(word)))continue;
       const {text,normalized,spans}=mappedSearchText(value),word=searchWords.find(word=>normalized.includes(word));
       if(!word)continue;
       const match=normalized.indexOf(word),start=Math.max(0,spans[match][0]-24),end=Math.min(text.length,Math.max(start+100,spans[match+word.length-1][1]));
@@ -71,7 +73,7 @@
   let closingForNavigation=false;
   let returnFocus=null, returnHash='', eventScroll=0, eventSceneProgress=null, parentEvent=null, parentVisual=null, activeEvent=null;
   let largeText=memory.read('qi-large-text',false)===true;
-  function updateTextSize(){document.documentElement.classList.toggle('reading-large',largeText);document.querySelectorAll('[data-text-size]').forEach(button=>{button.setAttribute('aria-pressed',String(largeText));button.textContent=largeText?'标准字号':'大字阅读';});}updateTextSize();
+  function updateTextSize(){document.documentElement.classList.toggle('reading-large',largeText);document.querySelectorAll('[data-text-size]').forEach(button=>{button.setAttribute('aria-pressed',String(largeText));const label=button.querySelector('[data-text-size-label]')||button;label.textContent=largeText?'标准字号':'大字阅读';});}updateTextSize();
   document.addEventListener('click',event=>{if(!event.target.closest('[data-text-size]'))return;largeText=!largeText;memory.write('qi-large-text',largeText);updateTextSize();});
   function show(content){dialog.classList.remove('scene-expanded');if(!dialog.open){returnFocus=document.activeElement;returnHash=location.hash.startsWith('#event=')?'#explore':location.hash.startsWith('#source=')?'#sources':location.hash;}body.innerHTML=content;if(!dialog.open)dialog.showModal();document.documentElement.classList.add('detail-open');dialog.scrollTop=0;dialog.querySelector('.dialog-close').focus();}
   function sourceLink(key){const url=new URL(location.pathname,location.origin);url.hash='source='+encodeURIComponent(key);return url.href;}
@@ -142,6 +144,7 @@
     E09:{date:573,method:'遣使送毒药'},E10:{date:573,method:'处斩'}
   };
   data.events.forEach(e=>{if(!classifications[e.id])classifications[e.id]={date:e.date??null,method:e.method||e.type,disputed:/待核|线索|分歧|推断/.test(e.status||'')};e.category=e.category||'暴力事件';});
+  const searchIndex=new Map(data.events.map(e=>[e.id,normalize([e.name,e.ruler,e.aliases,e.type,e.year,e.context,e.agency,e.primary,e.secondary,e.status,classifications[e.id].method].join(' '))]));
   const viewNotes={person:'按人物与材料类型查找，点开可见事件经过、人物责任、原因分析和史料来源。',time:'按已定位的年份排列；具体年份未定的事件单列，不强行补入时间顺序。',method:'依据方式或行为类型分组；伤害、死亡与宫廷生活分别标注。方式未明的单列，具体器物与操作不补造。',difference:'查看日期、方式或篇章叙述有分歧，以及尚待核验的材料，点开详情核对相应来源。'};
   function eventRow(e){const snippet=searchSnippet(e);return `<button class="event-row${readEvents.has(e.id)?' event-read':''}" data-event="${e.id}" aria-label="展开${escape(e.name)}"${snippet?` aria-describedby="event-match-${escape(e.id)}"`:''}><span class="event-id">${data.events.indexOf(e)+1}</span><span class="event-ruler">${escape(e.ruler)}</span><span class="event-content"><strong>${highlighted(e.name)}${saved.has(e.id)?'<span class="event-saved" aria-label="已收藏"> ★</span>':''}</strong><span class="event-meta">${highlighted(e.type)}${readEvents.has(e.id)?'<span class="read-badge">已读</span>':''}</span>${snippet}</span><span class="event-year">${escape(e.year)}</span><span class="event-arrow" aria-hidden="true">↗</span></button>`;}
   function explorationLink(){
@@ -155,7 +158,8 @@
   function renderEvents(){
     const words=normalize(document.querySelector('#event-search').value.trim()).split(/\s+/).filter(Boolean);
     searchWords=words;
-    let events=data.events.filter(e=>(!onlySaved||saved.has(e.id))&&(readStatus==='all'||readEvents.has(e.id)===(readStatus==='read'))&&(filter==='全部'||e.ruler.includes(filter))&&(topic==='全部'||e.category===topic)&&words.every(word=>normalize([e.name,e.ruler,e.aliases,e.type,e.year,e.context,e.agency,e.primary,e.secondary,e.status,classifications[e.id].method].join(' ')).includes(word)));
+    searchPattern=words.length?new RegExp('('+words.map(word=>word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','giu'):null;
+    let events=data.events.filter(e=>(!onlySaved||saved.has(e.id))&&(readStatus==='all'||readEvents.has(e.id)===(readStatus==='read'))&&(filter==='全部'||e.ruler.includes(filter))&&(topic==='全部'||e.category===topic)&&words.every(word=>searchIndex.get(e.id).includes(word)));
     if(view==='difference')events=events.filter(e=>classifications[e.id].disputed);
     if(view==='person')events.sort((a,b)=>['高澄','高洋','高湛','高纬','高绰','高演','胡太后'].indexOf(a.ruler.split('、')[0])-['高澄','高洋','高湛','高纬','高绰','高演','胡太后'].indexOf(b.ruler.split('、')[0]));
     if(view==='time')events.sort((a,b)=>(classifications[a.id].date??Infinity)-(classifications[b.id].date??Infinity));
@@ -174,13 +178,41 @@
     document.querySelector('#share-explore-link').href=explorationLink();
     document.querySelector('#active-filters').innerHTML=chips.map(([key,label])=>`<button type="button" data-clear-explore="${key}" aria-label="取消${escape(label)}">${escape(label)} <span aria-hidden="true">×</span></button>`).join('');
   }
-  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;document.querySelectorAll('[data-view]').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});renderEvents();}));
-  document.querySelectorAll('[data-topic]').forEach(b=>b.addEventListener('click',()=>{topic=b.dataset.topic;document.querySelectorAll('[data-topic]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b));});renderEvents();}));
-  document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});renderEvents();}));document.querySelector('#event-search').addEventListener('input',renderEvents);renderEvents();
-  document.querySelector('#reset-explore')?.addEventListener('click',()=>{onlySaved=false;readStatus='all';document.querySelector('#read-status').value='all';document.querySelector('#saved-only').setAttribute('aria-pressed','false');document.querySelector('#event-search').value='';document.querySelector('[data-view=person]').click();document.querySelector('[data-topic="全部"]').click();document.querySelector('[data-filter="全部"]').click();});
+  const exploreChoices={
+    view:[...document.querySelectorAll('[data-view]')],
+    topic:[...document.querySelectorAll('[data-topic]')],
+    filter:[...document.querySelectorAll('[data-filter]')]
+  };
+  const searchInput=document.querySelector('#event-search');
+  function setExploreChoice(key,value){
+    if(key==='view')view=value;
+    if(key==='topic')topic=value;
+    if(key==='filter')filter=value;
+    for(const button of exploreChoices[key]){
+      const active=button.dataset[key]===value;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-pressed',String(active));
+    }
+  }
+  for(const [key,buttons] of Object.entries(exploreChoices)){
+    for(const button of buttons)button.addEventListener('click',()=>{setExploreChoice(key,button.dataset[key]);renderEvents();});
+  }
+  searchInput.addEventListener('input',renderEvents);
+  function resetExplore(query=''){
+    onlySaved=false;
+    readStatus='all';
+    document.querySelector('#read-status').value='all';
+    document.querySelector('#saved-only').setAttribute('aria-pressed','false');
+    searchInput.value=query;
+    setExploreChoice('view','person');
+    setExploreChoice('topic','全部');
+    setExploreChoice('filter','全部');
+    renderEvents();
+  }
+  document.querySelector('#reset-explore').addEventListener('click',()=>resetExplore());
   document.querySelector('#explore').addEventListener('click',event=>{
     const clear=event.target.closest('[data-clear-explore]'),prompt=event.target.closest('[data-search-prompt]');
-    if(prompt){document.querySelector('#reset-explore').click();const input=document.querySelector('#event-search');input.value=prompt.dataset.searchPrompt;renderEvents();input.focus();}
+    if(prompt){resetExplore(prompt.dataset.searchPrompt);searchInput.focus();}
     if(!clear)return;
     const key=clear.dataset.clearExplore;
     if(key==='filter')document.querySelector('[data-filter="全部"]').click();
@@ -194,8 +226,12 @@
   document.querySelector('#read-status').addEventListener('change',event=>{readStatus=event.target.value;renderEvents();});
   document.querySelector('#copy-explore').addEventListener('click',()=>copyText(explorationLink(),document.querySelector('#explore-feedback'),'筛选链接已复制。收藏和已读条件只保留在当前浏览器。'));
   const sharedFilters=new URLSearchParams(location.search);
-  [['ruler','filter'],['topic','topic'],['view','view']].forEach(([key,attribute])=>{const value=sharedFilters.get(key);const button=[...document.querySelectorAll('[data-'+attribute+']')].find(b=>b.dataset[attribute]===value);button?.click();});
-  document.querySelector('#event-search').value=(sharedFilters.get('q')||'').slice(0,300);renderEvents();
+  for(const [parameter,key] of [['ruler','filter'],['topic','topic'],['view','view']]){
+    const value=sharedFilters.get(parameter);
+    if(exploreChoices[key].some(button=>button.dataset[key]===value))setExploreChoice(key,value);
+  }
+  searchInput.value=(sharedFilters.get('q')||'').slice(0,300);
+  renderEvents();
   const galleryCards=[...document.querySelectorAll('.violence-card')];
   document.querySelectorAll('[data-gallery-ruler]').forEach(button=>button.addEventListener('click',()=>{const ruler=button.dataset.galleryRuler;document.querySelectorAll('[data-gallery-ruler]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));let count=0;galleryCards.forEach(card=>{const event=data.events.find(e=>e.id===card.dataset.event);const show=ruler==='全部'||event?.ruler.includes(ruler);card.hidden=!show;if(show)count++;});document.querySelector('#gallery-count').textContent=`显示 ${count} / ${galleryCards.length} 个动画场景`;}));
   document.querySelector('#source-list').innerHTML=Object.entries(data.sources).map(([key,s])=>`<li><button data-source="${key}">${escape(s.book)}</button><small>${escape(s.title)}</small></li>`).join('');
@@ -207,8 +243,40 @@
       : '');
   });
   const chapters=[...document.querySelectorAll('[data-chapter]')], railLinks=[...document.querySelectorAll('.chapter-rail nav a')];
-  function updateProgress(){const total=document.documentElement.scrollHeight-window.innerHeight;const progress=document.querySelector('#page-progress');if(progress)progress.style.width=(total>0?Math.min(100,window.scrollY/total*100):0)+'%';document.querySelector('.back-to-top')?.classList.toggle('visible',window.scrollY>window.innerHeight);const position=window.innerHeight*.35;let active=0;chapters.forEach((c,i)=>{if(c.getBoundingClientRect().top<=position)active=i;});railLinks.forEach((a,i)=>{a.classList.toggle('active',i===active);if(i===active)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');});document.querySelector('#reading-progress').style.width=`${(active+1)/chapters.length*100}%`;document.querySelector('#progress-label').textContent=`第 ${active+1} / ${chapters.length} 节`;if(!dialog.open&&chapters[0].getBoundingClientRect().top<=position&&chapters.at(-1).getBoundingClientRect().bottom>0&&lastChapter!==chapters[active].id){lastChapter=chapters[active].id;memory.write('qi-reading-chapter',lastChapter);}}
-  const storedChapter=memory.read('qi-reading-chapter',null);let scheduled=false;window.addEventListener('scroll',()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{updateProgress();scheduled=false;});},{passive:true});updateProgress();
+  const pageProgress=document.querySelector('#page-progress'), backToTop=document.querySelector('.back-to-top');
+  const readingProgress=document.querySelector('#reading-progress'), progressLabel=document.querySelector('#progress-label');
+  const storedChapter=memory.read('qi-reading-chapter',null);
+  let activeChapter=-1, progressFrame=null;
+  function updateProgress(){
+    progressFrame=null;
+    const height=window.innerHeight, y=window.scrollY, total=document.documentElement.scrollHeight-height;
+    const position=height*.35, bounds=chapters.map(chapter=>chapter.getBoundingClientRect());
+    let active=0;
+    bounds.forEach((rect,index)=>{if(rect.top<=position)active=index;});
+    const chapterId=chapters[active].id;
+    pageProgress.style.transform=`scaleX(${total>0?Math.max(0,Math.min(1,y/total)):0})`;
+    backToTop?.classList.toggle('visible',y>height);
+    if(activeChapter!==active){
+      activeChapter=active;
+      railLinks.forEach((link,i)=>{
+        link.classList.toggle('active',i===active);
+        if(i===active)link.setAttribute('aria-current','step');else link.removeAttribute('aria-current');
+      });
+      readingProgress.style.width=`${(active+1)/chapters.length*100}%`;
+      progressLabel.textContent=`第 ${active+1} / ${chapters.length} 节`;
+    }
+    if(!dialog.open&&bounds[0].top<=position&&bounds.at(-1).bottom>0&&lastChapter!==chapterId){
+      lastChapter=chapterId;
+      memory.write('qi-reading-chapter',lastChapter);
+    }
+  }
+  function scheduleProgress(){
+    if(progressFrame===null)progressFrame=requestAnimationFrame(updateProgress);
+  }
+  window.addEventListener('scroll',scheduleProgress,{passive:true});
+  window.addEventListener('resize',scheduleProgress);
+  new ResizeObserver(scheduleProgress).observe(document.querySelector('#top'));
+  updateProgress();
 
   // Stable event links and continuous browsing reuse the same evidence dialog.
   const eventObserver=new MutationObserver(()=>{

@@ -101,6 +101,18 @@
     }
     return rigParts.get(rig);
   }
+  function sceneParts(svg){
+    const names=['cup','clock-line','sweep-soft','sweep-edge','sweep-fan','trail','execution-screen','screen-glint','history-result','contact','harm','cart','verdict','blood','blood-jet','blood-haze','blood-residue'];
+    const parts=Object.fromEntries(names.map(name=>[name,svg.querySelector('.v-'+name)]));
+    parts.dust=[...svg.querySelectorAll('[data-dust]')];
+    parts.phases=[...svg.querySelectorAll('.v-phase')];
+    parts.drops=[...svg.querySelectorAll('.v-drop')].map(element=>({
+      element,
+      x:parseFloat(element.style.getPropertyValue('--blood-x')),
+      y:parseFloat(element.style.getPropertyValue('--blood-y'))
+    }));
+    return parts;
+  }
   function bladeTip(rig,pose){const [,body,shoulder,elbow]=pose,hand=worldPoint(rig,pose,10+26*Math.cos(radians(shoulder))+24*Math.cos(radians(shoulder+elbow)),-69+26*Math.sin(radians(shoulder))+24*Math.sin(radians(shoulder+elbow))),length=Number(partsFor(rig)['weapon']?.dataset.length||0),angle=radians(body+shoulder+elbow);return {x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)};}
   function rigPose(rig,pose,drop=0){
     const [step,body,shoulder,elbow]=pose;
@@ -120,12 +132,22 @@
     const hand={x:Number(rig.dataset.x)+step+Number(rig.dataset.facing)*bx,y:Number(rig.dataset.y)+drop+by};const length=Number(parts.weapon?.dataset.length||0),angle=radians(body+shoulder+elbow);return {...hand,tip:{x:hand.x+Number(rig.dataset.facing)*length*Math.cos(angle),y:hand.y+length*Math.sin(angle)}};
   }
   function drawScene(scene){
-    const {svg,key,actor,victim}=scene,p=(scene.elapsed%cycleFor(key))/cycleFor(key),strike=['slash','behead'].includes(key)?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
-    if(svg.closest('.detail-visual')){const slider=document.querySelector('[data-scene-progress]');if(slider)slider.value=String(Math.round(p*100));const output=document.querySelector('[data-scene-time]');if(output)output.textContent=Math.round(p*100)+'%';
-      const phaseIndex=p<.32?0:p<.55?1:2,buttons=[...document.querySelectorAll('[data-scene-jump]')];
-      buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===phaseIndex)));
-      if(slider)slider.setAttribute('aria-valuetext',`${Math.round(p*100)}%，${buttons[phaseIndex]?.textContent||'动作阶段'}`);
+    const {svg,key,controls}=scene;
+    const actor=scene.actor??=svg.querySelector('.rig-actor');
+    const victim=scene.victim??=svg.querySelector('.rig-victim');
+    const parts=scene.parts??=sceneParts(svg);
+    const p=(scene.elapsed%cycleFor(key))/cycleFor(key),strike=['slash','behead'].includes(key)?.43:.39,impact=wave(p,strike-.005,strike+.045,.64,.86);
+    const phaseIndex=p<.32?0:p<.55?1:2,percent=Math.round(p*100);
+    const phaseChanged=scene.phaseIndex!==phaseIndex;
+    if(controls){
+      const {slider,output,buttons}=controls;
+      if(slider&&slider.value!==String(percent))slider.value=String(percent);
+      if(output&&output.textContent!==percent+'%')output.textContent=percent+'%';
+      if(phaseChanged)buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===phaseIndex)));
+      if(slider&&(phaseChanged||scene.percent!==percent))slider.setAttribute('aria-valuetext',`${percent}%，${buttons[phaseIndex]?.textContent||'动作阶段'}`);
     }
+    scene.percent=percent;
+    scene.phaseIndex=phaseIndex;
     const actorPose=poseAt(key,p);actorPose[1]+=Math.sin(p*Math.PI*2)*.45;const hand=rigPose(actor,actorPose);
     const fatal=['slash','rear','poison','behead'].includes(key);
     let victimPose=[impact*4,-impact*15,65-impact*13,18+impact*9],drop=impact*5;
@@ -134,8 +156,9 @@
     if(key==='punish'){victimPose=[impact*7,-impact*20,70,15];drop=impact*8;}
     if(['poison','drink'].includes(key)){const sip=wave(p,.34,.47,.63,.83);victimPose=[0,-sip*7,25-sip*80,15+sip*38];}
     const otherHand=rigPose(victim,victimPose,drop);
-    victim.querySelector('.rig-move').style.opacity=String(fatal?1-impact*.5:1-impact*.16);
-    const cup=svg.querySelector('.v-cup');
+    const victimMove=partsFor(victim).move;
+    victimMove.style.opacity=String(fatal?1-impact*.5:1-impact*.16);
+    const cup=parts.cup;
     if(['poison','drink'].includes(key)){
       const transfer=smooth((p-.34)/.13),a=p<.47?hand:otherHand;
       const cx=p<.47?hand.x+(otherHand.x-hand.x)*transfer:a.x;
@@ -143,39 +166,45 @@
       cup.setAttribute('transform',`translate(${cx} ${cy-9}) rotate(${-28*wave(p,.43,.5,.63,.75)})`);
       cup.style.opacity=String(wave(p,.06,.18,.68,.79));
     }
-    svg.querySelector('.v-clock-line').setAttribute('stroke-dashoffset',String(1-p));
-    svg.querySelectorAll('[data-dust]').forEach((dust,i)=>dust.setAttribute('transform',`translate(${Math.sin(p*6.28+i)*3} ${-p*8})`));
+    parts['clock-line'].setAttribute('stroke-dashoffset',String(1-p));
+    parts.dust.forEach((dust,i)=>dust.setAttribute('transform',`translate(${Math.sin(p*6.28+i)*3} ${-p*8})`));
     const cutting=['slash','behead'].includes(key);
-    scene.trail=cutting&&p>=.32&&p<=.56?Array.from({length:9},(_,i)=>{const time=Math.max(.32,p-(8-i)*.005),pose=poseAt(key,time);pose[1]+=Math.sin(time*Math.PI*2)*.45;return bladeTip(actor,pose);}):[];
-    const path=scene.trail.map((point,i)=>`${i?'L':'M'}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
-    svg.querySelector('.v-sweep-soft').setAttribute('d',path);
-    svg.querySelector('.v-sweep-edge').setAttribute('d',path);
-    svg.querySelector('.v-sweep-fan').setAttribute('d',scene.trail.length>1?`M${hand.x} ${hand.y} ${path.replace(/^M/,'L')} Z`:'');
-    svg.querySelector('.v-trail').style.opacity=String(cutting?wave(p,.34,.4,.48,.56):0);
+    if(cutting){
+      const inSweep=p>=.32&&p<=.56;
+      if(inSweep||scene.inSweep){
+        const points=inSweep?Array.from({length:9},(_,i)=>{const time=Math.max(.32,p-(8-i)*.005),pose=poseAt(key,time);pose[1]+=Math.sin(time*Math.PI*2)*.45;return bladeTip(actor,pose);}):[];
+        const path=points.map((point,i)=>`${i?'L':'M'}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
+        parts['sweep-soft'].setAttribute('d',path);
+        parts['sweep-edge'].setAttribute('d',path);
+        parts['sweep-fan'].setAttribute('d',points.length>1?`M${hand.x} ${hand.y} ${path.replace(/^M/,'L')} Z`:'');
+        parts.trail.style.opacity=String(wave(p,.34,.4,.48,.56));
+      }
+      scene.inSweep=inSweep;
+    }
     if(key==='behead'){
       const cover=wave(p,.365,.405,.53,.65);
-      svg.querySelector('.v-execution-screen').style.opacity=String(cover);
-      svg.querySelector('.v-screen-glint').style.opacity=String(wave(p,.405,.43,.455,.49));
-      svg.querySelector('.v-history-result').style.opacity=String(wave(p,.55,.65,.91,.99));
-      victim.querySelector('.rig-move').style.opacity=String(1-smooth((p-.94)/.06));
-      if(svg.closest('.detail-visual'))document.dispatchEvent(new CustomEvent('scene-progress',{detail:{key,progress:p}}));
+      parts['execution-screen'].style.opacity=String(cover);
+      parts['screen-glint'].style.opacity=String(wave(p,.405,.43,.455,.49));
+      parts['history-result'].style.opacity=String(wave(p,.55,.65,.91,.99));
+      victimMove.style.opacity=String(1-smooth((p-.94)/.06));
+      if(controls&&phaseChanged)document.dispatchEvent(new CustomEvent('scene-progress',{detail:{key,progress:p}}));
     }
-    svg.querySelector('.v-contact').style.opacity=String(['slash','thrust'].includes(key)?wave(p,strike-.01,strike+.01,strike+.035,strike+.1):0);
-    svg.querySelector('.v-harm').style.opacity=String(key==='punish'?impact:0);
-    svg.querySelector('.v-cart').style.opacity=String(key==='drink'?wave(p,.52,.6,.74,.85):0);
-    svg.querySelector('.v-verdict').style.opacity=String(wave(p,.5,.58,.8,.92));
-    svg.querySelectorAll('.v-phase').forEach((phase,i)=>phase.style.opacity=String(i===(p<.32?0:p<.55?1:2)?1:.25));
-    const blood=svg.querySelector('.v-blood');
+    if(['slash','thrust'].includes(key))parts.contact.style.opacity=String(wave(p,strike-.01,strike+.01,strike+.035,strike+.1));
+    if(key==='punish')parts.harm.style.opacity=String(impact);
+    if(key==='drink')parts.cart.style.opacity=String(wave(p,.52,.6,.74,.85));
+    parts.verdict.style.opacity=String(wave(p,.5,.58,.8,.92));
+    if(phaseChanged)parts.phases.forEach((phase,i)=>phase.style.opacity=String(i===phaseIndex?1:.25));
+    const blood=parts.blood;
     if(blood){
       blood.setAttribute('transform',`translate(${Number(victim.dataset.x)+victimPose[0]-3} ${Number(victim.dataset.y)+drop-(key==='behead'?86:65)})`);
       const burst=wave(p,strike,strike+.025,strike+.065,strike+.2);
-      blood.querySelector('.v-blood-jet').style.opacity=String(burst);
-      blood.querySelector('.v-blood-jet').setAttribute('transform',`scale(${.3+burst*.7})`);
-      blood.querySelector('.v-blood-haze').style.opacity=String(burst*.12);
-      blood.querySelector('.v-blood-residue').style.opacity=String(wave(p,strike+.06,strike+.13,.72,.86)*.55);
-      blood.querySelectorAll('.v-drop').forEach((particle,i)=>{
+      const jet=parts['blood-jet'];
+      jet.style.opacity=String(burst);
+      jet.setAttribute('transform',`scale(${.3+burst*.7})`);
+      parts['blood-haze'].style.opacity=String(burst*.12);
+      parts['blood-residue'].style.opacity=String(wave(p,strike+.06,strike+.13,.72,.86)*.55);
+      parts.drops.forEach(({element:particle,x:dx,y:dy},i)=>{
         const t=clamp((p-strike-i%3*.007)/.18);
-        const dx=parseFloat(particle.style.getPropertyValue('--blood-x')),dy=parseFloat(particle.style.getPropertyValue('--blood-y'));
         particle.style.opacity=String(t>0&&t<1?Math.sin(t*Math.PI):0);
         particle.setAttribute('transform',`translate(${dx*t} ${dy*t+70*t*t}) scale(${.6+.4*t})`);
       });
@@ -184,34 +213,48 @@
   const detailPositions=new Map();
   function collect(){
     const old=new Map(tracked.map(item=>[item.svg,item]));
-    tracked.filter(item=>item.svg.closest('.detail-visual')).forEach(item=>detailPositions.set(item.key,item.elapsed));
+    tracked.filter(item=>item.controls).forEach(item=>detailPositions.set(item.key,item.elapsed));
     let restored=false;
     tracked=[...document.querySelectorAll('.v-art')].map(svg=>{
       if(old.has(svg))return old.get(svg);
       const key=entries.find(entry=>svg.classList.contains('v-'+entry.key)).key;
-      const resume=svg.closest('.detail-visual')&&detailPositions.has(key);restored=restored||resume;
-      return {svg,key,actor:svg.querySelector('.rig-actor'),victim:svg.querySelector('.rig-victim'),elapsed:resume?detailPositions.get(key):reduce.matches?2900:0};
+      const controls=svg.closest('.detail-visual')?{
+        slider:dialog.querySelector('[data-scene-progress]'),
+        output:dialog.querySelector('[data-scene-time]'),
+        buttons:[...dialog.querySelectorAll('[data-scene-jump]')]
+      }:null;
+      const resume=controls&&detailPositions.has(key);restored=restored||resume;
+      const scene={svg,key,controls,card:svg.closest('.violence-card'),elapsed:resume?detailPositions.get(key):reduce.matches?2900:0};
+      if(controls)drawScene(scene);
+      return scene;
     });
     if(restored){paused=true;update();const status=document.querySelector('[data-scene-state]');if(status)status.textContent='已恢复本次浏览的进度，点击播放继续';}
-    tracked.forEach(drawScene);
+  }
+  function drawIfVisible(scene){
+    if(scene.controls||scene.card?.classList.contains('in-view'))drawScene(scene);
   }
   const update=()=>{scheduleFrame();toggle.setAttribute('aria-pressed',String(paused));toggle.textContent=paused?'播放卡片动画 ▷':'暂停卡片动画 Ⅱ';document.querySelectorAll('[data-animation-action=motion]').forEach(button=>button.textContent=toggle.textContent.replace('卡片',''));};
   document.querySelector('#violence-speed')?.addEventListener('click',()=>{speed=speed===1?.55:1;preferences.write('qi-animation-speed',speed);updateSpeed();});
-  document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.once=false;scene.elapsed=reduce.matches?2900:0;drawScene(scene);});const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已回到开始，点击播放查看';document.dispatchEvent(new Event('archive-replay'));});
+  document.querySelector('#violence-replay')?.addEventListener('click',()=>{tracked.forEach(scene=>{scene.once=false;scene.elapsed=reduce.matches?2900:0;drawIfVisible(scene);});const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已回到开始，点击播放查看';document.dispatchEvent(new Event('archive-replay'));});
   toggle.addEventListener('click',()=>{paused=!paused;update();});
-  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=false;scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);scene.trail=[];drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent.replace('卡片','');const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已暂停，可拖动进度查看细节';});
+  document.addEventListener('input',event=>{if(!event.target.matches('[data-scene-progress]'))return;paused=true;update();const p=Number(event.target.value)/100;tracked.filter(scene=>scene.controls).forEach(scene=>{scene.once=false;scene.elapsed=Math.min(.999,p)*cycleFor(scene.key);drawScene(scene);});document.querySelector('[data-animation-action=motion]').textContent=toggle.textContent.replace('卡片','');const state=document.querySelector('[data-scene-state]');if(state)state.textContent='已暂停，可拖动进度查看细节';});
   document.addEventListener('click',event=>{
     const button=event.target.closest('[data-scene-once],[data-scene-nudge],[data-expand-scene]');if(!button)return;
     const dialog=document.querySelector('#detail-dialog');
     if(button.hasAttribute('data-expand-scene')){const expanded=dialog.classList.toggle('scene-expanded');button.setAttribute('aria-pressed',String(expanded));button.textContent=expanded?'恢复画面 ⤡':'放大画面 ⤢';requestAnimationFrame(()=>dialog.querySelector('.scene-workbench').scrollIntoView({block:'start',behavior:'instant'}));return;}
     if(button.hasAttribute('data-scene-nudge')){const slider=dialog.querySelector('[data-scene-progress]');slider.value=String(Math.max(0,Math.min(100,Number(slider.value)+Number(button.dataset.sceneNudge))));slider.dispatchEvent(new Event('input',{bubbles:true}));dialog.querySelector('[data-scene-state]').textContent='已暂停，可用进度条或 ±1% 查看细节';return;}
-    tracked.filter(scene=>scene.svg.closest('.detail-visual')).forEach(scene=>{scene.once=true;scene.elapsed=0;drawScene(scene);});
+    tracked.filter(scene=>scene.controls).forEach(scene=>{scene.once=true;scene.elapsed=0;drawScene(scene);});
     paused=false;update();dialog.querySelector('[data-scene-state]').textContent='正在单次播放，结束后停在结果画面';
   });
   document.addEventListener('visibilitychange',scheduleFrame);
-  reduce.addEventListener('change' ,()=>{paused=reduce.matches;tracked.forEach(item=>{item.elapsed=reduce.matches?2900:0;drawScene(item);});update();});
+  reduce.addEventListener('change' ,()=>{paused=reduce.matches;tracked.forEach(item=>{item.elapsed=reduce.matches?2900:0;drawIfVisible(item);});update();});
   const observer=new IntersectionObserver(items=>{
-    items.forEach(item=>item.target.classList.toggle('in-view',item.isIntersecting));
+    items.forEach(item=>{
+      item.target.classList.toggle('in-view',item.isIntersecting);
+      if(!item.isIntersecting)return;
+      const scene=tracked.find(scene=>scene.card===item.target);
+      if(scene)drawScene(scene);
+    });
     scheduleFrame();
   },{threshold:.1});
   cards.querySelectorAll('.violence-card').forEach(card=>observer.observe(card));
@@ -222,9 +265,9 @@
 
   function visibleScenes(){
     if(paused||document.hidden||root.classList.contains('ui-settings-open')||root.classList.contains('ai-help-open'))return [];
-    return tracked.filter(({svg})=>dialog.open
-      ? svg.closest('.detail-visual')
-      : svg.closest('.violence-card.in-view'));
+    return tracked.filter(scene=>dialog.open
+      ? scene.controls
+      : scene.card?.classList.contains('in-view'));
   }
   function scheduleFrame(){
     if(visibleScenes().length){
