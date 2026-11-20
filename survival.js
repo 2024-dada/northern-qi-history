@@ -177,13 +177,14 @@
   function updateHud() {
     if (!run) return;
     const weapon = run.player.meleeWeapon ? engine.MELEE_WEAPONS[run.player.meleeWeapon].label : '未拾取';
-    const next = `${run.layer}|${run.level}|${run.score}|${Math.ceil(run.player.hp)}|${run.player.hp}|${run.player.maxHp}|${weapon}|${run.player.bowAmmo}`;
+    const next = `${run.layer}|${run.level}|${run.score}|${Math.ceil(run.player.hp)}|${run.player.hp}|${run.player.maxHp}|${weapon}|${run.player.bowAmmo}|${run.talents.strength}`;
     if (next === lastHud) return;
     $('[data-hud-layer]').textContent = String(run.layer);
     $('[data-hud-level]').textContent = run.layer > 5 ? '5 · 进阶' : `${run.level} / 5`;
     $('[data-hud-score]').textContent = run.score.toLocaleString('zh-CN');
     $('[data-hud-weapon]').textContent = weapon;
     $('[data-hud-arrows]').textContent = String(run.player.bowAmmo);
+    $('[data-hud-strength]').hidden = !run.talents.strength;
     $('[data-hud-hp]').textContent = `${Math.ceil(run.player.hp)} / ${run.player.maxHp}`;
     $('[data-hud-health-fill]').style.width = `${Math.max(0, run.player.hp / run.player.maxHp * 100)}%`;
     $('[data-hud-health-fill]').style.background = run.player.hp / run.player.maxHp <= .3
@@ -215,6 +216,7 @@
     $('[data-hud-score]').textContent = '0';
     $('[data-hud-weapon]').textContent = '未拾取';
     $('[data-hud-arrows]').textContent = '0';
+    $('[data-hud-strength]').hidden = true;
     $('[data-hud-hp]').textContent = '100 / 100';
     $('[data-hud-health-fill]').style.width = '100%';
     lastHud = '';

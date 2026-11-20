@@ -14,6 +14,7 @@
     poleaxe: {label: '长柄斧', range: 96, damage: 25, cooldown: .88}
   });
   const ARROW_DAMAGE = Object.freeze({soldier: 17, general: 20, marshal: 25, emperor: 13});
+  const STRENGTH_MULTIPLIER = 1.3;
   const TALENT_WEIGHTS = Object.freeze({common: 45, rare: 30, epic: 20, legendary: 5});
   const HAZARD_PROFILES = Object.freeze({
     dog: {name: '纵犬', damagePerSecond: 9, sources: ['D23', 'D24']},
@@ -270,7 +271,7 @@
       bossKills: 0, marshalKills: 0, generalKills: 0, enemyKills: 0,
       upgrades: {speed: 0, dodge: 0}, talents: {
         maxHealth: 0, regeneration: 0, speed: 0, dodge: 0,
-        startSword: false, startBow: false, startPoleaxe: false,
+        startSword: false, startBow: false, startPoleaxe: false, strength: false,
         reviveCharges: 0, mutiny: false
       },
       upgradeChoices: [], nextAttackAt: 0, attackFlash: null, projectileEffects: [],
@@ -384,6 +385,7 @@
         {id: 'evasion', rarity: 'common', title: '身法', description: '闪避率 +5%，最高 50%。'}
       ],
       rare: [
+        ...(!run.talents.strength ? [{id: 'strength', rarity: 'rare', title: '力量', description: '本局近战和弓箭伤害 +30%。每局仅能选择一次。'}] : []),
         ...(!run.talents.startSword ? [{id: 'startSword', rarity: 'rare', title: '佩剑随行', description: '今后每层开始时自带宝剑。'}] : []),
         ...(!run.talents.startBow ? [{id: 'startBow', rarity: 'rare', title: '备箭', description: '今后每层开始时自带弓，并获得 10 支箭。'}] : [])
       ],
@@ -482,6 +484,7 @@
   function performAttack(run, now) {
     if (now < run.nextAttackAt) return;
     const targets = targetList(run);
+    const damageMultiplier = run.talents.strength ? STRENGTH_MULTIPLIER : 1;
     const melee = run.player.meleeWeapon ? MELEE_WEAPONS[run.player.meleeWeapon] : null;
     const inMeleeRange = melee ? targets.filter(target => distance(run.player, target) <= melee.range + target.radius) : [];
     if (inMeleeRange.length) {
@@ -494,7 +497,7 @@
       run.player.swingFacing = run.player.facing;
       run.player.swingRange = melee.range;
       for (const hit of inMeleeRange) {
-        damageTarget(run, hit, melee.damage, now);
+        damageTarget(run, hit, melee.damage * damageMultiplier, now);
         if (run.phase !== 'playing') return;
       }
       return;
@@ -513,7 +516,7 @@
     run.player.swingRange = closest.span;
     run.nextAttackAt = now + .72;
     run.projectileEffects.push({x1: run.player.x, y1: run.player.y, x2: target.x, y2: target.y, startedAt: now, until: now + .24});
-    damageTarget(run, target, ARROW_DAMAGE[target.type] || 13, now);
+    damageTarget(run, target, (ARROW_DAMAGE[target.type] || 13) * damageMultiplier, now);
   }
 
   function moveToward(entity, point, speed, dt) {
@@ -720,6 +723,7 @@
       run.talents.dodge += .05;
     } else if (choice.id === 'startSword') run.talents.startSword = true;
     else if (choice.id === 'startBow') run.talents.startBow = true;
+    else if (choice.id === 'strength') run.talents.strength = true;
     else if (choice.id === 'startPoleaxe') run.talents.startPoleaxe = true;
     else if (choice.id === 'revive') run.talents.reviveCharges++;
     else if (choice.id === 'mutiny') run.talents.mutiny = true;
@@ -739,7 +743,7 @@
       }
     } else {
       const choice = run.upgradeChoices.find(card => card.id === choiceId);
-      if (!choice) return false;
+      if (!choice || (choice.id === 'strength' && run.talents.strength)) return false;
       applyTalent(run, choice);
       run.level = 5;
     }

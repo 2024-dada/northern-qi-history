@@ -3,10 +3,10 @@
   const data=window.RESEARCH, dialog=document.querySelector('#detail-dialog'), body=document.querySelector('#dialog-body');
   const numberedSections=[
     ['.visit-guide > .eyebrow','1'],
-    ['.family-stories .eyebrow','2'],
-    ['.violence-gallery .eyebrow','3'],
-    ['.orientation > .eyebrow','4'],
-    ['.chapter-rail > .eyebrow','5'],
+    ['.family-stories .eyebrow','4'],
+    ['.violence-gallery .eyebrow','5'],
+    ['.orientation > .eyebrow','2'],
+    ['.chapter-rail > .eyebrow','3'],
     ['.exploration .explore-heading .eyebrow','6'],
     ['.sources > .eyebrow','7']
   ];
