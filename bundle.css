@@ -954,7 +954,9 @@ html[data-ui-theme=mural] body.has-sidebar {
 }
 
 @media screen {
-  html[data-ui-theme] :is(body.has-sidebar, body.qi-companion, body.lecture-page, body.survival-page) {
+  /* The mineral pigment theme uses the surfaces defined in theme.css and surfaces.css. */
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(body.has-sidebar, body.qi-companion),
+  html[data-ui-theme] :is(body.lecture-page, body.survival-page) {
     min-height:100vh;
     color:var(--ui-ink);
     background-color:var(--ui-bg);
@@ -968,24 +970,24 @@ html[data-ui-theme=mural] body.has-sidebar {
     background-attachment:fixed;
     background-blend-mode:normal;
   }
-  html[data-ui-theme=mural] body.has-sidebar { background-size:cover; }
-  html[data-ui-theme] body.has-sidebar .hero {
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) body.has-sidebar .hero {
     background:linear-gradient(90deg,
       color-mix(in srgb,var(--ui-surface) 93%,transparent),
       color-mix(in srgb,var(--ui-surface) 65%,transparent) 52%,transparent);
   }
   html[data-ui-theme] .hero-copy { position:relative; }
-  html[data-ui-theme] .court-hero picture {
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .court-hero picture {
     border-color:var(--ui-landscape-line);
     border-radius:var(--ui-radius);
     box-shadow:var(--ui-panel-shadow);
   }
 
-  html[data-ui-theme] :is(
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(
     .has-sidebar :is(.chapter,.orientation,.sources,.royal-dossier,.violence-gallery,.visit-guide,.family-stories,.case-preview),
     .qi-companion :is(.hero,.tl-hero,.tl-index-wrap,.legend,.story-card,.modal),
-    .lecture-page main,.survival-side-card
-  ) {
+    .lecture-page main
+  ),
+  html[data-ui-theme] .survival-side-card {
     background-color:var(--ui-surface);
     background-image:var(--ui-sheet-wash),var(--ui-landscape);
     background-repeat:no-repeat;
@@ -995,11 +997,11 @@ html[data-ui-theme=mural] body.has-sidebar {
     border-color:var(--ui-line);
     border-radius:var(--ui-radius);
   }
-  html[data-ui-theme] :is(
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(
     .has-sidebar :is(.chapter,.orientation,.sources,.royal-dossier,.violence-gallery,.visit-guide,.family-stories,.case-preview),
     .qi-companion :is(.hero,.tl-hero,.tl-index-wrap,.legend),.lecture-page main
   ) { border-block-start:2px solid var(--ui-landscape-line); }
-  html[data-ui-theme] .has-sidebar .site-header {
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .has-sidebar .site-header {
     background-color:var(--ui-surface);
     background-image:linear-gradient(180deg,var(--ui-sheet) 28%,var(--ui-sheet-edge)),var(--ui-landscape);
     background-repeat:no-repeat;
@@ -1008,7 +1010,8 @@ html[data-ui-theme=mural] body.has-sidebar {
     background-blend-mode:normal;
     border-inline-end-color:var(--ui-landscape-line);
   }
-  html[data-ui-theme] :is(.sidebar-game-link,.has-sidebar .exploration) {
+  html[data-ui-theme] .sidebar-game-link,
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .has-sidebar .exploration {
     background-color:var(--ui-explore);
     background-image:var(--ui-night-wash),var(--ui-landscape);
     background-repeat:no-repeat;
@@ -1019,12 +1022,12 @@ html[data-ui-theme=mural] body.has-sidebar {
     border-color:var(--ui-landscape-line);
   }
   html[data-ui-theme] .sidebar-game-link { background-size:cover,140% auto; }
-  html[data-ui-theme] .chapter :is(.section-task,.interpretation) { border-inline-start-color:var(--ui-secondary); }
-  html[data-ui-theme] .chapter .source-link { color:var(--ui-secondary); }
-  html[data-ui-theme] :is(.timeline,.network) { --gold:var(--ui-edge); }
-  html[data-ui-theme] :is(.chapter-rail .rail-progress,.chapter-rail nav a.active) { border-color:var(--ui-line); }
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .chapter :is(.section-task,.interpretation) { border-inline-start-color:var(--ui-secondary); }
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .chapter .source-link { color:var(--ui-secondary); }
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(.timeline,.network) { --gold:var(--ui-edge); }
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(.chapter-rail .rail-progress,.chapter-rail nav a.active) { border-color:var(--ui-line); }
 
-  html[data-ui-theme] :is(.survival-launch-card,.violence-card,.d-card,.case-summary-grid article,
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(.survival-launch-card,.violence-card,.d-card,.case-summary-grid article,
     .sources li,.visit-guide li a,.timeline-panel,.network-detail,.quote-panel,
     .comparison article,.scene-narration,.scene-controls-panel,.section-task,.reading-conclusion,
     .qi-companion :is(.node,.companion-context,.s-quote,.story-nav,.tl-index-card)) {
@@ -1054,7 +1057,8 @@ html[data-ui-theme=mural] body.has-sidebar {
     outline-offset:3px;
   }
 
-  html[data-ui-theme] :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog,.qi-companion .story-card,.qi-companion .modal) {
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog,.qi-companion .story-card,.qi-companion .modal),
+  html[data-ui-theme=mural] :is(.survival-page,.lecture-page) .ui-settings-dialog {
     background-color:var(--ui-surface);
     background-image:var(--ui-sheet-wash),var(--ui-landscape);
     background-repeat:no-repeat;
@@ -1065,18 +1069,18 @@ html[data-ui-theme=mural] body.has-sidebar {
     border-block-start-color:var(--ui-edge);
     border-radius:var(--ui-radius);
   }
-  html[data-ui-theme] :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog)::backdrop,
-  html[data-ui-theme] .qi-companion :is(.modal-mask,.story-overlay) {
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog)::backdrop,
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .qi-companion :is(.modal-mask,.story-overlay) {
     background:color-mix(in srgb,var(--ui-backdrop) 71%,transparent);
   }
-  html[data-ui-theme] #detail-dialog :is(blockquote,.source-state,.scene-narration,.scene-controls-panel),
-  html[data-ui-theme] .ai-help-dialog :is(.ai-help-header,.ai-help-form,.ai-help-message) {
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) #detail-dialog :is(blockquote,.source-state,.scene-narration,.scene-controls-panel),
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .ai-help-dialog :is(.ai-help-header,.ai-help-form,.ai-help-message) {
     background:linear-gradient(120deg,var(--ui-surface),var(--ui-tint));
     border-color:var(--ui-line);
   }
-  html[data-ui-theme] #detail-dialog :is(blockquote,.source-state,.scene-narration) { border-inline-start-color:var(--ui-secondary); }
-  html[data-ui-theme] .ai-help-dialog .ai-help-user { background:var(--ui-tint); }
-  html[data-ui-theme] .qi-companion :is(.companion-nav,.page-nav,.story-close,.modal-close),
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) #detail-dialog :is(blockquote,.source-state,.scene-narration) { border-inline-start-color:var(--ui-secondary); }
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .ai-help-dialog .ai-help-user { background:var(--ui-tint); }
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) .qi-companion :is(.companion-nav,.page-nav,.story-close,.modal-close),
   html[data-ui-theme] .lecture-page .actions a { background:var(--ui-surface);border-color:var(--ui-line); }
   :is(.lecture-nav,.survival-header-actions) {
     display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;
@@ -1092,7 +1096,12 @@ html[data-ui-theme=mural] body.has-sidebar {
     background-size:cover;
     background-position:right center;
   }
-  .ui-theme-preview[data-theme-preview=mural] { background-image:url("assets/mineral-paper.webp"); }
+  .ui-theme-preview[data-theme-preview=mural] {
+    background-image:radial-gradient(ellipse at 100% 0%,#c89a4866,transparent 60%),
+      radial-gradient(ellipse at 0% 100%,#24566240,transparent 62%),url("assets/mineral-paper.webp");
+    background-blend-mode:normal,normal,multiply;
+    background-color:#eedcba;
+  }
   .ui-theme-preview[data-theme-preview=paper] { background-image:url("assets/theme-ink-watchtower-thumb.webp"); }
   .ui-theme-preview[data-theme-preview=jade] { background-image:url("assets/theme-bamboo-river-thumb.webp"); }
   .ui-theme-preview[data-theme-preview=blue] { background-image:url("assets/theme-cobalt-ridges-thumb.webp"); }
@@ -1102,6 +1111,15 @@ html[data-ui-theme=mural] body.has-sidebar {
     width:12px;height:9px;border:1px solid #ffffff8c;border-radius:2px;
   }
   .ui-settings-dialog .ui-theme-choice { border-radius:var(--ui-radius); }
+  .ui-settings-dialog .ui-theme-choice:focus-within { outline:none; }
+  .ui-settings-dialog .ui-theme-choice:has(input:focus-visible) {
+    outline:2px solid var(--ui-accent);
+    outline-offset:2px;
+  }
+  .ui-settings-dialog .ui-theme-choice:has(input:checked:focus-visible) {
+    outline:none;
+    box-shadow:inset 4px 0 var(--ui-accent);
+  }
 
   html[data-ui-theme] body.survival-page {
     --survival-paper:var(--ui-bg); --survival-card:var(--ui-surface);
@@ -1156,12 +1174,13 @@ html[data-ui-theme=mural] body.has-sidebar {
   html[data-ui-theme] .survival-upgrades button:is(:hover,:focus-visible) { outline:2px solid var(--ui-accent);outline-offset:2px; }
 
   @media (max-width:700px) {
-    html[data-ui-theme] :is(body.has-sidebar,body.qi-companion,body.lecture-page,body.survival-page) {
+    html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(body.has-sidebar,body.qi-companion),
+    html[data-ui-theme] :is(body.lecture-page,body.survival-page) {
       background-attachment:scroll;
       background-size:100% min(760px,100svh),auto min(760px,100svh);
       background-position:center top,right top;
     }
-    html[data-ui-theme] body.has-sidebar .hero {
+    html[data-ui-theme]:where(:not([data-ui-theme=mural])) body.has-sidebar .hero {
       background:linear-gradient(180deg,var(--ui-sheet),color-mix(in srgb,var(--ui-bg) 49%,transparent));
     }
     html[data-ui-theme] .survival-heading { padding:14px; }
