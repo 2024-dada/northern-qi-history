@@ -48,9 +48,28 @@
       lastMessage = message;
     }
   };
-  const requestFullscreen = () => {
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen({navigationUI: 'hide'}).catch(() => {});
+  const gameFullscreenClass = 'is-game-fullscreen';
+  const fullscreenButton = $('[data-game-action="toggle-fullscreen"]');
+  const setFullscreenLayout = active => {
+    document.documentElement.classList.toggle(gameFullscreenClass, active);
+    fullscreenButton.textContent = active ? '退出全屏' : '全屏';
+  };
+  const requestFullscreen = async () => {
+    setFullscreenLayout(true);
+    if (document.fullscreenElement || !document.documentElement.requestFullscreen) {
+      if (!document.documentElement.requestFullscreen) setLive('浏览器未提供全屏接口，已切换到沉浸式全屏布局。');
+      return;
+    }
+    try {
+      await document.documentElement.requestFullscreen({navigationUI: 'hide'});
+    } catch {
+      setLive('浏览器拒绝原生全屏，已切换到沉浸式全屏布局。');
+    }
+  };
+  const exitFullscreen = async () => {
+    setFullscreenLayout(false);
+    if (document.fullscreenElement && document.exitFullscreen) {
+      try { await document.exitFullscreen(); } catch { /* The fallback layout has already been removed. */ }
     }
   };
   const showOnly = selected => {
@@ -126,7 +145,7 @@
       return;
     }
     const encounter = run.layer >= 5
-      ? '大将军带领三支分散的将领小队。'
+      ? `大将军带领三支分散的将领小队；皇帝半血时召来 ${run.layer - 1} 名将领。`
       : run.layer >= 3 ? '三支将领小队分散巡查。' : '三支追兵小队分散搜索。';
     $('[data-current-layer-note]').textContent = `第 ${run.layer} 层 · ${encounter}地图视野外的物件会隐藏。`;
     $('[data-current-hazards]').innerHTML = run.layerRecords.map(record => {
@@ -145,23 +164,40 @@
 
   function updateHud() {
     if (!run) return;
-    const next = `${run.layer}|${run.level}|${run.score}|${Math.ceil(run.player.hp)}|${run.player.hp}`;
+    const weapon = run.player.meleeWeapon ? engine.MELEE_WEAPONS[run.player.meleeWeapon].label : '未拾取';
+    const next = `${run.layer}|${run.level}|${run.score}|${Math.ceil(run.player.hp)}|${run.player.hp}|${run.player.maxHp}|${weapon}|${run.player.bowAmmo}`;
     if (next === lastHud) return;
     $('[data-hud-layer]').textContent = String(run.layer);
-    $('[data-hud-level]').textContent = `${run.level} / 5`;
+    $('[data-hud-level]').textContent = run.layer > 5 ? '5 · 进阶' : `${run.level} / 5`;
     $('[data-hud-score]').textContent = run.score.toLocaleString('zh-CN');
-    $('[data-hud-hp]').textContent = `${Math.ceil(run.player.hp)} / 100`;
-    $('[data-hud-health-fill]').style.width = `${Math.max(0, run.player.hp)}%`;
-    $('[data-hud-health-fill]').style.background = run.player.hp <= 30
+    $('[data-hud-weapon]').textContent = weapon;
+    $('[data-hud-arrows]').textContent = String(run.player.bowAmmo);
+    $('[data-hud-hp]').textContent = `${Math.ceil(run.player.hp)} / ${run.player.maxHp}`;
+    $('[data-hud-health-fill]').style.width = `${Math.max(0, run.player.hp / run.player.maxHp * 100)}%`;
+    $('[data-hud-health-fill]').style.background = run.player.hp / run.player.maxHp <= .3
       ? 'linear-gradient(90deg,#a34e40,#d2765a)'
       : 'linear-gradient(90deg,#93a273,#d6b878)';
     lastHud = next;
+  }
+
+  function renderUpgradeChoices() {
+    const choices = $('[data-upgrade-choices]');
+    if (!run?.upgradeChoices?.length) {
+      choices.replaceChildren();
+      return;
+    }
+    choices.innerHTML = run.upgradeChoices.map(choice => `<button type="button" data-game-upgrade="${escapeHtml(choice.id)}" class="talent-${escapeHtml(choice.rarity)}">
+      <small>${choice.rarity === 'basic' ? '基础加成' : ({common: '普通天赋', rare: '稀有天赋', epic: '史诗天赋', legendary: '传说天赋'}[choice.rarity] || '')}</small>
+      <strong>${escapeHtml(choice.title)}</strong><span>${escapeHtml(choice.description)}</span>
+    </button>`).join('');
   }
 
   function resetHud() {
     $('[data-hud-layer]').textContent = '—';
     $('[data-hud-level]').textContent = '— / 5';
     $('[data-hud-score]').textContent = '0';
+    $('[data-hud-weapon]').textContent = '未拾取';
+    $('[data-hud-arrows]').textContent = '0';
     $('[data-hud-hp]').textContent = '100 / 100';
     $('[data-hud-health-fill]').style.width = '100%';
     lastHud = '';
@@ -189,6 +225,7 @@
     stickVector = {x: 0, y: 0};
     $('[data-game-action="pause"]').disabled = false;
     showOnly(null);
+    renderUpgradeChoices();
     lastFoundCount = 0;
     lastMessage = '';
     updateHud();
@@ -234,11 +271,12 @@
     pressed.clear();
     stickVector = {x: 0, y: 0};
     $('[data-game-action="pause"]').disabled = true;
+    renderUpgradeChoices();
     showOnly('start');
     resetHud();
     renderLayerRecords();
     renderRecordIndex();
-    setLive('输入名称后开始。WASD 控制移动；拾取武器后会自动攻击近处敌人。');
+    setLive('输入名称后开始。WASD 控制移动；近战自动挥击，弓箭自动瞄准。');
   }
 
   function moveVector() {
@@ -560,16 +598,32 @@
     const lift = Math.sin(time * 3 + weapon.x) * 3;
     ctx.save();
     ctx.translate(weapon.x, weapon.y + lift);
-    ctx.rotate(-Math.PI / 4);
     ctx.fillStyle = 'rgba(221,196,137,.15)';
-    ctx.fillRect(-18, -18, 36, 36);
-    ctx.fillStyle = '#d5c18b';
-    ctx.fillRect(-2, -20, 4, 25);
-    ctx.fillStyle = '#b77d57';
-    ctx.fillRect(-2, 5, 4, 9);
-    ctx.fillRect(-7, 3, 14, 3);
+    ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
+    if (weapon.type === 'bow') {
+      ctx.strokeStyle = '#d5c18b'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(-3, 0, 12, -1.2, 1.2); ctx.stroke();
+      ctx.strokeStyle = '#e1d4b4'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(1, -11); ctx.lineTo(1, 11); ctx.stroke();
+    } else {
+      ctx.rotate(-Math.PI / 4);
+      const size = weapon.type === 'poleaxe' ? 1.35 : weapon.type === 'longSword' ? 1.15 : 1;
+      ctx.scale(size, size);
+      ctx.fillStyle = '#d5c18b';
+      ctx.fillRect(-2, -20, 4, 25);
+      ctx.fillStyle = '#b77d57';
+      ctx.fillRect(-2, 5, 4, 9);
+      ctx.fillRect(-7, 3, 14, 3);
+      if (weapon.type === 'poleaxe') {
+        ctx.fillStyle = '#c5b27d'; ctx.beginPath();
+        ctx.moveTo(-3, -16); ctx.lineTo(-12, -12); ctx.lineTo(-10, -6); ctx.lineTo(-2, -9);
+        ctx.moveTo(3, -18); ctx.lineTo(11, -22); ctx.lineTo(10, -12); ctx.lineTo(3, -9);
+        ctx.fill();
+      }
+    }
     ctx.restore();
-    text('武器', weapon.x, weapon.y + 27 + lift, '#ead7aa', 10, 'center', 600);
+    const label = weapon.type === 'bow' ? `箭 ×${weapon.arrows}` : engine.MELEE_WEAPONS[weapon.type].label;
+    text(label, weapon.x, weapon.y + 27 + lift, '#ead7aa', 9, 'center', 600);
   }
 
   function drawHealingItem(item, time) {
@@ -605,8 +659,8 @@
     ctx.translate(enemy.x, enemy.y + Math.sin(time * 2 + enemy.x) * .8);
     if (hurt && Math.floor(time * 30) % 2) ctx.globalAlpha = .45;
     circle(0, 3, enemy.radius + 4, 'rgba(5,10,8,.28)', null);
-    const bodyColor = enemy.type === 'marshal' ? '#b28b4e' : enemy.type === 'general' ? '#865044' : '#53675c';
-    const trimColor = enemy.type === 'soldier' ? '#b9aa83' : '#dfc17f';
+    const bodyColor = enemy.friendly ? '#527e69' : enemy.type === 'marshal' ? '#b28b4e' : enemy.type === 'general' ? '#865044' : '#53675c';
+    const trimColor = enemy.friendly ? '#9bd7a7' : enemy.type === 'soldier' ? '#b9aa83' : '#dfc17f';
     ctx.beginPath();
     ctx.moveTo(-enemy.radius, enemy.radius + 4);
     ctx.lineTo(-enemy.radius + 4, -2);
@@ -638,8 +692,65 @@
       ctx.lineTo(0, -enemy.radius - 20);
       ctx.stroke();
     }
+    const bladeLength = enemy.type === 'marshal' ? 24 : enemy.type === 'general' ? 20 : 16;
+    ctx.save();
+    ctx.rotate(enemy.facing || 0);
+    ctx.strokeStyle = enemy.friendly ? '#b8e2a6' : '#d7c798';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(4, 4); ctx.lineTo(bladeLength, 4); ctx.stroke();
+    ctx.restore();
     ctx.restore();
     drawHealthBar(enemy, enemy.type === 'soldier' ? 36 : enemy.type === 'general' ? 50 : 66, enemy.label);
+  }
+
+  function drawSwingTelegraph(actor, time, color) {
+    if (actor.swingStartedAt === null || actor.swingStartedAt === undefined) return;
+    const elapsed = Math.max(0, time - actor.swingStartedAt);
+    const windup = actor.swingWindup || .025;
+    const progress = Math.min(1, elapsed / (windup + .2));
+    const facing = actor.swingFacing ?? actor.facing ?? 0;
+    const span = Math.PI * (.22 + progress * .16);
+    const radius = actor.swingRange || actor.attackRange || 48;
+    ctx.save();
+    ctx.globalAlpha = elapsed < windup ? .55 : Math.max(.16, .72 - (elapsed - windup) * 2.2);
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(actor.x, actor.y);
+    ctx.arc(actor.x, actor.y, radius, facing - span, facing + span);
+    ctx.closePath();
+    ctx.fill();
+    ctx.setLineDash([4, 5]);
+    ctx.beginPath(); ctx.arc(actor.x, actor.y, radius, facing - span, facing + span); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawWeaponRadius(player) {
+    const weapon = player.meleeWeapon && engine.MELEE_WEAPONS[player.meleeWeapon];
+    if (!weapon) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(232,207,146,.2)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 7]);
+    circle(player.x, player.y, weapon.range, null, ctx.strokeStyle, 1);
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawArrowEffects(time) {
+    for (const arrow of run.projectileEffects) {
+      const progress = Math.min(1, (time - arrow.startedAt) / (arrow.until - arrow.startedAt));
+      const x = arrow.x1 + (arrow.x2 - arrow.x1) * progress;
+      const y = arrow.y1 + (arrow.y2 - arrow.y1) * progress;
+      const angle = Math.atan2(arrow.y2 - arrow.y1, arrow.x2 - arrow.x1);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+      ctx.strokeStyle = 'rgba(248,226,167,.94)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(9, 0); ctx.stroke();
+      ctx.fillStyle = '#f2d18b'; ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(5, -3); ctx.lineTo(5, 3); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
   }
 
   function drawFog() {
@@ -697,11 +808,11 @@
     ctx.fillStyle = '#d2b76e'; ctx.fill();
     ctx.restore();
     drawHealthBar(boss, 74, '皇帝');
-    if (run.player.hasWeapon) {
+    if (boss.phase === 2) {
       ctx.save();
-      ctx.strokeStyle = `rgba(235,208,145,${.4 + Math.sin(time * 7) * .18})`;
+      ctx.strokeStyle = `rgba(222,126,92,${.36 + Math.sin(time * 7) * .18})`;
       ctx.lineWidth = 2;
-      circle(boss.x, boss.y, 39, null, ctx.strokeStyle, 2);
+      circle(boss.x, boss.y, 38, null, ctx.strokeStyle, 2);
       ctx.restore();
     }
   }
@@ -720,6 +831,18 @@
     circle(0, -14, 7, '#d4b995', '#26352e', 1);
     ctx.beginPath(); ctx.moveTo(-7, -18); ctx.lineTo(0, -27); ctx.lineTo(7, -18); ctx.closePath();
     ctx.fillStyle = '#394b40'; ctx.fill();
+    if (player.meleeWeapon) {
+      const bladeLength = player.meleeWeapon === 'poleaxe' ? 25 : player.meleeWeapon === 'longSword' ? 22 : 18;
+      ctx.save(); ctx.rotate(player.facing || 0);
+      ctx.strokeStyle = '#e4d3a1'; ctx.lineWidth = 2.7;
+      ctx.beginPath(); ctx.moveTo(5, 2); ctx.lineTo(bladeLength, 2); ctx.stroke();
+      ctx.restore();
+    } else if (player.bowAmmo > 0) {
+      ctx.save(); ctx.rotate(player.facing || 0);
+      ctx.strokeStyle = '#d9bf82'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(12, 0, 9, -1.15, 1.15); ctx.stroke();
+      ctx.restore();
+    }
     circle(0, -3, 27, null, hurt ? 'rgba(224,126,93,.8)' : 'rgba(221,201,151,.4)', 1.2);
     ctx.restore();
     text('被囚者', player.x, player.y + 33, '#e2dbc7', 10, 'center', 600);
@@ -737,9 +860,17 @@
     for (const context of run.contexts) drawContext(context, time);
     for (const weapon of run.weaponPickups) drawWeapon(weapon, time);
     for (const item of run.healingItems) drawHealingItem(item, time);
+    drawWeaponRadius(run.player);
+    for (const enemy of run.enemies) {
+      if (!enemy.alive) continue;
+      drawSwingTelegraph(enemy, time, enemy.friendly ? 'rgba(146,220,157,.32)' : 'rgba(225,124,92,.3)');
+    }
+    if (run.emperor.alive) drawSwingTelegraph(run.emperor, time, 'rgba(224,95,72,.36)');
+    drawSwingTelegraph(run.player, time, 'rgba(237,209,143,.32)');
     for (const enemy of run.enemies) drawEnemy(enemy, time);
     drawEmperor(time);
     drawPlayer(time);
+    drawArrowEffects(time);
     if (run.attackFlash && run.attackFlash.until > run.elapsed) {
       ctx.save();
       ctx.strokeStyle = `rgba(234,211,151,${Math.max(.25, (run.attackFlash.until - run.elapsed) / .16)})`;
@@ -770,6 +901,7 @@
       if (run.layer !== previousLayer || run.foundRecords.length !== lastFoundCount) renderLayerRecords();
       if (run.message) setLive(run.message);
       if (run.phase === 'upgrade') {
+        renderUpgradeChoices();
         showOnly('upgrade');
         $('[data-game-action="pause"]').disabled = false;
       } else if (run.phase === 'over') endGame();
@@ -782,7 +914,11 @@
     if (action === 'start') startGame();
     if (action === 'pause') pauseGame();
     if (action === 'resume') resumeGame();
-    if (action === 'exit-fullscreen' && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    if (action === 'toggle-fullscreen') {
+      if (document.documentElement.classList.contains(gameFullscreenClass)) exitFullscreen();
+      else requestFullscreen();
+    }
+    if (action === 'exit-fullscreen') exitFullscreen();
     if (action === 'restart' || action === 'again') resetToReady();
     if (action === 'clear-rank') {
       if (!rankRows.length || !window.confirm('清空此浏览器保存的本机排行榜？')) return;
@@ -793,13 +929,16 @@
     }
     if (target?.dataset.gameUpgrade && run) {
       const selected = target.dataset.gameUpgrade;
+      const selectedTitle = run.upgradeChoices.find(choice => choice.id === selected)?.title
+        || (selected === 'speed' ? '移速提升' : '闪避提升');
       if (!engine.chooseUpgrade(run, selected)) return;
       mode = 'playing';
       showOnly(null);
       updateHud();
       renderLayerRecords();
+      renderUpgradeChoices();
       lastMessage = '';
-      setLive(`${selected === 'speed' ? '移速' : '闪避'}加成已生效。${run.message}`);
+      setLive(`${selectedTitle}已生效。${run.message}`);
       canvas.focus({preventScroll: true});
     }
   }
@@ -809,6 +948,10 @@
     if (action) handleAction(action.dataset.gameAction, action);
     const upgrade = event.target.closest('[data-game-upgrade]');
     if (upgrade) handleAction('', upgrade);
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) setFullscreenLayout(false);
   });
 
   nameInput.addEventListener('input', () => nameInput.setCustomValidity(''));
