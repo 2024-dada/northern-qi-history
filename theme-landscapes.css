@@ -18,6 +18,10 @@
   --ui-map-top: #3a352c;
   --ui-map-bottom: #22272a;
   --ui-map-trim: #ddba7c;
+  --ui-ornament: linear-gradient(90deg,#8a352d 21%,#c89a48 21% 48%,#245662 48% 78%,transparent);
+  --ui-ornament-size: 100% 3px;
+  --ui-seal-corner: 3px;
+  --ui-seal-trim: inset 0 0 0 1px #ffdc9877;
 }
 
 :root[data-ui-theme=paper] {
@@ -28,6 +32,10 @@
   --ui-landscape:url("assets/theme-ink-watchtower.webp");
   --ui-edge:#8c6b51; --ui-secondary:#77573f; --ui-radius:2px;
   --ui-map-top:#423b32; --ui-map-bottom:#272421; --ui-map-trim:#ddc7a4;
+  --ui-ornament:linear-gradient(90deg,#493a2c,#8c6b51 56%,transparent);
+  --ui-ornament-size:100% 2px;
+  --ui-seal-corner:1px;
+  --ui-seal-trim:inset 0 -2px #43271950;
 }
 
 :root[data-ui-theme=jade] {
@@ -38,6 +46,10 @@
   --ui-landscape:url("assets/theme-bamboo-river.webp");
   --ui-edge:#527d56; --ui-secondary:#286546; --ui-radius:12px;
   --ui-map-top:#253d31; --ui-map-bottom:#12271f; --ui-map-trim:#b7d097;
+  --ui-ornament:repeating-linear-gradient(100deg,#286546 0 11px,#78a16b 11px 14px,transparent 14px 17px);
+  --ui-ornament-size:100% 3px;
+  --ui-seal-corner:9px;
+  --ui-seal-trim:inset 0 0 0 2px #c9e7c85c;
 }
 
 :root[data-ui-theme=blue] {
@@ -48,6 +60,10 @@
   --ui-landscape:url("assets/theme-cobalt-ridges.webp");
   --ui-edge:#547dab; --ui-secondary:#365f95; --ui-radius:8px;
   --ui-map-top:#293e56; --ui-map-bottom:#151f36; --ui-map-trim:#b1cbe7;
+  --ui-ornament:linear-gradient(#365f95 0 30%,transparent 30% 69%,#7298c1 69% 100%);
+  --ui-ornament-size:100% 5px;
+  --ui-seal-corner:3px 11px;
+  --ui-seal-trim:inset 0 0 0 1px #eaf0fa8c,inset 0 0 0 3px #d6e5fb35;
 }
 
 :root[data-ui-theme=night] {
@@ -60,6 +76,10 @@
   --ui-sheet:color-mix(in srgb,var(--ui-surface) 96%,transparent);
   --ui-sheet-edge:color-mix(in srgb,var(--ui-tint) 88%,transparent);
   --ui-map-top:#202942; --ui-map-bottom:#101927; --ui-map-trim:#a7b5d6;
+  --ui-ornament:radial-gradient(circle at center,#ebbd84 0 1.2px,transparent 1.7px);
+  --ui-ornament-size:10px 7px;
+  --ui-seal-corner:50%;
+  --ui-seal-trim:inset 0 0 0 2px #32283a66;
 }
 
 @media screen {
@@ -281,6 +301,42 @@
   html[data-ui-theme] .survival-upgrades :is(.talent-basic,.talent-common) { background:var(--ui-tint);border-color:var(--ui-landscape-line); }
   html[data-ui-theme] .survival-upgrades :is(.talent-basic,.talent-common) :is(strong,small,span) { color:var(--ui-ink); }
   html[data-ui-theme] .survival-upgrades button:is(:hover,:focus-visible) { outline:2px solid var(--ui-accent);outline-offset:2px; }
+
+  /* Keep the motifs on short rules and panel edges, away from reading text. */
+  html[data-ui-theme] :is(
+    .hero-copy > .eyebrow,.chapter > .eyebrow,.sources > .eyebrow,
+    .sidebar-game h2,.survival-heading .survival-eyebrow,.qi-companion .hero .subtitle,
+    .lecture-page h1,.ui-settings-heading h2,.ai-help-header h2,.scene-heading .eyebrow
+  )::after {
+    content:"";
+    display:inline-block;
+    width:clamp(32px,6vw,68px);
+    height:8px;
+    margin-inline-start:10px;
+    vertical-align:middle;
+    background:var(--ui-ornament) left center / var(--ui-ornament-size) repeat-x;
+    mask-image:linear-gradient(90deg,#000 70%,transparent);
+    pointer-events:none;
+  }
+  html[data-ui-theme] :is(.has-sidebar .chapter,.sidebar-game-link,.survival-side-card) {
+    position:relative;
+  }
+  html[data-ui-theme] :is(.has-sidebar .chapter,.sidebar-game-link,.survival-side-card)::before {
+    position:absolute;
+    content:"";
+    inset-block-start:2px;
+    inset-inline-end:12px;
+    width:clamp(34px,6vw,72px);
+    height:8px;
+    background:var(--ui-ornament) left center / var(--ui-ornament-size) repeat-x;
+    mask-image:linear-gradient(270deg,#000 45%,transparent);
+    opacity:.76;
+    pointer-events:none;
+  }
+  html[data-ui-theme] :is(.section-index,.sidebar-game-mark,.survival-brand-mark) {
+    border-radius:var(--ui-seal-corner);
+    box-shadow:var(--ui-seal-trim);
+  }
 
   @media (max-width:700px) {
     html[data-ui-theme]:where(:not([data-ui-theme=mural])) :is(body.has-sidebar,body.qi-companion),

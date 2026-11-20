@@ -130,13 +130,9 @@
   }
 
   function drawScorpions(ctx, time, {active}) {
-    const positions = [[-32, -29], [5, -33], [37, -18], [-43, 2], [-11, 1],
-      [23, 9], [-34, 31], [2, 35], [37, 31]];
-    for (let i = 0; i < positions.length; i++) {
-      const [x, y] = positions[i];
-      drawScorpion(ctx, x + Math.sin(time * 1.3 + i) * 3, y, i === 4 ? 1 : .72,
-        i % 2 ? -.46 : .28, time + i * .19, active);
-    }
+    const drift = Math.sin(time * 1.2) * 3;
+    drawScorpion(ctx, -31 + drift, 15, .82, -.12, time, active);
+    drawScorpion(ctx, 32 - drift, -14, .76, Math.PI + .18, time + .38, active);
   }
 
   function drawFire(ctx, time, {active, warning}) {
