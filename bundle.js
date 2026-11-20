@@ -1706,3 +1706,19 @@ if('IntersectionObserver'in window){
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && current) { const b = current; close(); b.focus(); } });
   window.addEventListener('resize', close);
 })();
+
+/* Estimated reading time for each case (about 400 Chinese characters a minute). */
+(() => {
+  'use strict';
+  for (const chapter of document.querySelectorAll('.has-sidebar .chapter')) {
+    const eyebrow = chapter.querySelector(':scope > .eyebrow');
+    if (!eyebrow || eyebrow.querySelector('.qi-readtime')) continue;
+    const chars = (chapter.innerText || chapter.textContent || '').replace(/\s+/g, '').length;
+    const minutes = Math.max(1, Math.round(chars / 400));
+    const chip = document.createElement('span');
+    chip.className = 'qi-readtime';
+    chip.textContent = `约 ${minutes} 分钟`;
+    chip.setAttribute('aria-label', `本节预计阅读约 ${minutes} 分钟`);
+    eyebrow.append(chip);
+  }
+})();

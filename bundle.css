@@ -1898,3 +1898,19 @@ html[data-ui-theme]:where(:not([data-ui-theme=mural])) .has-sidebar .glossary {
 .qi-person { text-decoration-style:solid; text-decoration-color:color-mix(in srgb,var(--ui-accent) 32%,transparent); text-decoration-thickness:1px; }
 .qi-term-pop em { display:block; font-style:normal; font-size:12.5px; letter-spacing:.04em; color:var(--ui-accent); margin:-2px 0 6px; }
 .qi-term-pop.is-person { border-top-color:var(--paper-gold,#ae7942); }
+
+/* ---------- 11. Footer ---------- */
+.has-sidebar .qi-footer { display:block; margin:28px 0 0; padding:clamp(26px,4vw,44px) clamp(20px,5vw,60px) 22px; border-top:1px solid var(--ui-line); background:color-mix(in srgb,var(--ui-explore) 94%,transparent); color:var(--ui-explore-muted); font-size:13.5px; line-height:1.85; }
+.qi-footer-grid { display:grid; grid-template-columns:1.4fr repeat(3,minmax(0,1fr)); gap:26px clamp(20px,3vw,40px); max-width:1180px; margin:0 auto; }
+.qi-footer h2 { margin:0 0 10px; font:600 13px/1.4 var(--sans); letter-spacing:.14em; color:var(--ui-explore-ink); }
+.qi-footer ul { margin:0; padding:0; list-style:none; display:grid; gap:6px; }
+.qi-footer a { color:var(--ui-explore-ink); text-decoration:underline; text-decoration-color:color-mix(in srgb,var(--ui-explore-ink) 35%,transparent); text-underline-offset:3px; }
+.qi-footer a:hover { text-decoration-color:currentColor; }
+.qi-footer-brand { display:flex; align-items:center; gap:12px; margin:0 0 10px; font-family:var(--serif); font-size:22px; color:var(--ui-explore-ink); letter-spacing:.08em; }
+.qi-footer-brand .seal { width:34px; height:38px; font-size:20px; }
+.qi-footer-base { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; max-width:1180px; margin:26px auto 0; padding-top:14px; border-top:1px solid color-mix(in srgb,var(--ui-explore-muted) 25%,transparent); font-size:12.5px; }
+@media (max-width:900px) { .qi-footer-grid { grid-template-columns:1fr 1fr; } }
+@media (max-width:560px) { .qi-footer-grid { grid-template-columns:1fr; } }
+
+/* ---------- 12. Reading time chip ---------- */
+.qi-readtime { display:inline-flex; align-items:center; gap:5px; margin-left:10px; padding:1px 9px; border:1px solid color-mix(in srgb,var(--ui-line) 90%,transparent); border-radius:999px; font-size:11.5px; letter-spacing:.04em; color:var(--ui-muted); vertical-align:2px; white-space:nowrap; }
