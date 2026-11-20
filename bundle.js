@@ -415,6 +415,125 @@ window.RESEARCH = {
   document.querySelector('#sources').insertAdjacentHTML('beforeend',`<details class="d-critique"><summary>阅读边界：评价、心理与数字怎样判断？</summary><div><p><strong>“禽兽王朝”与残暴评分：</strong>可研究其传播与评价方式，但材料未提供可追溯的早期命名出处或评分尺度；不作为历史排名。</p><p><strong>“全员未活过40岁”：</strong>不能覆盖高欢及宗室整体。帝王、宗室范围和史书年龄口径需分开，不能拿选中的短寿者代表全家族。</p><p><strong>“遗传性精神疾病”“智商退化”：</strong>材料没有临床和遗传证据。童年断乱丝的故事也不能换算成智商测量。史书中的暴虐、饮酒或奇异行为不足以作现代疾病诊断。</p><p><strong>高绰失位导致扭曲：</strong>庶嫡排序有记载，心理因果属于今人推断；模仿、奖宠和追责是否失效更需要逐案追踪。</p><p><strong>毒箭射死数百人：</strong>已读本纪只支持实际射人的描述，材料的毒箭、人数尚待证据。高殷“毒杀”也不在核定前绘成饮药。</p><p><strong>人数、年龄与女性叙事：</strong>家属受害、实际死刑与死刑威胁分开；八岁等史书年龄不直接换成周岁。李祖娥的存活和受害经历保留，不以冯小怜或胡太后的私德替代军事与政治解释。</p><p><strong>来源性质：</strong>识典是原典入口；新闻、专栏和成语故事是线索或后世解释。材料未给这些文章完整书目信息，本页不将它们算作独立史料。</p></div></details>`);
 })();
 ;
+/* ===== event-readings.js ===== */;
+(() => {
+  'use strict';
+
+  const source = (title, chapter) => ({title, url: `https://www.shidianguji.com/book/${chapter}`});
+  const refs = {
+    wei12: source('《魏书》卷十二 · 孝静纪', 'LS0010/chapter/LS0010_18'),
+    qi3: source('《北齐书》卷三 · 文襄纪', 'LS0011/chapter/LS0011_7'),
+    qi3Supplement: {title:'《北齐书》卷三 · 文襄纪（辅助录文）',url:'https://zh.wikisource.org/wiki/北齊書/卷3'},
+    qi4: source('《北齐书》卷四 · 文宣纪', 'LS0011/chapter/LS0011_9'),
+    qi6: source('《北齐书》卷六 · 孝昭纪', 'LS0011/chapter/LS0011_13'),
+    qi10: source('《北齐书》卷十 · 高祖十一王', 'CADAL01027542/chapter/1l47vy81dut6e'),
+    qi11Yu: source('《北齐书》卷十一 · 河南康舒王孝瑜', 'LS0011/chapter/LS0011_40'),
+    qi11Wan: source('《北齐书》卷十一 · 河间王孝琬', 'LS0011/chapter/LS0011_42'),
+    qi11Gong: source('《北齐书》卷十一 · 兰陵武王孝瓘', 'LS0011/chapter/LS0011_43'),
+    qi12: source('《北齐书》卷十二 · 南阳王绰、乐陵王百年等', 'HY2035/chapter/1knzr0dqogf1i'),
+    qi12Yan: source('《北齐书》卷十二 · 琅邪王俨', 'LS0011/chapter/LS0011_53'),
+    qi17: source('《北齐书》卷十七 · 斛律光传', 'NGJ8924119990125431003/chapter/1lq09on9r1hye'),
+    qi24: source('《北齐书》卷二十四 · 杜弼传', 'LS0011/chapter/LS0011_122'),
+    qi30: source('《北齐书》卷三十 · 高德政传', 'LS0011/chapter/LS0011_155'),
+    qi50: {title:'《北齐书》卷五十 · 和士开传（辅助录文）',url:'https://zh.wikisource.org/wiki/北齊書/卷50#和士開'},
+    north7: source('《北史》卷七 · 齐本纪中', 'LS0015/chapter/LS0015_9'),
+    north8: source('《北史》卷八 · 齐本纪下', 'HY2039/chapter/1kp8q1nrqihq7'),
+    north14: source('《北史》卷十四 · 后妃下', 'HY2039/chapter/1kp8q24mohnb3'),
+    tong171: source('《资治通鉴》卷一百七十一 · 陈纪五', 'SBCK029/chapter/SBCK029_548'),
+  };
+
+  // Each first string is a self-contained modern reading; the remaining
+  // entries are short, individually attributable excerpts from the records.
+  const readings = {
+    E01: ['东魏末年，孝静帝受掌握实权的高澄控制。荀济、元大器、元瑾等人准备在宫中挖地道，暗中对付高澄。守门人听见动静，向高澄告发，高澄带兵入宫。几天后，孝静帝被关在含章堂，大器、元瑾等人被处死。',
+      ['wei12','乃与华山王大器、元瑾密谋，于宫内为山，而作地道向北城。'],['wei12','居三日，幽帝于含章堂，大器、瑾等皆见烹于市。']],
+    E02: ['高德政曾力劝高洋接受东魏禅让，是北齐建立时的旧臣。后来高德政多次劝谏，与高洋的关系逐渐恶化。高洋先到他家责问，随后因在宅中发现大批财物，再次追问来源，最后命人将他拖出斩杀。妻子出来行礼求见，也和儿子伯坚一起遇害。',
+      ['qi30','德政又披心固请。'],['qi30','我府藏犹无此物。'],['qi30','遂曳出斩之。时妻出拜，又斩之，并其子祭酒伯坚。']],
+    E03: ['杜弼曾是高洋的旧臣。到天保十年夏，传记记高洋饮酒时想起杜弼过去被指责的事，派人到他任职的州将他斩杀。高洋随后反悔，又通过驿站派人追赶传令，但已经来不及。',
+      ['qi24','上因饮酒，积其愆失，遂遣就州斩之，时年六十九。既而悔之，驿追不及。']],
+    E04: ['薛嫔曾受到北齐皇帝高洋宠爱，后来却被高洋杀死。《北史》本纪说，高洋突然怀疑她曾与宗室高岳有私情，便将她斩首；同书后妃传则写，高洋先杀了她的姐姐，当时薛嫔已经怀孕，等她生产后才将她杀害。两篇都写到薛嫔被杀，对事情是否突然发生的叙述不同。',
+      ['north7','忽意其经与高岳私通，无故斩首','本纪'],['north14','薛嫔当时有娠，过产亦从戮。','后妃传']],
+    E05: ['河南王高孝瑜遭近臣指责，引起叔父高湛猜忌。一次太子婚礼上，高孝瑜私下与一位宫中女子说话，高湛大怒，强迫他喝下大量酒，又命娄子彦将他用车送走。《北齐书》记他途中烦闷，到西华门投水身亡；不同录文对车中是否用毒有差异。',
+      ['qi11Yu','使娄子彦载以出，槛之于车。至西华门，烦热躁闷，投水而绝。']],
+    E06: ['河间王高孝琬对掌权近臣不满，曾扎草人射箭。和士开、祖珽把草人说成影射君主，搜查王府时发现的兵器也被高湛当成谋反证据。高湛下令打他，高孝琬仍照亲属关系称高湛为叔，高湛更加恼怒。传记记高孝琬最终因双腿受伤而死。',
+      ['qi11Wan','又怨执政，为草人而射之。'],['qi11Wan','帝愈怒，折其两胫而死，瘗诸西山。']],
+    E07: ['琅邪王高俨是北齐皇帝高纬的弟弟。他假传命令杀了权臣和士开，又率兵守在宫门；冲突平息后，近臣仍劝高纬除掉他，祖珽还引用古代处置宗室的先例。高纬以清早同去打猎为由，夜间召见高俨，近臣刘桃枝在宫中将高俨杀死。',
+      ['qi12Yan','臣为是矫诏诛之。'],['qi12Yan','珽称周公诛管叔，季友酖庆父。帝纳其言。'],['qi12Yan','至大明宫，鼻血满面，立杀之，时年十四。']],
+    E08: ['斛律光是北齐掌兵的名将，与朝中的祖珽、穆提婆有冲突。北周散布影射斛律光的歌谣，祖珽等人又用它向高纬进言，高纬最终决定处置这位将领。宫中先赐马，引他入宫谢恩；斛律光到了凉风堂，刘桃枝从后方将他杀死，随后朝廷发布诏书称他谋反。',
+      ['tong171','周勋州刺史韦孝宽密为谣言曰：百升飞上天，明月照长安。'],['qi17','光至，引入凉风堂，刘桃枝自后拉而杀之，时年五十八。']],
+    E09: ['兰陵王高长恭又叫高孝瓘，曾为北齐立下军功。他把冒险出战说成是关切自家之事，传记说高纬因此猜忌他。高长恭后来有病也不医治，希望避免再次带兵。武平四年五月，高纬派徐之范送来毒药，高长恭饮下后身亡。',
+      ['qi11Gong','帝嫌其称家事，遂忌之。'],['qi11Gong','武平四年五月，帝使徐之范饮以毒药。']],
+    E10: ['寿阳被围时，高纬准备前往晋阳。崔季舒、张雕担心离开会耽误指挥、使人误以为皇帝避敌，便与随行文官联名劝阻。近臣韩长鸾把联名进谏说成可能谋反，高纬召集签名者，在殿庭处死崔季舒、张雕等六人，六人的家属也被迁往北方边地。',
+      ['tong171','遂与从驾文官连名进谏。'],['tong171','斩季舒、雕、孝琰及散骑常侍刘逖、黄门侍郎裴泽、郭遵于殿庭，家属皆徙北边。']],
+    D01: ['《北齐书》描述北齐开国皇帝高洋后期饮酒、出游的做法。他有时露出身体、涂粉描眉，有时披散头发，换上胡服或彩衣，再带着弓刀到街市。这里讲的是史书如何描述君主的服饰和公开行为。',
+      ['qi4','或袒露形体，涂傅粉黛，散发胡服，杂衣锦彩。拔刃张弓，游于市肆。']],
+    D02: ['北齐军进攻石楼时，一名都督在战斗中受伤，什长路晖礼没有救下他。《北史》记载，高洋因此下令对路晖礼施以极端惩罚，还命另外九人分食其遗体。史书把这起军中惩罚放在高洋后来滥施暴力的叙述开头。',
+      ['north7','是役也，有都督战伤，其什长路晖礼不能救，帝命刳其五藏，使九人分食之，肉及秽恶皆尽。自是始行威虐。']],
+    D03: ['天保九年夏天出现大旱。北齐皇帝高洋曾祈求降雨，但雨没有降下。《北齐书》说，高洋因此毁掉西门豹的祠庙，又命人掘开他的坟墓。西门豹在这里是受祭祀的古人，史书记录的是对祠墓的处置。',
+      ['qi4','是夏大旱，帝以祈雨不应，毁西门豹祠，掘其冢。']],
+    D04: ['永安王高浚上书劝谏，又因害怕获罪而称病不赴召。高洋派人抓了他，将他与另一名弟弟上党王高涣一同关入地牢。高洋曾动过赦免二人的念头，高湛出言反对。传记最后写到二王遭刺击和火焚而死，对执行者的记述分散在两人的传记中。',
+      ['qi10','浚惧祸，谢疾不至。上怒，驰驿收浚。'],['qi10','长广王湛先与浚不睦，进曰：猛兽安可出穴？'],['qi10','于是薪火乱投，烧杀之']],
+    D05: ['北齐取代东魏后，旧皇族元氏仍有人留在朝中。天保十年，高洋下令诛杀元世、元景式等家族，并拘禁元韶等人的家族。《北史》进一步写这些人也遭诛杀，并提到死者被投入漳水。《北齐书》和《北史》在此处记述详略不同。',
+      ['qi4','诛始平公元世、东平公元景式等二十五家，特进元韶等十九家并令禁止。'],['north7','禁止特进元韶等十九家，寻并诛之，男子无少长皆斩，所杀三千人，并投漳水。']],
+    D07: ['高洋在三台宫殿中杀死了名为穆嵩的都督，《北史》以“锯杀”记录此事。另一次在晋阳，他以长矛刺向都督尉子耀，尉子耀当场身亡。两件事的受害者、地点和史书所写的方式各不相同。',
+      ['north7','在三台太光殿上，锯杀都督穆嵩。'],['qi4','尝在晋阳以槊戏刺都督尉子耀，应手即殒。']],
+    D08: ['娄太后是高洋的母亲。《北史》记她在北宫坐在小榻上，高洋醉后举起坐榻，使她摔伤。高洋酒醒后表示惭愧，还让宗室高归彦拿杖惩罚自己；娄太后出面拦阻，后来同意改为责打他的脚。',
+      ['north7','太后尝在北宫，坐一小榻，帝时已醉，手自举床，后便坠落，颇有伤损。'],['north7','方舍背杖，笞脚五十']],
+    D09: ['高澄死后，他的妻子元氏仍住在宫中。她原是东魏宗室公主，《北史》称她为文襄皇后。高澄的弟弟高洋对她实施性侵犯，书中把高洋给出的理由记为报复兄长曾侵犯自己的妻子。这句话是史书转述的施害者说法。',
+      ['north14','吾兄昔奸我妇，我今须报。乃淫于后。']],
+    D10: ['李祖娥原是高洋的皇后。高湛即位后，以要杀死她的儿子高绍德相威胁，强迫她发生性关系。李祖娥怀孕并生下一名女婴；《北史》写女婴未被养育，高湛随后在李祖娥面前杀死高绍德，又使她受伤。李祖娥活了下来，之后住进妙胜尼寺。',
+      ['north14','若不许，我，当杀尔儿。后惧，从之。'],['north14','对后前筑杀绍德，后大哭。'],['north14','良久乃苏，犊车载送妙胜尼寺。']],
+    D11: ['高百年是高演的儿子。叔父高湛在位时，教他写字的贾德胄把他写的几个“敕”字封起来上报。“敕”常用于皇帝发布命令，高湛把高百年召来试写，又命左右打他，高百年最终被杀。史书还记他的妻子后来绝食去世，那是之后发生的事。',
+      ['qi12','百年尝作数敕字，德胄封以奏，帝乃发怒，使召百年。'],['qi12','气息将尽，曰：乞命，愿与阿叔作奴。遂斩之']],
+    D13: ['娄太后去世后，她的儿子高湛仍穿平时的红袍。《北史》记他不久就登上三台设宴奏乐。宫女送来白袍，他把袍子扔下台去，近臣和士开劝他停乐，也受到责打。史书通过红白衣服和宴乐写出他的行为与居丧礼节的冲突。',
+      ['north14','及后崩，武成不改服，绯袍如故。未几，登三台，置酒作乐，宫女进白袍，帝怒，投诸台下。'],['north14','和士开请止乐，帝大怒，挝之。']],
+    D14: ['和士开是北齐皇帝高湛信任的近臣。传记说，他劝高湛趁年少尽情享乐，把政务交给大臣，高湛听后很高兴。另据《北史》，高湛把帝位传给儿子高纬，自称太上皇后，军国大事依然要向他汇报。两处记载分别说明近臣怎样进言，以及让位后高湛还掌握什么权力。',
+      ['qi50','陛下宜及少壯，恣意作樂'],['north8','于是群公上尊号为太上皇帝，军国大事，咸以奏闻。']],
+    D15: ['《北史》记北齐后主高纬命人仿照西边的边城筑起城垒，让人穿黑衣扮作羌兵、呐喊攻城；他自己率宫中侍从上前抵御。这本是仿演攻防，书中却说有时会真拉开弓射人，原段没有记下受害者人数和伤情。',
+      ['north8','写筑西鄙诸城，黑衣为羌兵鼓噪，陵之亲率内参临拒，或实弯弓射人。']],
+    D16: ['北齐后主高纬在皇家园林华林园里搭建了仿照穷人居所的村舍。他自己换上破旧衣服，扮成讨饭的孩子，还在那里布置了一个叫“穷儿之市”的集市，亲自参加买卖。这段记载讲的是皇帝在宫苑里怎样扮演民间生活。',
+      ['north8','又于华林园立贫穷村舍，帝自弊衣为乞食儿，又为穷儿之市，躬自交易。']],
+    D17: ['北齐后主高纬在宫中养马、鹰、犬和斗鸡。《北史》记载，马、鹰、犬有的得到“仪同”“郡君”之类的名号，连斗鸡也被称作“开府”。这些本是人所用的尊号，史书把它们和宫廷养动物的待遇一起记了下来。',
+      ['north8','马及鹰犬，乃有仪同郡君之号。'],['north8','斗鸡亦号开府']],
+    D18: ['南阳王高绰被带到弟弟高纬面前后，得到宽免。高纬问他在州里觉得什么最有趣，高绰提到看蝎和蛆。高纬随后命人找来蝎子，放进大浴桶，并让一名受害者躺在桶中。传记记下了受害者的惨叫，未交代此人后来是否死亡。',
+      ['qi12','至而宥之。问：在州何者最乐？对曰：多取蝎将蛆，混看极乐。'],['qi12','使人裸卧斛中，号叫宛转。']],
+    D19: ['武平七年，北齐下令征集登记在“杂户”这一户籍类别中、十四至二十岁而未婚的女子，把她们集中到宫省。命令还规定，家里如果把女子藏起来，家长要被判死刑。这段文字写的是征集命令和连带处罚，没有给出实际被征集或处死的人数。',
+      ['north8','括杂户女年二十已下、十四已上未嫁，悉集省。隐匿者，家长处死刑。']],
+    D21: ['北周攻打平阳时，北齐后主高纬正在三堆打猎，晋州接连报急。《北史》后妃传写，他原准备回去，却答应冯小怜再猎一围。后来北齐攻城，高纬又让军队停下来，召她一起看，守军趁机堵住缺口。高纬被北周俘获并送到长安后，还向周武帝请求把冯小怜交还给他。',
+      ['north14','帝将还，淑妃请更杀一围，帝从其言'],['north14','将士乘势欲入，帝敕且止，召淑妃共观之。'],['north14','后主至长安，请周武帝乞淑妃。']],
+    D22: ['北周军逼近时，高纬先将皇位传给自己的儿子高恒，自己称太上皇。北齐君臣向东撤退后，又宣布由高恒把皇位让给任城王高湝，并派斛律孝卿带着诏书和印玺去瀛州。但使者带着这些东西归附了北周，这次传位没有按原计划完成。',
+      ['north8','于是依天统故事，授位幼主。幼主名恒，帝之长子也。'],['north8','令侍中斛律孝卿送禅文及玺绂于瀛州，孝卿乃以之归周']],
+    D23: ['高绰由北齐宗室出任冀州刺史。按《北齐书》传记，他曾强迫人脱去衣服、蹲伏作兽状，然后放狗攻击。这段是对他任职期间行为的概述，书中没有交代受害者的姓名，也没有逐次列出经过。',
+      ['qi12','后为司徒冀州刺史，好裸人，使踞为兽状，纵犬噬而食之。']],
+    D24: ['《北齐书》记高绰外出时，一名妇人抱着孩子躲入草丛。高绰夺走孩子，随后放犬伤害这对母子。后主高纬听说后，命人把高绰带来，最后却宽免了他。传记没有记下这对母子的姓名。',
+      ['qi12','有妇人抱儿在路，走避入草，绰夺其儿'],['qi12','绰怒，又纵狗使食'],['qi12','后主闻之，诏𬭲绰赴行在所，至而宥之。']],
+    D25: ['高绰十多岁留守晋阳时，很喜欢养波斯犬。尉破胡对他提出劝告，高绰却突然斩杀了几只狗。尉破胡受到惊吓，转身离开，从此不敢再提这件事。这里讲的是高绰如何以暴力回应劝谏，遭杀的是犬。',
+      ['qi12','爱波斯狗，尉破胡谏之，欻然，斫杀数狗，狼籍在地。破胡惊走，不敢复言。']],
+    D26: ['南阳王高绰早先得到弟弟高纬的宽免，后来却在即将赴任时遭亲信告发谋反。《北齐书》把告发说成由韩长鸾指使的诬告。高纬没有公开处刑，而是命近侍何猥萨在后园借相扑之机将高绰杀死。',
+      ['qi12','长鸾令绰亲信诬告其反'],['qi12','后主不忍显戮，使宠胡何猥萨后园，与绰相扑，扼杀之，瘗于兴圣佛寺。']],
+    D27: ['高绰与高纬都是高湛的儿子，在同一天出生。高绰出生较早，但他的母亲并非正妻，高湛把他排在高纬之后。传记另一处写，高绰后来把自己的行为说成是学伯父高洋。排序与这句自述是两条线索，传记没有说明两者之间有因果关系。',
+      ['qi12','以五月五日辰时生，至午时，后主乃生。武成以绰母李夫人非正嫡，故贬为第二'],['qi12','恣情强暴，云学文宣伯为人。']],
+    D28: ['郑大车是高欢的妾。《北史》说，高欢出征时，儿子高澄和郑大车发生关系。高欢回来后，有侍女告发，又有两名侍女作证；高欢便打了高澄一百杖，把他关起来。高澄的母亲娄氏也受到牵连，一度被隔绝。',
+      ['north14','神武之征刘蠡升，文襄蒸于大车。神武还，一婢告之，二婢为证。神武杖文襄一百，而幽之。武明后亦见隔绝。']],
+    D29: ['《北史》转述高洋的一句话，说哥哥高澄从前侵害过他的妻子，因此自己要报复，随后记高洋侵害高澄的遗孀。把这句话放回上下文，可看清谁在说话、他把什么当作报复理由。关于高澄与高洋之妻的先前遭遇，这一段只给出了高洋的说法。',
+      ['north14','吾兄昔奸我妇，我今须报。乃淫于后。']],
+    D30: ['当时孝静帝是东魏皇帝，高澄却掌握朝廷实权。一次侍宴时，高澄劝酒，孝静帝发出国家终会灭亡的感叹，高澄听后大怒，命崔季舒打了皇帝三拳。高澄离开后又让崔季舒入宫致歉。',
+      ['wei12','文襄使季舒欧帝三拳，奋衣而出。明日，文襄使季舒劳帝，帝亦谢焉。']],
+    D31: ['兰京是南梁将领兰钦的儿子，被俘后在高澄的厨房做事。兰钦请求赎回儿子，高澄没有同意。后来兰京与同伴起事，高澄在东魏掌权期间被杀。高洋随后处置了起事者，次年才建立北齐。',
+      ['qi3','初，梁将兰钦子京为东魏所虏，王命以配厨，钦请赎之，王不许。'],['qi3Supplement','賊黨去床，因而見殺。']],
+    D32: ['高演取代侄子高殷后，把他降为济南王，起初许诺不相害。《北齐书》写高演听说邺城有“天子气”，担心高殷复位，最终杀了他。传记还写高演后来因坐骑受惊而坠马，母亲问起高殷的下落，高演没有回答。这些记载被写在同一传记里。',
+      ['qi6','初帝与济南约不相害'],['qi6','帝常恐济南复兴，乃密行鸩毒，济南不从，乃扼而杀之。'],['qi6','有兔惊马，帝坠而绝肋。']],
+    D33: ['胡氏是高湛的皇后、高纬的母亲。后妃传说，高湛在世时，近臣和士开常与胡氏玩一种叫“握槊”的棋戏，后来两人有了私情。高湛去世后，传记又写胡氏常去佛寺，与僧人昙献往来，并给予他职位。材料呈现的是史书如何叙述后宫、近臣和僧侣的关系。',
+      ['north14','武成宠幸和士开，每与后握槊，因此与后奸通。'],['north14','自武成崩，后数出诣佛寺，又与沙门昙献通']],
+    D34: ['《北史》在北齐后主高纬的本纪里写到，他有时先杀人，再剥下死者的面皮查看。原句只用了很短的概括，没有写受害者姓名、具体日期或次数，也没有说剥皮本身就是致死方式。',
+      ['north8','或杀人，剥面皮而视之。']],
+  };
+
+  window.RESEARCH.eventReadings = Object.fromEntries(Object.entries(readings).map(([id, [translation, ...excerpts]]) => [
+    id, {translation, excerpts: excerpts.map(([ref, text, label]) => ({...refs[ref], text, label}))}
+  ]));
+})();
+;
 /* ===== app.js ===== */;
 (() => {
   'use strict';
@@ -431,6 +550,19 @@ window.RESEARCH = {
   for(const [selector,number] of numberedSections){const label=document.querySelector(selector);if(!label||label.querySelector('.section-index'))continue;const index=document.createElement('span');index.className='section-index';index.textContent=number;index.setAttribute('aria-hidden','true');label.prepend(index);}
   const escape=(value)=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const links=(source)=>source.links.map(([label,url])=>`<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(label)} ↗</a>`).join('');
+  function readingMarkup(reading, compact = false) {
+    if (!reading) return '';
+    return `<section class="event-reading${compact ? ' event-reading-compact' : ''}" aria-label="白话译述与对应古文">
+      <p class="event-reading-translation"><span class="event-reading-label">白话译述</span>${escape(reading.translation)}</p>
+      <div class="event-reading-excerpts">
+        <span class="event-reading-label">对应古文</span>
+        ${reading.excerpts.map(excerpt => `<figure class="event-reading-quote">
+          <blockquote lang="lzh">${escape(excerpt.text)}</blockquote>
+          <figcaption>${excerpt.label ? escape(excerpt.label) + ' · ' : ''}<a href="${escape(excerpt.url)}" target="_blank" rel="noopener noreferrer">${escape(excerpt.title)} ↗</a></figcaption>
+        </figure>`).join('')}
+      </div>
+    </section>`;
+  }
   const memory={read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}},write(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}}};
   const savedValues=memory.read('qi-saved-events',[]);
   const saved=new Set(Array.isArray(savedValues)?savedValues.filter(id=>data.events.some(e=>e.id===id)):[]);
@@ -524,7 +656,7 @@ window.RESEARCH = {
     if(key==='behead'){const slider=body.querySelector('[data-scene-progress]');if(slider){slider.value=String(progress*100);slider.dispatchEvent(new Event('input',{bubbles:true}));}}
     else{const motion=document.querySelector('#violence-motion');if(motion.getAttribute('aria-pressed')!=='true')motion.click();body.querySelector('.d-scorpion').getAnimations({subtree:true}).forEach(animation=>{animation.currentTime=progress*Number(animation.effect.getTiming().duration);});updateSceneNote(key,progress);}
   });
-  function eventDetail(id,visualKey=null,markRead=true){const e=data.events.find(x=>x.id===id);if(!e)return;if(!browsingIds?.includes(id)){const visible=[...document.querySelectorAll('#event-list [data-event]')].map(b=>b.dataset.event);browsingIds=visible.includes(id)?visible:data.events.map(e=>e.id);}activeEvent=id;if(markRead){readEvents.add(id);memory.write('qi-read-events',[...readEvents]);}parentEvent=null;const s=data.sources[e.source];const visual=data.visuals?.find(v=>v.key===visualKey&&v.event===id)||data.visuals?.find(v=>v.event===id);parentVisual=visual?.key;const dossier=e.dossier||data.dossierForEvent?.[id];const related=(data.relatedEvents?.[id]||[]).map(key=>data.events.find(x=>x.id===key)).filter(Boolean);const controls=(visual||dossier)?`<div class="scene-detail-controls">${['motion','speed','replay'].map(action=>`<button type="button" data-animation-action="${action}">${escape((document.querySelector('#violence-'+action)?.textContent||({motion:'播放／暂停',speed:'速度切换',replay:'重播'})[action]).replace('卡片',''))}</button>`).join('')}${visual?'<label class="scene-scrub-label">动作进度<input type="range" min="0" max="100" step="1" value="0" data-scene-progress aria-label="场景动作进度"><output data-scene-time>0%</output></label>':''}</div>`:'';const extra=dossier?`<section class="detail-visual"><p class="visual-label">${escape(dossier.status)}</p><p class="scene-relation-text">${escape(dossier.relation)}</p>${data.dossierArtwork(dossier,true)}${dossier.scene==='scorpion'?sceneNoteHTML(id,'scorpion'):''}${e.dossier?"":`<p>${escape(dossier.account)}</p>`}<p class="visual-boundary">${escape(dossier.boundary)}</p></section>`:'';const visualPanel=visual?`<section class="detail-visual" aria-label="暴力方式与史料边界"><p class="visual-label">${escape(visual.tag)} · ${escape(visual.status)}</p><p class="scene-relation-text">${escape(visual.subtitle)}</p>${data.visualArtwork(visual,"detail-"+visual.key)}${visual.key==='behead'?sceneNoteHTML(id,'behead'):''}<blockquote>${escape(visual.quote)}</blockquote><p class="visual-boundary">${escape(visual.boundary)}</p><p><strong>需要解释的问题：</strong>${escape(visual.question)}</p></section>`:"";show(`<p class="eyebrow">${escape(e.id)} / ${escape(e.ruler)} / ${escape(e.year)}</p><h2 id="dialog-title">${escape(e.name)}</h2><p>${escape(e.type)}</p><div class="event-actions"><a href="#event=${escape(e.id)}${visual?`&visual=${escape(visual.key)}`:""}" data-event-permalink>此事件的独立链接 ↗</a><button type="button" data-copy-event>复制链接</button><button type="button" data-save-event="${escape(e.id)}" aria-pressed="${saved.has(e.id)}">${saved.has(e.id)?'★ 已收藏':'☆ 收藏材料'}</button><button type="button" data-read-event="${escape(e.id)}">${readEvents.has(e.id)?'标为未读':'标为已读'}</button><span class="event-feedback" role="status" aria-live="polite"></span></div>${visual?'<div class="scene-workbench"><div class="scene-controls-panel">':''}${controls}${visual?'<div class="scene-inspection"><button type="button" data-scene-once>单次播放</button><button type="button" data-scene-nudge="-1" aria-label="动画进度后退百分之一">−1%</button><button type="button" data-scene-nudge="1" aria-label="动画进度前进百分之一">+1%</button><button type="button" data-expand-scene aria-pressed="false">放大画面 ⤢</button><span data-scene-state role="status" aria-live="polite">可拖动进度，逐步查看动作</span></div><div class="scene-jumps" role="group" aria-label="动画关键帧"><span>逐步看动作</span><button type="button" data-scene-jump="20">① 蓄势</button><button type="button" data-scene-jump="45">② 接触</button><button type="button" data-scene-jump="75">③ 后果</button></div>':""}${visual?'</div>':''}${visualPanel}${visual?'</div>':''}${extra}<h3>事件经过与背景</h3><p>${escape(e.context)}</p><h3>谁推动、谁下令、谁执行</h3><p>${escape(e.agency)}</p>${s.quote?`<blockquote>${escape(s.quote).replace(/\n/g,'<br>')}</blockquote>`:''}${e.boundary?`<div class="source-state">${escape(e.status)}<br>${escape(e.boundary)}</div>`:''}<h3>为什么发生：原因分析（暂定）</h3><p class="analysis-note">以下是项目依据现有记载提出的解释。主要原因是目前较有依据的解释；促成因素是可能推动事件的条件，两者都需要进一步核验。</p><p><strong>主要原因（暂定）：</strong>${escape(e.primary)}</p><p><strong>促成因素或其他解释：</strong>${escape(e.secondary)}</p><div class="source-state">${escape(s.status)}<br>原因排序是本项目初析，未完成现代学术研究核验。</div><button class="related-source" data-event-source="${e.source}" data-parent-event="${e.id}">展开出处 [${s.number}] ↗</button><div class="dialog-links">${links(s)}</div>${related.length?`<h3>可继续比较的相关事件</h3>${related.map(x=>`<button class="related-source" data-event="${x.id}">${escape(x.name)} ↗</button>`).join(" ")}`:""}`);}
+  function eventDetail(id,visualKey=null,markRead=true){const e=data.events.find(x=>x.id===id);if(!e)return;if(!browsingIds?.includes(id)){const visible=[...document.querySelectorAll('#event-list [data-event]')].map(b=>b.dataset.event);browsingIds=visible.includes(id)?visible:data.events.map(e=>e.id);}activeEvent=id;if(markRead){readEvents.add(id);memory.write('qi-read-events',[...readEvents]);}parentEvent=null;const s=data.sources[e.source];const visual=data.visuals?.find(v=>v.key===visualKey&&v.event===id)||data.visuals?.find(v=>v.event===id);parentVisual=visual?.key;const dossier=e.dossier||data.dossierForEvent?.[id];const related=(data.relatedEvents?.[id]||[]).map(key=>data.events.find(x=>x.id===key)).filter(Boolean);const controls=(visual||dossier)?`<div class="scene-detail-controls">${['motion','speed','replay'].map(action=>`<button type="button" data-animation-action="${action}">${escape((document.querySelector('#violence-'+action)?.textContent||({motion:'播放／暂停',speed:'速度切换',replay:'重播'})[action]).replace('卡片',''))}</button>`).join('')}${visual?'<label class="scene-scrub-label">动作进度<input type="range" min="0" max="100" step="1" value="0" data-scene-progress aria-label="场景动作进度"><output data-scene-time>0%</output></label>':''}</div>`:'';const extra=dossier?`<section class="detail-visual"><p class="visual-label">${escape(dossier.status)}</p><p class="scene-relation-text">${escape(dossier.relation)}</p>${data.dossierArtwork(dossier,true)}${dossier.scene==='scorpion'?sceneNoteHTML(id,'scorpion'):''}${e.dossier?"":`<p>${escape(dossier.account)}</p>`}<p class="visual-boundary">${escape(dossier.boundary)}</p></section>`:'';const visualPanel=visual?`<section class="detail-visual" aria-label="暴力方式与史料边界"><p class="visual-label">${escape(visual.tag)} · ${escape(visual.status)}</p><p class="scene-relation-text">${escape(visual.subtitle)}</p>${data.visualArtwork(visual,"detail-"+visual.key)}${visual.key==='behead'?sceneNoteHTML(id,'behead'):''}<blockquote>${escape(visual.quote)}</blockquote><p class="visual-boundary">${escape(visual.boundary)}</p><p><strong>需要解释的问题：</strong>${escape(visual.question)}</p></section>`:"";show(`<h2 id="dialog-title">${escape(e.name)}</h2>${readingMarkup(data.eventReadings[e.id])}<p class="event-secondary-meta">${escape(e.id)} · ${escape(e.ruler)} · ${escape(e.year)} · ${escape(e.type)}</p><div class="event-actions"><a href="#event=${escape(e.id)}${visual?`&visual=${escape(visual.key)}`:""}" data-event-permalink>此事件的独立链接 ↗</a><button type="button" data-copy-event>复制链接</button><button type="button" data-save-event="${escape(e.id)}" aria-pressed="${saved.has(e.id)}">${saved.has(e.id)?'★ 已收藏':'☆ 收藏材料'}</button><button type="button" data-read-event="${escape(e.id)}">${readEvents.has(e.id)?'标为未读':'标为已读'}</button><span class="event-feedback" role="status" aria-live="polite"></span></div>${visual?'<div class="scene-workbench"><div class="scene-controls-panel">':''}${controls}${visual?'<div class="scene-inspection"><button type="button" data-scene-once>单次播放</button><button type="button" data-scene-nudge="-1" aria-label="动画进度后退百分之一">−1%</button><button type="button" data-scene-nudge="1" aria-label="动画进度前进百分之一">+1%</button><button type="button" data-expand-scene aria-pressed="false">放大画面 ⤢</button><span data-scene-state role="status" aria-live="polite">可拖动进度，逐步查看动作</span></div><div class="scene-jumps" role="group" aria-label="动画关键帧"><span>逐步看动作</span><button type="button" data-scene-jump="20">① 蓄势</button><button type="button" data-scene-jump="45">② 接触</button><button type="button" data-scene-jump="75">③ 后果</button></div>':""}${visual?'</div>':''}${visualPanel}${visual?'</div>':''}${extra}<h3>谁推动、谁下令、谁执行</h3><p>${escape(e.agency)}</p>${e.boundary?`<div class="source-state">${escape(e.status)}<br>${escape(e.boundary)}</div>`:''}<h3>为什么发生：原因分析（暂定）</h3><p class="analysis-note">以下是项目依据现有记载提出的解释。主要原因是目前较有依据的解释；促成因素是可能推动事件的条件，两者都需要进一步核验。</p><p><strong>主要原因（暂定）：</strong>${escape(e.primary)}</p><p><strong>促成因素或其他解释：</strong>${escape(e.secondary)}</p><div class="source-state">${escape(s.status)}<br>原因排序是本项目初析，未完成现代学术研究核验。</div><button class="related-source" data-event-source="${e.source}" data-parent-event="${e.id}">展开出处 [${s.number}] ↗</button><div class="dialog-links">${links(s)}</div>${related.length?`<h3>可继续比较的相关事件</h3>${related.map(x=>`<button class="related-source" data-event="${x.id}">${escape(x.name)} ↗</button>`).join(" ")}`:""}`);}
   function methodDetail(){activeEvent=null;parentEvent=null;show('<p class="eyebrow">关于史料</p><h2 id="dialog-title">怎样使用史料和分析原因</h2><p>本页先介绍四个案例，再汇总更多事件和比较材料。阅读时应依次区分事件经过、下令与执行关系、原因解释，以及尚待核实的问题。条目数量不是死亡人数，也不用于给人物的残暴程度排名。</p><h3>我们怎样区分材料</h3><ul><li>事件与记载分开：同一次死亡在多书出现，不重复计数。</li><li>分清谁推动、谁下令、谁亲自实施。事件发生在哪位皇帝的年号下，不代表就是这位皇帝下令。</li><li>原文、白话、史臣评价和项目解释分开。</li><li>字词、日期或叙述有分歧时，保留分歧，回到影印核字。</li></ul><h3>为什么多来源还要检查文本关系</h3><p>《四库全书总目》指出，今天传下来的《北齐书》有部分内容取自《北史》，用于补充缺失篇章。因此，两部书出现相似记载，可能是沿用同一段文字，不能直接算作两份独立证据。</p><div class="dialog-links"><a href="https://www.shidianguji.com/book/SK0000A/chapter/1kgsnkeqjizoo" target="_blank" rel="noopener noreferrer">识典 · 北齐书提要 ↗</a></div><h3>当前核验状态</h3><p>已做原典录文初对照；关键句影印核字、版本关系和现代学术解释仍待完成。示意图只帮助理解，不能充当历史现场证据。</p><div class="source-state">人物对话为史书所述，不标作现场逐字录音；宫阙、人物与位置图均为示意。</div>');}
   dialog.querySelector('.dialog-close').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
@@ -604,6 +736,13 @@ window.RESEARCH = {
   const galleryCards=[...document.querySelectorAll('.violence-card')];
   document.querySelectorAll('[data-gallery-ruler]').forEach(button=>button.addEventListener('click',()=>{const ruler=button.dataset.galleryRuler;document.querySelectorAll('[data-gallery-ruler]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));let count=0;galleryCards.forEach(card=>{const event=data.events.find(e=>e.id===card.dataset.event);const show=ruler==='全部'||event?.ruler.includes(ruler);card.hidden=!show;if(show)count++;});document.querySelector('#gallery-count').textContent=`显示 ${count} / ${galleryCards.length} 个动画场景`;}));
   document.querySelector('#source-list').innerHTML=Object.entries(data.sources).map(([key,s])=>`<li><button data-source="${key}">${escape(s.book)}</button><small>${escape(s.title)}</small></li>`).join('');
+  document.querySelectorAll('[data-card-reading]').forEach(card => {
+    const id = card.dataset.cardReading;
+    const event = data.events.find(item => item.id === id);
+    card.innerHTML = readingMarkup(data.eventReadings[id], true) + (event
+      ? `<p class="case-summary-reason"><strong>原因速览（暂定）</strong> ${escape(event.primary)} ${escape(event.secondary)}</p>`
+      : '');
+  });
   const chapters=[...document.querySelectorAll('[data-chapter]')], railLinks=[...document.querySelectorAll('.chapter-rail nav a')];
   function updateProgress(){const total=document.documentElement.scrollHeight-window.innerHeight;const progress=document.querySelector('#page-progress');if(progress)progress.style.width=(total>0?Math.min(100,window.scrollY/total*100):0)+'%';document.querySelector('.back-to-top')?.classList.toggle('visible',window.scrollY>window.innerHeight);const position=window.innerHeight*.35;let active=0;chapters.forEach((c,i)=>{if(c.getBoundingClientRect().top<=position)active=i;});railLinks.forEach((a,i)=>{a.classList.toggle('active',i===active);if(i===active)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');});document.querySelector('#reading-progress').style.width=`${(active+1)/chapters.length*100}%`;document.querySelector('#progress-label').textContent=`第 ${active+1} / ${chapters.length} 节`;if(!dialog.open&&chapters[0].getBoundingClientRect().top<=position&&chapters.at(-1).getBoundingClientRect().bottom>0&&lastChapter!==chapters[active].id){lastChapter=chapters[active].id;memory.write('qi-reading-chapter',lastChapter);}}
   const storedChapter=memory.read('qi-reading-chapter',null);let scheduled=false;window.addEventListener('scroll',()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{updateProgress();scheduled=false;});},{passive:true});updateProgress();
@@ -617,9 +756,9 @@ window.RESEARCH = {
     nav.innerHTML=`<button type="button" data-event="${ids[index-1]||''}" ${index===0?'disabled':''}>← 上一条</button><span>${index+1} / ${ids.length} · 当前材料列表</span><button type="button" data-event="${ids[index+1]||''}" ${index===ids.length-1?'disabled':''}>下一条 →</button>`;
     body.append(nav);
     const permalink=body.querySelector('[data-event-permalink]');const eventUrl=new URL(location.pathname,location.origin);eventUrl.hash='event='+activeEvent+(parentVisual?'&visual='+parentVisual:'');permalink.href=eventUrl.href;
-    const context=[...body.children].find(el=>el.tagName==='H3'&&el.textContent==='事件经过与背景');
+    const context=body.querySelector('.event-reading');
     const causes=[...body.children].find(el=>el.tagName==='H3'&&el.textContent.startsWith('为什么发生'));
-    const sections=[['scene','动画',body.querySelector('.detail-visual')],['context','经过',context],['causes','原因',causes],['evidence','出处',body.querySelector('[data-event-source]')]].filter(([, ,target])=>target);
+    const sections=[['scene','动画',body.querySelector('.detail-visual')],['context','白话与古文',context],['causes','原因',causes],['evidence','出处',body.querySelector('[data-event-source]')]].filter(([, ,target])=>target);
     const contents=document.createElement('nav');contents.className='detail-contents';contents.setAttribute('aria-label','详情内快速跳转');
     contents.innerHTML=sections.map(([key,label,target])=>{target.id='detail-'+key;return `<button type="button" data-detail-section="${key}">${label}</button>`;}).join('')+'<button type="button" data-text-size aria-pressed="'+largeText+'">'+(largeText?'标准字号':'大字阅读')+'</button>';
     body.querySelector('.event-actions').after(contents);

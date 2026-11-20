@@ -5,7 +5,7 @@
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $cssOrder = @('styles.css', 'animation.css', 'violence.css', 'dossier.css', 'theme.css', 'ai-help.css', 'music.css', 'sidebar.css', 'surfaces.css', 'survival-portal.css', 'theme-landscapes.css')
-$jsOrder = @('data.js', 'violence.js', 'dossier.js', 'app.js', 'animation.js', 'theme.js', 'ai-help.js', 'music.js', 'sidebar.js')
+$jsOrder = @('data.js', 'violence.js', 'dossier.js', 'event-readings.js', 'app.js', 'animation.js', 'theme.js', 'ai-help.js', 'music.js', 'sidebar.js')
 
 $css = foreach ($file in $cssOrder) {
   "/* ===== $file ===== */"
@@ -22,7 +22,7 @@ $js = foreach ($file in $jsOrder) {
 $htmlPath = Join-Path $root 'index.html'
 $html = [IO.File]::ReadAllText($htmlPath, [Text.Encoding]::UTF8)
 $html = [regex]::Replace($html, '<link rel="stylesheet" href="(?:styles|animation|violence|dossier|theme|ai-help|music|bundle)\.css(?:\?[^\"]*)?"[ \t]*/?>', '')
-$html = [regex]::Replace($html, '<script src="(?:data|violence|dossier|app|animation|theme|ai-help|music|bundle)\.js(?:\?[^\"]*)?"(?: defer)?></script>', '')
+$html = [regex]::Replace($html, '<script src="(?:data|violence|dossier|event-readings|app|animation|theme|ai-help|music|bundle)\.js(?:\?[^\"]*)?"(?: defer)?></script>', '')
 
 $bootstrap = @'
 <script data-theme-bootstrap>

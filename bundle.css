@@ -168,10 +168,44 @@ html{scroll-padding-top:calc(var(--header-height,100px) + 18px)}.chapter{scroll-
 .case-summary-grid{counter-reset:case-summary}
 .case-summary-grid article{counter-increment:case-summary}
 .case-summary-grid h3::before{content:counter(case-summary);display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;margin-right:.45em;border-radius:50%;background:var(--red);color:var(--paper-light);font-family:var(--sans);font-size:.72em;font-weight:800;line-height:1;vertical-align:.12em}
-.case-summary-story{font-size:14px;line-height:1.95;margin:0}
-.case-summary-story strong{color:#80583d;font-weight:600}
-.reading-large .case-summary-story{font-size:18px}
-@media(max-width:650px){.reading-large .case-summary-story{font-size:16px}}
+.event-reading { margin: 0 0 18px; scroll-margin-top: 110px; }
+.event-reading-label { display:block; margin:0 0 .24rem; color:var(--ui-accent,var(--red)); font:700 .8rem/1.5 var(--sans,sans-serif); }
+#detail-dialog .event-reading .event-reading-translation,
+.case-summary-grid .event-reading-translation {
+  margin:0 0 12px; color:var(--ui-ink,var(--ink)); font-size:1rem; line-height:1.9;
+}
+.event-reading-excerpts {
+  padding:12px 15px;
+  border-inline-start:3px solid var(--ui-accent,var(--red));
+  border-radius:2px 5px 5px 2px;
+  background:color-mix(in srgb,var(--ui-tint,var(--paper-light)) 62%,var(--ui-surface,var(--paper-light)));
+}
+.event-reading .event-reading-quote { margin:0; }
+.event-reading-quote + .event-reading-quote { margin-block-start:9px; }
+html[data-ui-theme] #detail-dialog .event-reading .event-reading-quote blockquote,
+.event-reading .event-reading-quote blockquote {
+  padding:0; margin:0; border:0; background:none;
+  color:var(--ui-ink,var(--ink)); font:1rem/1.7 var(--serif,serif); overflow-wrap:anywhere;
+}
+.event-reading-quote figcaption {
+  margin-block-start:1px; color:var(--ui-muted,var(--muted)); font-size:.72rem; line-height:1.5;
+}
+#detail-dialog .event-reading-quote figcaption a,
+.event-reading-quote figcaption a {
+  color:var(--ui-accent,var(--red)); text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere;
+}
+#detail-dialog .event-secondary-meta, .case-summary-grid .case-summary-reason {
+  color:var(--ui-muted,var(--muted)); font-size:.8rem; margin:12px 0 7px; line-height:1.7;
+}
+.case-summary-grid .event-reading { margin-block-end:10px; }
+.case-summary-grid .event-reading-translation, .event-reading-compact .event-reading-quote blockquote { font-size:.9rem; }
+.reading-large #detail-dialog .event-reading .event-reading-translation,
+.reading-large #detail-dialog .event-reading .event-reading-quote blockquote,
+.reading-large .case-summary-grid .event-reading-translation,
+.reading-large .event-reading-compact .event-reading-quote blockquote { font-size:1.125rem; }
+@media(max-width:650px) {
+  .event-reading-excerpts { padding:9px 11px; }
+}
 @media(max-width:800px){.family-stories{grid-template-columns:1fr;gap:20px}.family-stories h2{font-size:32px}.family-stories-intro>p:not(.eyebrow){max-width:none}}
 @media(max-width:650px){.family-stories{gap:14px}.family-stories h2{font-size:30px}.family-stories-intro>p:not(.eyebrow){font-size:14px}.family-stories-features h3{font-size:19px}.family-stories .primary-button{font-size:14px;padding:14px 18px}.reading-large .family-stories h2{font-size:35px}.reading-large .family-stories-intro>p:not(.eyebrow),.reading-large .family-stories-features li p{font-size:18px}}
 
