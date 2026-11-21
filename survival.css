@@ -260,3 +260,35 @@ html[data-ui-theme] .survival-upgrades button:is(:hover,:focus-visible) { border
 html[data-ui-theme=night] .survival-upgrades button strong { color: color-mix(in srgb, var(--rarity) 35%, var(--ui-ink, #eee)); }
 html[data-ui-theme] .survival-choice .survival-overlay-card { width: min(680px, calc(100% - 28px)); }
 .survival-choice .survival-upgrades { grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
+
+/* Pause card: four-cell run summary and a rotating play tip. */
+.survival-pause-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 4px 0 12px; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 6px; overflow: hidden; }
+.survival-pause-stats div { padding: 9px 8px 8px; text-align: center; }
+.survival-pause-stats div + div { border-left: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.survival-pause-stats dt { font-size: 11px; letter-spacing: .12em; opacity: .7; }
+.survival-pause-stats dd { margin: 2px 0 0; font: 600 17px/1.3 "STSong", "Songti SC", Georgia, serif; font-variant-numeric: tabular-nums; }
+.survival-pause-tip { font-size: 13px !important; line-height: 1.75 !important; margin: 0 0 14px !important; padding: 9px 12px; border-left: 3px solid var(--survival-accent, #9d4236); background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 0 4px 4px 0; }
+@media (max-width: 520px) { .survival-pause-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .survival-pause-stats div:nth-child(3) { border-left: 0; } .survival-pause-stats div:nth-child(n+3) { border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); } }
+
+/* Leaderboard: seals for the top three, serif scores, gentle row rhythm. */
+.survival-rank-list li { padding: 0 6px; border-radius: 4px; transition: background-color .2s; }
+.survival-rank-list li:nth-child(even) { background: color-mix(in srgb, currentColor 4%, transparent); }
+.survival-rank-list li:hover { background: color-mix(in srgb, var(--survival-accent, #9d4236) 8%, transparent); }
+.survival-rank-list li:nth-child(-n+3) .rank-number { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff8e8 !important; font: 700 11px/1 Georgia, serif; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 45%); }
+.survival-rank-list li:nth-child(1) .rank-number { background: radial-gradient(circle at 35% 30%, #f2d58a, #b0812e); }
+.survival-rank-list li:nth-child(2) .rank-number { background: radial-gradient(circle at 35% 30%, #e6e6df, #8e918a); }
+.survival-rank-list li:nth-child(3) .rank-number { background: radial-gradient(circle at 35% 30%, #e3b08a, #965a33); }
+.survival-rank-list li:nth-child(1) .rank-name { font-weight: 700; }
+.rank-score { font: 700 15px/1 "STSong", "Songti SC", Georgia, serif; font-variant-numeric: tabular-nums; }
+.survival-rank-icon { background: radial-gradient(circle at 35% 30%, #b0503f, #7b2d22); box-shadow: inset 0 0 0 2px rgb(255 240 220 / 40%), 0 4px 10px -4px #0006; }
+
+/* Touch joystick: bronze mirror base with eight ticks and a jade knob. */
+@media (pointer: coarse), (max-width: 900px) {
+  .survival-stick-base { border: 1px solid rgb(232 205 150 / 70%) !important; background:
+      repeating-conic-gradient(from -2deg, rgb(240 215 160 / 55%) 0 4deg, transparent 4deg 45deg) content-box,
+      radial-gradient(circle, rgb(28 34 30 / 55%) 0 52%, rgb(70 56 34 / 62%) 53% 64%, rgb(28 34 30 / 55%) 65%) !important;
+    padding: 4px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 35%), inset 0 0 16px rgb(0 0 0 / 35%), 0 6px 18px -8px #000 !important;
+    -webkit-mask: radial-gradient(circle, #000 70%, #000 71%); }
+  .survival-stick-knob { border: 1px solid #e3d29e !important; background: radial-gradient(circle at 35% 30%, #d9ead2 0 12%, #7fa98c 40%, #3f6a52 100%) !important; box-shadow: 0 4px 10px rgb(0 0 0 / 40%), inset 0 -3px 6px rgb(0 0 0 / 25%), inset 0 2px 3px rgb(255 255 255 / 35%) !important; transition: box-shadow .15s; }
+  .survival-stick:active .survival-stick-knob { box-shadow: 0 0 0 6px rgb(160 210 170 / 18%), 0 4px 10px rgb(0 0 0 / 40%), inset 0 -3px 6px rgb(0 0 0 / 25%) !important; }
+}

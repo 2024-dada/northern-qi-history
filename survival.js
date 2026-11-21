@@ -314,12 +314,34 @@
     setLive(`本局结束，得分 ${run.score}。排行榜只保存到当前浏览器。`);
   }
 
+  // Pause card: this run at a glance plus one play tip taken from the rules.
+  const pauseTips = [
+    '宝剑、长剑、长柄斧的挥砍范围由小到大，被围住时长柄斧最稳。',
+    '弓箭会在远处自动瞄准，但每支只命中一人，留给落单的敌人。',
+    '回血药每 5 秒随机刷新一个，地图上最多同时留 4 个。',
+    '皇帝每 5 秒召来一名将领，拖得越久，场上敌人越多。',
+    '第五层起有大将军镇守，皇帝掉到半血还会召增援。',
+    '敌军也会攻击你的援军，援军能替你分走火力。',
+    '危险区有生效、预警、暂歇三种状态，看漆牌上的状态珠再进出。'
+  ];
+  let tipIndex = Math.floor(Math.random() * pauseTips.length);
+  function renderPauseCard() {
+    const stats = $('[data-pause-stats]');
+    if (stats && run) {
+      const rows = [['层数', `第 ${run.layer} 层`], ['存活', formatTime(run.elapsed)], ['得分', run.score.toLocaleString('zh-CN')], ['体力', `${Math.ceil(run.player.hp)} / ${run.player.maxHp}`]];
+      stats.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${escapeHtml(v)}</dd></div>`).join('');
+    }
+    const tip = $('[data-pause-tip]');
+    if (tip) { tip.textContent = '提示：' + pauseTips[tipIndex]; tipIndex = (tipIndex + 1) % pauseTips.length; }
+  }
+
   function pauseGame() {
     if (mode !== 'playing') return;
     mode = 'paused';
     audio?.setPlaying(false);
     pressed.clear();
     stickVector = {x: 0, y: 0};
+    renderPauseCard();
     showOnly('pause');
     setLive('已暂停，暂停期间不计时。');
   }
