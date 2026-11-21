@@ -1128,7 +1128,10 @@ window.RESEARCH = {
     const apply=(id,persist=true)=>{
       if(!themes.some(theme=>theme.id===id))return;
       selected=id;
-      root.dataset.uiTheme=id;
+      // Cross-fade between themes where the browser supports view transitions.
+      const swap=()=>{root.dataset.uiTheme=id;};
+      const calm=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if(persist&&!calm&&document.startViewTransition&&root.dataset.uiTheme!==id){try{document.startViewTransition(swap);}catch{swap();}}else swap();
       sync();
       document.dispatchEvent(new CustomEvent('ui-theme-change',{detail:{id}}));
       let saved=true;if(persist){try{localStorage.setItem(key,id);}catch{saved=false;}}

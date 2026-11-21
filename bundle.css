@@ -1997,3 +1997,23 @@ html[data-ui-theme] #detail-dialog .dialog-close:hover { background:color-mix(in
 .has-sidebar .event-row .event-arrow { transition:transform .2s var(--qi-ease); }
 .has-sidebar .event-row:hover .event-arrow { transform:translate(3px,-3px); }
 @media (prefers-reduced-motion:reduce) { .has-sidebar .event-row:hover,.has-sidebar .event-row:hover .event-arrow { transform:none; } }
+
+/* ---------- 19. Theme cross-fade timing ---------- */
+::view-transition-old(root),::view-transition-new(root) { animation-duration:.55s; animation-timing-function:cubic-bezier(.22,.7,.2,1); }
+
+/* ---------- 20. Case entry cards: large ink numeral and focus line on hover ---------- */
+.has-sidebar .case-preview ol li a { position:relative; overflow:hidden; isolation:isolate; }
+.has-sidebar .case-preview ol li a::after {
+  position:absolute; right:-6px; bottom:-28px; z-index:-1;
+  font:500 132px/1 var(--serif); color:var(--ui-accent,#9d4236);
+  opacity:.05; transform:translateY(10px); transition:opacity .35s var(--qi-ease),transform .45s var(--qi-ease);
+  pointer-events:none;
+}
+.has-sidebar .case-preview ol li:nth-child(1) a::after { content:"君"; }
+.has-sidebar .case-preview ol li:nth-child(2) a::after { content:"令"; }
+.has-sidebar .case-preview ol li:nth-child(3) a::after { content:"亲"; }
+.has-sidebar .case-preview ol li:nth-child(4) a::after { content:"史"; }
+.has-sidebar .case-preview ol li a:hover::after,.has-sidebar .case-preview ol li a:focus-visible::after { opacity:.13; transform:none; }
+.has-sidebar .case-preview .case-preview-focus { position:relative; transition:color .2s; }
+.has-sidebar .case-preview ol li a:hover .case-preview-focus { color:var(--ui-accent); }
+@media (prefers-reduced-motion:reduce) { .has-sidebar .case-preview ol li a::after { transition:none; transform:none; } }
