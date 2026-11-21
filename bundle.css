@@ -1533,6 +1533,50 @@ html[data-ui-theme=mural] body.has-sidebar {
   :root[data-ui-theme=frost] { --ui-landscape:url("assets/theme-frost-plum-wide.webp"); }
 }
 
+:root[data-ui-theme=cyber] {
+  color-scheme:dark;
+  --ui-bg:#101526; --ui-surface:#172135; --ui-tint:#22324c;
+  --ui-ink:#edf7ff; --ui-muted:#bfcee2; --ui-line:#47647f;
+  --ui-accent:#67e3ef; --ui-on-accent:#102136;
+  --ui-explore:#101525; --ui-explore-ink:#e8faff; --ui-explore-muted:#b2c6e0;
+  --ui-edge:#4dabc4; --ui-secondary:#ffa1db; --ui-radius:3px;
+  --ui-landscape:url("assets/theme-neon-city.webp");
+  --ui-map-top:#23284b; --ui-map-bottom:#101526; --ui-map-trim:#77ebf4;
+  --ui-ornament:linear-gradient(90deg,#fa76bc 22%,transparent 22% 27%,#67e3ef 27% 76%,transparent 76%);
+  --ui-seal-corner:1px 6px;
+  --ui-seal-trim:inset 0 0 0 1px #9eeeff66;
+}
+
+:root[data-ui-theme=pets] {
+  --ui-bg:#fff0e7; --ui-surface:#fffaf4; --ui-tint:#f7dfdc;
+  --ui-ink:#48312c; --ui-muted:#6f514b; --ui-line:#c69d92;
+  --ui-accent:#8b4352; --ui-on-accent:#fff9f2;
+  --ui-explore:#4b3338; --ui-explore-ink:#fff5ec; --ui-explore-muted:#f0d5cc;
+  --ui-edge:#be8278; --ui-secondary:#905333; --ui-radius:15px;
+  --ui-landscape:url("assets/theme-corgi-cat.webp");
+  --ui-map-top:#54404a; --ui-map-bottom:#372b39; --ui-map-trim:#ffd1aa;
+  --ui-ornament:radial-gradient(circle at center,#b97480 0 1.5px,transparent 2px);
+  --ui-ornament-size:10px 7px;
+  --ui-seal-corner:44% 44% 36% 36%;
+  --ui-seal-trim:inset 0 0 0 1px #fff6e699;
+}
+
+@media screen {
+  .ui-theme-preview[data-theme-preview=cyber] { background-image:url("assets/theme-neon-city-thumb.webp"); }
+  .ui-theme-preview[data-theme-preview=pets] { background-image:url("assets/theme-corgi-cat-thumb.webp"); }
+  html[data-ui-theme=cyber] .has-sidebar .site-header nav > a.is-current {
+    text-shadow:0 0 14px #67e3ef45;
+  }
+  html[data-ui-theme=pets] .has-sidebar :is(.site-header nav > a,.case-preview ol li a) {
+    border-radius:var(--ui-radius);
+  }
+}
+
+@media screen and (min-width:1660px), screen and (min-width:960px) and (min-resolution:1.5dppx) {
+  :root[data-ui-theme=cyber] { --ui-landscape:url("assets/theme-neon-city-wide.webp"); }
+  :root[data-ui-theme=pets] { --ui-landscape:url("assets/theme-corgi-cat-wide.webp"); }
+}
+
 /* ===== polish.css ===== */
 /* ===== 2026-11 polish: texture, reading rhythm, surfaces and motion =====
    Loaded last in the bundle so it can refine earlier layers without rewriting them. */
@@ -1550,7 +1594,7 @@ html[data-ui-theme=mural] body.has-sidebar {
       0 18px 38px -16px color-mix(in srgb,#2a1d10 34%,transparent);
     --qi-ease:cubic-bezier(.22,.7,.2,1);
   }
-  :root[data-ui-theme=night] {
+  :root:is([data-ui-theme=night],[data-ui-theme=cyber]) {
     --qi-shadow-soft:0 1px 0 #ffffff0d inset,0 1px 2px #0005,0 12px 30px -14px #000a;
     --qi-shadow-lift:0 1px 0 #ffffff12 inset,0 2px 5px #0006,0 20px 40px -16px #000c;
   }

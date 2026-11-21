@@ -14,7 +14,7 @@
       0 18px 38px -16px color-mix(in srgb,#2a1d10 34%,transparent);
     --qi-ease:cubic-bezier(.22,.7,.2,1);
   }
-  :root[data-ui-theme=night] {
+  :root:is([data-ui-theme=night],[data-ui-theme=cyber]) {
     --qi-shadow-soft:0 1px 0 #ffffff0d inset,0 1px 2px #0005,0 12px 30px -14px #000a;
     --qi-shadow-lift:0 1px 0 #ffffff12 inset,0 2px 5px #0006,0 20px 40px -16px #000c;
   }
