@@ -1182,6 +1182,10 @@ window.RESEARCH = {
  if(!standalone)serviceNotice.textContent='密钥由答疑服务保管；回答仍需核对史料。';
  const form=panel.querySelector('form'),input=panel.querySelector('textarea'),log=panel.querySelector('.ai-help-log'),status=panel.querySelector('.ai-help-status'),send=form.querySelector('[type=submit]');
  const direct=document.createElement('a');direct.className='ai-help-direct';direct.textContent='在独立答疑页继续（手机兼容入口） ↗';direct.target='_blank';direct.rel='noopener noreferrer';direct.hidden=true;status.after(direct);
+ const options=document.createElement('details');options.className='ai-help-options';
+ const summary=document.createElement('summary');summary.textContent='阅读设置、API配置与使用说明';options.append(summary);
+ for(const element of [...panel.children]){if(element.matches('.ai-help-note,.ai-help-context,.ai-help-prompts,.ai-personal-config'))options.append(element);}
+ panel.querySelector('.ai-help-header').after(options);
  let history=[],reading={},controller=null,opener=null;
  function context(){
   if(standalone)return {event:preset.get('event')||'',title:preset.get('title')||'独立AI答疑',text:preset.get('title')||'北齐历史知识问答'};
@@ -1194,7 +1198,7 @@ window.RESEARCH = {
  function open(button){
   const next=button?.dataset.aiMode||'server';
   if(mode!==next){controller?.abort();controller=null;send.disabled=false;history=[];log.replaceChildren();input.value='';status.textContent='';keyInput.value='';}
-  mode=next;personal.hidden=mode!=='personal';
+  mode=next;personal.hidden=mode!=='personal';options.open=mode==='personal'&&!keyInput.value;
   panel.querySelector('#ai-help-title').textContent=mode==='personal'?'自备API答疑':'站长API答疑（需VPN）';
   serviceNotice.textContent=mode==='personal'?'使用你自己的DeepSeek API，浏览器直接连接DeepSeek。':'使用站长的服务端API。电脑和手机均需开启VPN后使用此入口。';
   opener=button;reading=context();panel.querySelector('[data-ai-reading]').textContent='· '+reading.title;panel.showModal();document.documentElement.classList.add('ai-help-open');document.dispatchEvent(new CustomEvent('ui-settings-toggle',{detail:{open:true}}));(mode==='personal'?keyInput:input).focus();

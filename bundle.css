@@ -740,6 +740,22 @@ html[data-ui-theme=mural] body.has-sidebar {
 
 .ai-help-dialog[open]{overflow-y:auto}.ai-help-dialog>:not(.ai-help-log){flex-shrink:0}.ai-help-log{flex:1 0 100px}.site-header:has(.ai-help-launch){flex-wrap:wrap;gap:10px}.site-header nav:has(.ai-help-launch){width:100%;flex-wrap:wrap;gap:8px 18px}
 
+/* Full-screen reading keeps the conversation as the only scrolling pane. */
+.ai-help-dialog { inset:0; width:100%; max-width:none; height:100dvh; max-height:100dvh; margin:0; border:0; border-radius:0; }
+.ai-help-dialog[open] { overflow:hidden; }
+.ai-help-dialog .ai-help-header { padding:10px max(18px,env(safe-area-inset-right)); }
+.ai-help-dialog .ai-help-header h2 { font-size:clamp(19px,2.4vw,26px); line-height:1.4; }
+.ai-help-dialog .ai-help-log { flex:1 1 0; min-height:0; padding:16px max(18px,calc((100vw - 980px)/2)); }
+.ai-help-dialog .ai-help-message { padding:16px 20px; font-size:16px; line-height:1.9; }
+.ai-help-dialog .ai-help-form { padding:8px max(18px,calc((100vw - 980px)/2)) max(10px,env(safe-area-inset-bottom)); }
+.ai-help-dialog .ai-help-form textarea { min-height:56px; max-height:100px; font-size:16px; }
+.ai-help-dialog .ai-help-status { font-size:12px; padding-block:4px; }
+.ai-help-options { padding:4px 18px; border-bottom:1px solid var(--ui-line); max-height:35dvh; overflow:auto; }
+.ai-help-options summary { cursor:pointer; font-size:13px; color:var(--ui-muted); }
+.ai-help-options .ai-help-note { font-size:12px; padding:5px 0; }
+.ai-help-options .ai-help-context,.ai-help-options .ai-help-prompts,.ai-help-options .ai-personal-config { padding-inline:0; }
+@media(max-width:600px) { .ai-help-dialog .ai-help-log { padding:10px 12px; } .ai-help-dialog .ai-help-message { padding:12px; } .ai-help-dialog .ai-help-header small { display:none; } }
+
 /* ===== music.css ===== */
 .music-control{display:flex;align-items:center;gap:10px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;background:var(--paper-light);letter-spacing:0;white-space:nowrap}
 .music-control [data-music-toggle]{display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:2px 4px;color:var(--muted);font:inherit;font-size:11px;cursor:pointer}
