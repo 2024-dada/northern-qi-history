@@ -482,7 +482,7 @@ window.RESEARCH = {
   const cards=[...gallery.children];
   const order=[0,1,7,8,2,11,3,14,4,9,6,10,12,13,15,5];
   order.forEach(i=>gallery.append(cards[i]));
-  [...gallery.children].forEach((card,i)=>{const label=card.querySelector('.v-card-top > span');label.textContent=(i+1)+' / '+label.textContent.replace(/^\d+ \/ /,'');});
+  [...gallery.children].forEach((card,i)=>{const label=card.querySelector('.v-card-top > span');const rest=label.textContent.replace(/^\d+ \/ /,'');label.textContent='';const num=document.createElement('b');num.className='v-num';num.textContent=String(i+1);label.append(num,' / '+rest);});
   const observer=new IntersectionObserver(entries=>entries.forEach(x=>x.target.classList.toggle('d-visible',x.isIntersecting)),{rootMargin:'50px'});
   gallery.querySelectorAll('.d-card').forEach(c=>observer.observe(c));
   document.addEventListener('archive-replay',()=>{document.documentElement.classList.add('d-restarting');requestAnimationFrame(()=>requestAnimationFrame(()=>document.documentElement.classList.remove('d-restarting')));});
