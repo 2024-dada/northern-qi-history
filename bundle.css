@@ -2030,3 +2030,25 @@ html[data-ui-theme] #detail-dialog .dialog-close:hover { background:color-mix(in
   .has-sidebar .court-hero:hover img { filter:saturate(1.06) contrast(1.02); }
 }
 @media (prefers-reduced-motion:reduce) { .has-sidebar .court-hero picture,.has-sidebar .court-hero img { transform:none !important; transition:none; } }
+
+
+/* ---------- 22. Game entry card: lacquer banner with a palace-gate silhouette ---------- */
+.has-sidebar .survival-launch-card {
+  position:relative; overflow:hidden; isolation:isolate;
+  color:#f3e8cf;
+  background:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 220'><defs><radialGradient id='l' cx='50%' cy='70%' r='40%'><stop offset='0' stop-color='%23ffd99a' stop-opacity='.85'/><stop offset='1' stop-color='%23ffd99a' stop-opacity='0'/></radialGradient></defs><rect x='120' y='70' width='120' height='150' fill='url(%23l)'/><path d='M40 64 Q180 20 320 64 L300 74 Q180 40 60 74Z' fill='%23000' fill-opacity='.55'/><path d='M30 66 L18 58 M330 66 L342 58' stroke='%23000' stroke-opacity='.55' stroke-width='5' stroke-linecap='round'/><rect x='70' y='74' width='220' height='12' fill='%23000' fill-opacity='.45'/><rect x='78' y='86' width='16' height='134' fill='%23000' fill-opacity='.5'/><rect x='266' y='86' width='16' height='134' fill='%23000' fill-opacity='.5'/><path d='M120 92 L172 98 L172 220 L120 220Z' fill='%23000' fill-opacity='.42'/><path d='M240 92 L188 98 L188 220 L240 220Z' fill='%23000' fill-opacity='.42'/><g fill='%23e8c47e' fill-opacity='.35'><circle cx='135' cy='120' r='2'/><circle cx='155' cy='120' r='2'/><circle cx='205' cy='120' r='2'/><circle cx='225' cy='120' r='2'/><circle cx='135' cy='140' r='2'/><circle cx='155' cy='140' r='2'/><circle cx='205' cy='140' r='2'/><circle cx='225' cy='140' r='2'/><circle cx='135' cy='160' r='2'/><circle cx='155' cy='160' r='2'/><circle cx='205' cy='160' r='2'/><circle cx='225' cy='160' r='2'/><circle cx='135' cy='180' r='2'/><circle cx='155' cy='180' r='2'/><circle cx='205' cy='180' r='2'/><circle cx='225' cy='180' r='2'/></g></svg>") right -10px bottom -6px / auto 108% no-repeat,
+    radial-gradient(90% 120% at 85% 100%,#7a2e22 0%,transparent 60%),
+    linear-gradient(120deg,#1a1d1a 0%,#2a221b 55%,#3a2219 100%) !important;
+  border:1px solid #6c5a36 !important; border-radius:8px;
+  box-shadow:inset 0 1px 0 rgb(255 230 180 / 10%),0 22px 44px -26px #0009 !important;
+}
+.has-sidebar .survival-launch-card::before { content:""; position:absolute; inset:6px; border:1px solid rgb(214 182 120 / 22%); border-radius:4px; pointer-events:none; z-index:-1; }
+.has-sidebar .survival-launch-card .eyebrow { color:#d9b46a !important; }
+.has-sidebar .survival-launch-card h3 { font-size:clamp(30px,3vw,40px) !important; letter-spacing:.12em; color:#fbefd2 !important; text-shadow:0 2px 0 rgb(0 0 0 / 30%); }
+.has-sidebar .survival-launch-card p { color:rgb(243 232 207 / 82%) !important; max-width:36em; }
+.has-sidebar .survival-launch-card .survival-launch-note { border-top-color:rgb(214 182 120 / 25%) !important; color:rgb(243 232 207 / 68%) !important; }
+.has-sidebar .survival-launch-link { background:linear-gradient(180deg,#d9b46a,#a87a35) !important; color:#1d150c !important; border:1px solid #f0d38f !important; font-weight:700; box-shadow:0 10px 22px -12px #000,inset 0 1px 0 rgb(255 255 255 / 35%) !important; }
+.has-sidebar .survival-launch-link:hover { background:linear-gradient(180deg,#e8c67e,#b88a42) !important; }
+.has-sidebar .survival-launch-link .survival-launch-icon { color:#7a2e22; }
+@media (max-width:760px) { .has-sidebar .survival-launch-card { background-size:auto 70%,auto,auto !important; background-position:right -40px bottom -6px,0 0,0 0 !important; } }

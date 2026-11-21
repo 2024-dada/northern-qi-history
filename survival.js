@@ -285,6 +285,8 @@
     mode = 'playing';
     impacts.length = 0;
     particles.length = 0;
+    floaters.length = 0;
+    rings.length = 0;
     eventState = null;
     audio?.setPlaying(true, {restart: true});
     requestFullscreen();
@@ -534,7 +536,36 @@
   // ---- Figure rendering: ink-mural characters with walk cycle, headgear by rank ----
   const motion = new WeakMap();
   const particles = [];
+  const floaters = [];
+  const rings = [];
   let shake = 0;
+  function announce(x, y, label, color) {
+    floaters.push({x, y, label, color, life: 0});
+    rings.push({x, y, color, life: 0});
+    if (floaters.length > 8) floaters.shift();
+    if (rings.length > 8) rings.shift();
+  }
+  function drawAnnouncements(dt) {
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const r = rings[i]; r.life += dt;
+      if (r.life > .5) { rings.splice(i, 1); continue; }
+      const k = r.life / .5;
+      ctx.save(); ctx.globalAlpha = (1 - k) * .9; ctx.strokeStyle = r.color; ctx.lineWidth = 2.5 * (1 - k) + .5;
+      ctx.beginPath(); ctx.arc(r.x, r.y, 12 + k * 30, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    }
+    for (let i = floaters.length - 1; i >= 0; i--) {
+      const f = floaters[i]; f.life += dt;
+      if (f.life > 1.1) { floaters.splice(i, 1); continue; }
+      const k = f.life / 1.1;
+      const y = f.y - 26 - (reducedMotion.matches ? 0 : k * 26);
+      ctx.save();
+      ctx.globalAlpha = k < .15 ? k / .15 : 1 - Math.max(0, (k - .6) / .4);
+      ctx.font = '700 14px "Microsoft YaHei", sans-serif'; ctx.textAlign = 'center';
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(20,12,6,.85)'; ctx.strokeText(f.label, f.x, y);
+      ctx.fillStyle = f.color; ctx.fillText(f.label, f.x, y);
+      ctx.restore();
+    }
+  }
   function moveState(entity, time) {
     let m = motion.get(entity);
     if (!m) { m = {x: entity.x, y: entity.y, phase: Math.random() * 6, speed: 0, side: 1, shownHp: entity.hp, alive: entity.alive !== false, lastDust: 0}; motion.set(entity, m); }
@@ -854,8 +885,13 @@
     if (now.layer !== before.layer || now.phase !== 'playing') return;
     if (now.revives < before.revives) audio?.event?.('revive');
     else if (now.hp < before.hp - .5) { audio?.event?.('hurt', Math.min(1, (before.hp - now.hp) / 12)); shake = Math.max(shake, 3 + Math.min(6, before.hp - now.hp)); }
-    else if (now.hp > before.hp + .5) audio?.event?.('heal');
-    if (now.melee !== before.melee && now.melee || now.ammo > before.ammo + .5) audio?.event?.('pickup');
+    else if (now.hp > before.hp + .5) { audio?.event?.('heal'); announce(run.player.x, run.player.y, `体力 +${Math.round(now.hp - before.hp)}`, '#cfe8a8'); spawnPuff(run.player.x, run.player.y, 'rgba(180,220,140,.6)', 6, .5); }
+    if (now.melee !== before.melee && now.melee || now.ammo > before.ammo + .5) {
+      audio?.event?.('pickup');
+      const label = now.melee !== before.melee && now.melee ? `获得${engine.MELEE_WEAPONS[now.melee]?.label || '兵器'}` : `箭 +${Math.round(now.ammo - before.ammo)}`;
+      announce(run.player.x, run.player.y, label, '#f3d38a');
+      spawnPuff(run.player.x, run.player.y, 'rgba(240,205,130,.7)', 8, .55);
+    }
     if (now.alive < before.alive) audio?.event?.('defeat');
     if (now.bossPhase === 2 && before.bossPhase !== 2) { audio?.event?.('drum'); shake = Math.max(shake, 7); }
   }
@@ -1122,6 +1158,7 @@
     drawArrowEffects(time);
     drawImpacts(time);
     drawParticles(mode === 'playing' ? dt : 0);
+    drawAnnouncements(mode === 'playing' ? dt : 0);
     if (run.hitText && run.hitText.start <= run.elapsed && run.hitText.until > run.elapsed) {
       const progress = 1 - (run.hitText.until - run.elapsed) / .72;
       ctx.save();
