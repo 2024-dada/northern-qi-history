@@ -8,33 +8,63 @@
 
   const WORLD = Object.freeze({width: 1100, height: 640, margin: 46});
   const FOG = Object.freeze({cellSize: 24, revealRadius: 158, fade: 28});
+  const DEG = Math.PI / 180;
+  // Each weapon owns one hit shape. The same shape is drawn on screen and used
+  // for the hit test, so what the player sees is exactly what lands.
   const MELEE_WEAPONS = Object.freeze({
-    sword: {label: '宝剑', range: 52, damage: 25, cooldown: .68},
-    longSword: {label: '长剑', range: 72, damage: 25, cooldown: .76},
-    poleaxe: {label: '长柄斧', range: 96, damage: 25, cooldown: .88}
+    sword: {label: '宝剑', range: 52, damage: 18, cooldown: .5, shape: 'single', note: '出手最快，只打最近一人'},
+    longSword: {label: '长剑', range: 72, damage: 26, cooldown: .75, shape: 'fan', arc: 120 * DEG, note: '120° 扇面挥砍'},
+    poleaxe: {label: '长柄斧', range: 82, damage: 35, cooldown: 1.15, shape: 'fan', arc: 180 * DEG, note: '180° 半圆重劈'},
+    spear: {label: '长枪', range: 110, damage: 30, cooldown: .95, shape: 'line', width: 24, pierce: 2, note: '直线突刺，贯穿两人'}
   });
-  const ARROW_DAMAGE = Object.freeze({soldier: 17, general: 20, marshal: 25, emperor: 13});
+  const SWAP_RADIUS = 34;
+  const BOW_RANGE = 240;
+  const ARROW_DAMAGE = Object.freeze({soldier: 17, shield: 13, archer: 20, spearman: 17, general: 20, marshal: 25, emperor: 13});
   const ARROW_TRAVEL = .18;
   const MUTINY_INTERVAL = 5;
-  const TALENT_WEIGHTS = Object.freeze({common: 45, rare: 30, epic: 25});
+  const REINFORCE_INTERVAL = 6;
+  const REINFORCE_CAP = 3;
+  const TALENT_WEIGHTS = Object.freeze({common: 42, rare: 30, epic: 20, legendary: 8});
   const TALENT_CARDS = {
     common: [
       {id: 'vitality', rarity: 'common', title: '强健体魄', description: '最大体力 +15，并立即恢复 15 点。'},
       {id: 'regeneration', rarity: 'common', title: '调息', description: '每点每秒恢复 0.75 点体力。'},
       {id: 'swift', rarity: 'common', title: '轻身', description: '每点移动速度 +10。'},
-      {id: 'evasion', rarity: 'common', title: '身法', description: '每点在已有闪避之外，再提供一次 5% 的闪避机会。'}
+      {id: 'evasion', rarity: 'common', title: '身法', description: '每点在已有闪避之外，再提供一次 5% 的闪避机会。'},
+      {id: 'herbal', rarity: 'common', title: '识药', description: '每点让回血药多恢复 10 点体力。'},
+      {id: 'steady', rarity: 'common', title: '稳步', description: '每点让火焰、犬、蝎等刑区伤害降低 20%（最多 60%）。'}
     ],
     rare: [
       {id: 'strength', rarity: 'rare', title: '力量', description: '每点让本局近战和弓箭伤害各提高 30%。'},
       {id: 'startSword', rarity: 'rare', title: '佩剑随行', description: '每层自带宝剑，每点近战伤害 +10%。'},
-      {id: 'startBow', rarity: 'rare', title: '备箭', description: '每层自带弓，每点在该层开始时提供 10 支箭。'}
+      {id: 'startSpear', rarity: 'rare', title: '枪不离身', description: '每层自带长枪，每点近战伤害 +10%。'},
+      {id: 'startBow', rarity: 'rare', title: '备箭', description: '每层自带弓，每点在该层开始时提供 10 支箭。'},
+      {id: 'swiftBlade', rarity: 'rare', title: '快刀', description: '每点让近战出手间隔缩短 8%（最多 40%）。'},
+      {id: 'counter', rarity: 'rare', title: '见隙', description: '每点让你对破绽中的敌人（盾兵收盾、枪兵收势、皇帝喘息）多造成 35% 伤害。'}
     ],
     epic: [
       {id: 'startPoleaxe', rarity: 'epic', title: '长柄重器', description: '每层自带长柄斧，每点近战伤害 +10%。'},
       {id: 'revive', rarity: 'epic', title: '续命', description: '每点获得一次复起机会，恢复至 60% 体力并保护 2 秒。'},
-      {id: 'mutiny', rarity: 'epic', title: '宫门兵变', description: '每 5 秒触发一次，每点召唤一名援军，10% 将领、90% 小兵。'}
+      {id: 'mutiny', rarity: 'epic', title: '宫门兵变', description: '每 5 秒触发一次，每点召唤一名援军，10% 将领、90% 小兵。'},
+      {id: 'bloodlust', rarity: 'epic', title: '嗜战', description: '每点让你每击退一名敌人恢复 4 点体力。'},
+      {id: 'foresight', rarity: 'epic', title: '洞察', unique: true, description: '所有敌方预警延长 30%，弓手和枪兵出手更易躲开。只能选一次。'}
+    ],
+    legendary: [
+      {id: 'thunder', rarity: 'legendary', title: '雷霆', unique: true, description: '每第 4 次近战命中引发一圈震波，对 95 范围内所有敌人造成该武器 60% 的伤害。'},
+      {id: 'phoenix', rarity: 'legendary', title: '涅槃', unique: true, description: '每层一次：受到致命伤时满体力复起，并以烈焰震退 120 范围内的敌人。'},
+      {id: 'arrowStorm', rarity: 'legendary', title: '万箭齐发', unique: true, description: '每次射箭额外分出两支，射向附近另外两名敌人（各 60% 伤害），不额外耗箭。'},
+      {id: 'defection', rarity: 'legendary', title: '倒戈', unique: true, description: '皇帝召来的将领有 40% 机会当场倒戈，转为你的援军。'}
     ]
   };
+  const RARITY_ORDER = ['common', 'rare', 'epic', 'legendary'];
+  const ENEMY_TYPES = Object.freeze({
+    soldier: {label: '刀兵', hp: 50, radius: 12, speed: 112, damage: 6, attackDelay: 1.05, points: 35, range: 38},
+    shield: {label: '盾兵', hp: 72, radius: 14, speed: 94, damage: 6, attackDelay: 1.3, points: 50, range: 40},
+    archer: {label: '弓手', hp: 40, radius: 12, speed: 106, damage: 7, attackDelay: 1.2, points: 45, range: 36},
+    spearman: {label: '枪兵', hp: 56, radius: 13, speed: 108, damage: 9, attackDelay: 1.25, points: 55, range: 46},
+    general: {label: '将领', hp: 100, radius: 16, speed: 102, damage: 7, attackDelay: 1.15, points: 100, range: 48},
+    marshal: {label: '大将军', hp: 200, radius: 21, speed: 94, damage: 8, attackDelay: 1.2, points: 220, range: 58}
+  });
   const HAZARD_PROFILES = Object.freeze({
     dog: {name: '纵犬', damagePerSecond: 9, sources: ['D23', 'D24']},
     scorpion: {name: '蝎蜇', damagePerSecond: 12, sources: ['D18']},
@@ -44,8 +74,15 @@
     blade: {name: '斩刑', damagePerSecond: 10, sources: ['E03', 'E10']},
     poison: {name: '赐毒', damagePerSecond: 8, sources: ['E09']}
   });
+  const SCENES = Object.freeze([
+    {id: 'gate', name: '宫门外廊', layers: '1–2'},
+    {id: 'court', name: '内廷庭院', layers: '3–4'},
+    {id: 'hall', name: '正殿前庭', layers: '5+'}
+  ]);
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const angleGap = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+  const sceneFor = layer => layer >= 5 ? SCENES[2] : layer >= 3 ? SCENES[1] : SCENES[0];
 
   function randomFor(seed) {
     let value = seed >>> 0;
@@ -64,6 +101,32 @@
       [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
+  }
+
+  /* ---------- shared shapes: used by hit tests and by the renderer ---------- */
+  // line: {x, y, facing, length, width}; fan: {x, y, facing, range, arc}; circle: {x, y, radius}
+  function inShape(shape, point, pad = 0) {
+    const dx = point.x - shape.x, dy = point.y - shape.y;
+    if (shape.kind === 'circle') return Math.hypot(dx, dy) <= shape.radius + pad;
+    if (shape.kind === 'line') {
+      const cos = Math.cos(shape.facing), sin = Math.sin(shape.facing);
+      const along = dx * cos + dy * sin;
+      const across = Math.abs(-dx * sin + dy * cos);
+      return along >= -pad && along <= shape.length + pad && across <= shape.width / 2 + pad;
+    }
+    if (shape.kind === 'fan') {
+      const span = Math.hypot(dx, dy);
+      if (span > shape.range + pad) return false;
+      if (span <= pad) return true;
+      // widen the cone by the target's own radius at that distance
+      const slack = Math.asin(Math.min(1, pad / Math.max(span, 1)));
+      return angleGap(Math.atan2(dy, dx), shape.facing) <= shape.arc / 2 + slack;
+    }
+    return false;
+  }
+
+  function alongLine(shape, point) {
+    return (point.x - shape.x) * Math.cos(shape.facing) + (point.y - shape.y) * Math.sin(shape.facing);
   }
 
   function position(random, avoid = []) {
@@ -100,30 +163,32 @@
     }
   }
 
-  function createEnemy(run, type, point, groupId, leaderId = null, friendly = false) {
-    const definitions = {
-      soldier: {label: '追兵', hp: 50, radius: 12, speed: 112, damage: 6, attackDelay: 1.05, points: 35},
-      general: {label: '将领', hp: 100, radius: 16, speed: 102, damage: 7, attackDelay: 1.15, points: 100},
-      marshal: {label: '大将军', hp: 200, radius: 21, speed: 94, damage: 8, attackDelay: 1.2, points: 220}
-    };
-    const definition = definitions[type];
+  const floorScale = run => {
     const floor = Math.max(0, run.layer - 1);
-    const healthScale = 1.12 ** floor;
-    const damageScale = 1.08 ** floor;
-    const speedScale = Math.min(1.45, 1 + floor * .02);
-    const cadenceScale = Math.max(.45, 1 - floor * .035);
+    return {
+      health: 1.12 ** floor, damage: 1.08 ** floor,
+      speed: Math.min(1.45, 1 + floor * .02), cadence: Math.max(.45, 1 - floor * .035)
+    };
+  };
+
+  function createEnemy(run, type, point, groupId, leaderId = null, friendly = false) {
+    const definition = ENEMY_TYPES[type];
+    const scale = floorScale(run);
+    const hp = Math.ceil(definition.hp * scale.health);
     const enemy = {
       id: `enemy-${run.enemySequence++}`,
       type, label: friendly ? '援军' : definition.label, friendly,
-      x: point.x, y: point.y, facing: 0,
-      hp: Math.ceil(definition.hp * healthScale), maxHp: Math.ceil(definition.hp * healthScale), radius: definition.radius,
-      speed: (definition.speed + run.random() * 12) * speedScale,
-      damage: Math.ceil(definition.damage * damageScale),
-      attackRange: type === 'soldier' ? 38 : type === 'general' ? 48 : 58,
-      attackDelay: Math.max(.5, definition.attackDelay * cadenceScale), points: definition.points,
+      x: point.x, y: point.y, facing: 0, bornAt: run.elapsed,
+      hp, maxHp: hp, radius: definition.radius,
+      speed: (definition.speed + run.random() * 12) * scale.speed,
+      damage: Math.ceil(definition.damage * scale.damage),
+      attackRange: definition.range,
+      attackDelay: Math.max(.5, definition.attackDelay * scale.cadence), points: definition.points,
       groupId, leaderId, alive: true, lastAttackAt: -run.random(),
       hitUntil: 0, noticeRadius: 340, swingStartedAt: null, swingResolved: false,
-      swingWindup: Math.max(.14, .34 * cadenceScale)
+      swingWindup: Math.max(.14, .34 * scale.cadence),
+      openUntil: 0, recoverUntil: 0, aimUntil: 0, dash: null,
+      nextSkillAt: run.elapsed + .8 + run.random() * 1.6
     };
     run.enemies.push(enemy);
     return enemy;
@@ -142,7 +207,7 @@
     return {x: center.x + 35, y: center.y + 25};
   }
 
-  function addFormation(run, center, {general = false, soldiers = 2, marshal = false, leaderId = null, friendly = false} = {}) {
+  function addFormation(run, center, {general = false, soldiers = 0, units = null, marshal = false, leaderId = null, friendly = false} = {}) {
     const group = {
       id: `group-${run.groupSequence++}`, friendly,
       x: center.x, y: center.y, alerted: false, noticeRadius: 340, members: []
@@ -153,20 +218,26 @@
     if (marshal) {
       leader = createEnemy(run, 'marshal', center, group.id, leaderId, friendly);
       run.marshal = leader;
-      group.members.push(leader);
-      occupied.push(leader);
     } else if (general) {
       leader = createEnemy(run, 'general', center, group.id, leaderId, friendly);
-      group.members.push(leader);
-      occupied.push(leader);
     }
-    for (let index = 0; index < soldiers; index++) {
+    if (leader) { group.members.push(leader); occupied.push(leader); }
+    const roster = units || Array.from({length: soldiers}, () => 'soldier');
+    for (const type of roster) {
       const point = formationPoint(run, center, occupied);
-      const soldier = createEnemy(run, 'soldier', point, group.id, leader?.id || leaderId, friendly);
-      group.members.push(soldier);
-      occupied.push(soldier);
+      const unit = createEnemy(run, type, point, group.id, leader?.id || leaderId, friendly);
+      group.members.push(unit);
+      occupied.push(unit);
     }
     return group;
+  }
+
+  // Each floor introduces one new kind of soldier, so the player learns it alone first.
+  function rosterFor(layer, index) {
+    if (layer <= 1) return {units: ['soldier', 'soldier']};
+    if (layer === 2) return {units: index === 2 ? ['soldier', 'soldier', 'shield'] : ['shield', 'soldier']};
+    if (layer === 3) return {general: true, units: [['shield', 'archer', 'soldier'], ['soldier', 'archer', 'soldier'], ['shield', 'soldier', 'archer']][index]};
+    return {general: true, units: [['spearman', 'shield', 'soldier'], ['spearman', 'archer', 'soldier'], ['shield', 'archer', 'spearman']][index]};
   }
 
   function spawnEnemyGroups(run) {
@@ -178,23 +249,26 @@
     if (run.layer >= 5) {
       const marshalPoint = position(run.random, reserved);
       reserved.push({...marshalPoint, minimum: 230});
-      const marshalGroup = addFormation(run, marshalPoint, {marshal: true, soldiers: 2});
-      for (let index = 0; index < 3; index++) {
+      const marshalGroup = addFormation(run, marshalPoint, {marshal: true, units: ['shield', 'soldier']});
+      marshalGroup.command = '大将军';
+      const squads = [
+        {name: '盾阵', units: ['shield', 'shield', 'soldier']},
+        {name: '弓阵', units: ['archer', 'archer', 'soldier']},
+        {name: '枪阵', units: ['spearman', 'spearman', 'shield']}
+      ];
+      for (const squad of squads) {
         const center = position(run.random, reserved);
         reserved.push({...center, minimum: 220});
-        addFormation(run, center, {general: true, soldiers: 2, leaderId: run.marshal.id});
+        const group = addFormation(run, center, {general: true, units: squad.units, leaderId: run.marshal.id});
+        group.squad = squad.name;
       }
-      marshalGroup.command = '大将军';
       return;
     }
 
     for (let index = 0; index < 3; index++) {
       const center = position(run.random, reserved);
       reserved.push({...center, minimum: 215});
-      addFormation(run, center, {
-        general: run.layer >= 3,
-        soldiers: run.layer >= 3 ? 3 : 2
-      });
+      addFormation(run, center, rosterFor(run.layer, index));
     }
   }
 
@@ -217,29 +291,59 @@
     }));
   }
 
+  /* ---------- emperor phases ---------- */
+  function emperorPlan(layer) {
+    if (layer <= 1) return [{at: 1, name: '挥扫', moves: []}];
+    if (layer === 2) return [{at: 1, name: '挥扫', moves: []}, {at: .6, name: '护驾', moves: ['guard']}];
+    if (layer === 3) return [{at: 1, name: '挥扫', moves: []}, {at: .6, name: '齐射', moves: ['volley']}];
+    if (layer === 4) return [{at: 1, name: '挥扫', moves: []}, {at: .6, name: '追袭', moves: ['charge']}];
+    return [
+      {at: 1, name: '守阵', moves: ['guard']},
+      {at: .7, name: '弓阵', moves: ['volley', 'guard']},
+      {at: .35, name: '追袭', moves: ['charge', 'lock', 'volley']}
+    ];
+  }
+
+  function phaseIndexFor(emperor) {
+    const ratio = emperor.hp / emperor.maxHp;
+    let index = 0;
+    emperor.plan.forEach((phase, i) => { if (ratio <= phase.at) index = i; });
+    return index;
+  }
+
   function spawnLayer(run) {
     const random = run.random;
     run.hazards = spawnHazards(random, run.player);
+    run.scene = sceneFor(run.layer).id;
+    run.sceneName = sceneFor(run.layer).name;
 
     const bossPoint = position(random, [{...run.player, minimum: 320}]);
-    const bossBaseHp = 125 * (1.12 ** Math.max(0, run.layer - 1));
+    const scale = floorScale(run);
+    const bossHp = Math.ceil(125 * scale.health * (run.layer >= 5 ? 1.6 : 1));
+    const plan = emperorPlan(run.layer);
     run.emperor = {
       ...bossPoint, id: `emperor-${run.layer}`, label: '皇帝', type: 'emperor',
-      alive: true, radius: 25, hp: Math.ceil(bossBaseHp), maxHp: Math.ceil(bossBaseHp), speed: (54 + Math.min(run.layer, 8) * 3) * Math.min(1.45, 1 + (run.layer - 1) * .02),
-      damage: Math.ceil(8 * (1.08 ** Math.max(0, run.layer - 1))),
-      attackRange: 68, attackDelay: Math.max(.5, 1.1 * Math.max(.45, 1 - (run.layer - 1) * .035)),
-      lastAttackAt: -Infinity, hitUntil: 0, facing: 0, swingStartedAt: null,
-      swingResolved: false, swingWindup: Math.max(.14, .34 * Math.max(.45, 1 - (run.layer - 1) * .035)),
-      phase: 1, phaseSummonCount: run.layer >= 5 ? run.layer - 1 : 0
+      alive: true, radius: 25, hp: bossHp, maxHp: bossHp,
+      speed: (54 + Math.min(run.layer, 8) * 3) * scale.speed,
+      damage: Math.ceil(8 * scale.damage),
+      attackRange: 88, hitUntil: 0, facing: Math.PI / 2,
+      swingStartedAt: null, swingResolved: false, swingWindup: Math.max(.45, .72 * scale.cadence),
+      plan, phase: 0, phaseName: plan[0].name, thresholds: plan.slice(1).map(phase => phase.at),
+      engaged: false, wardUntil: 0, busyUntil: 0, nextActionAt: 0, openUntil: 0, dash: null, moveCycle: 0
     };
-    run.nextImperialGeneralAt = run.elapsed + 5;
+    run.nextImperialGeneralAt = Infinity;
     run.layerGeneralsSpawned = 0;
-    run.player.meleeWeapon = run.talents.startPoleaxe ? 'poleaxe' : run.talents.startSword ? 'sword' : null;
+    run.layerCleared = false;
+    run.phoenixReady = run.talents.phoenix > 0;
+    run.player.meleeWeapon = run.talents.startPoleaxe ? 'poleaxe' : run.talents.startSpear ? 'spear' : run.talents.startSword ? 'sword' : null;
     run.player.bowAmmo = run.talents.startBow * 10;
     run.player.hasWeapon = Boolean(run.player.meleeWeapon || run.player.bowAmmo);
     run.player.swingStartedAt = null;
     run.player.swingResolved = false;
     run.projectileEffects.length = 0;
+    run.telegraphs = [];
+    run.bursts = [];
+    run.swapCandidate = null;
     run.player.invulnerableUntil = Math.max(run.player.invulnerableUntil || 0, run.elapsed);
     run.weaponPickups = [];
     run.healingItems = [];
@@ -251,12 +355,10 @@
       ...run.hazards.map(hazard => ({...hazard, minimum: hazard.radius + 48})),
       ...run.groups.map(group => ({...group, minimum: 110}))
     ];
+    const meleePool = run.layer >= 3 ? ['sword', 'longSword', 'poleaxe', 'spear'] : ['sword', 'longSword', 'poleaxe'];
     for (let index = 0; index < 2; index++) {
-      const avoid = [
-        ...pickupAvoid,
-        ...run.weaponPickups.map(item => ({...item, minimum: 150}))
-      ];
-      const type = ['sword', 'longSword', 'poleaxe'][Math.floor(random() * 3)];
+      const avoid = [...pickupAvoid, ...run.weaponPickups.map(item => ({...item, minimum: 150}))];
+      const type = run.layer === 4 && index === 0 ? 'spear' : meleePool[Math.floor(random() * meleePool.length)];
       run.weaponPickups.push({...position(random, avoid), type, collected: false});
     }
     for (let index = 0; index < 2; index++) {
@@ -277,10 +379,14 @@
     run.explored = new Uint8Array(Math.ceil(WORLD.width / FOG.cellSize) * Math.ceil(WORLD.height / FOG.cellSize));
     markExplored(run);
     run.phase = 'playing';
-    const formationNote = run.layer >= 5
-      ? '大将军、三支将领队伍和皇帝已经分散布防。'
-      : run.layer >= 3 ? '三支将领队伍已分散追捕。' : '三支追兵小队正在宫苑中搜索。';
-    run.message = `第 ${run.layer} 层：未探索区域被黑雾遮住。${formationNote}皇帝每 5 秒会召来一名将领；回血药每 5 秒刷新。寻找近战武器与弓箭；靠近时自动挥砍，较远时自动射箭。`;
+    const notes = {
+      1: '三支刀兵小队在宫苑中搜索。',
+      2: '盾兵登场：正面举盾减伤，挥盾之后会露出破绽。',
+      3: '弓手登场：红线是瞄准方向，看见就横移。',
+      4: '枪兵登场：直线预警后会冲刺，冲完收势时最好打。本层必有一杆长枪。',
+      5: '大将军与盾阵、弓阵、枪阵三队已布防。'
+    };
+    run.message = `第 ${run.layer} 层 · ${run.sceneName}：${notes[Math.min(run.layer, 5)]}皇帝发现你之后才会开战并召将。`;
   }
 
   function createRun(name, seed) {
@@ -290,9 +396,9 @@
       bossKills: 0, marshalKills: 0, generalKills: 0, enemyKills: 0,
       upgrades: {speed: 0, dodge: 0},
       talents: Object.fromEntries(Object.values(TALENT_CARDS).flat().map(({id}) => [id, 0])),
-      reviveCharges: 0, nextMutinyAt: Infinity,
-      upgradeChoices: [], nextAttackAt: 0, combatCues: [], projectileEffects: [],
-      enemySequence: 1, groupSequence: 1, lastHitAt: -Infinity, lastContactAt: -Infinity, flashUntil: 0,
+      reviveCharges: 0, nextMutinyAt: Infinity, meleeHits: 0,
+      upgradeChoices: [], nextAttackAt: 0, combatCues: [], projectileEffects: [], telegraphs: [], bursts: [],
+      enemySequence: 1, groupSequence: 1, telegraphSequence: 1, lastHitAt: -Infinity, lastContactAt: -Infinity, flashUntil: 0,
       player: {
         x: WORLD.width / 2, y: WORLD.height / 2, radius: 16, hp: 100, maxHp: 100,
         speed: 128, dodge: 0, hasWeapon: false, meleeWeapon: null, bowAmmo: 0,
@@ -314,20 +420,6 @@
     return {warning, active};
   }
 
-  function takeHit(run, now, amount, reason) {
-    if (now - run.lastHitAt < .8) return false;
-    run.lastHitAt = now;
-    if (run.player.dodge && run.random() < run.player.dodge) {
-      run.message = `闪避成功：${reason}。`;
-      return false;
-    }
-    run.player.hp = Math.max(0, run.player.hp - amount);
-    run.flashUntil = now + .24;
-    run.message = `${reason}，体力减少 ${amount}。`;
-    if (run.player.hp <= 0) run.phase = 'over';
-    return true;
-  }
-
   function targetList(run) {
     return [
       ...run.enemies.filter(enemy => enemy.alive && !enemy.friendly),
@@ -335,39 +427,173 @@
     ];
   }
 
-  function spawnImperialGeneral(run, phaseSummon = false) {
-    if (!run.emperor.alive) return;
-    const emperor = run.emperor;
-    const activeEnemies = run.enemies.filter(enemy => enemy.alive);
-    const ring = 82 + Math.min(run.layerGeneralsSpawned, 5) * 15;
-    let point = null;
+  function combatCue(run, kind, weapon, actor, delay = 0) {
+    run.combatCues.push({kind, weapon, x: actor.x, y: actor.y, delay});
+  }
+
+  function burst(run, x, y, radius, kind) {
+    run.bursts.push({x, y, radius, kind, startedAt: run.elapsed, until: run.elapsed + .55});
+  }
+
+  function freePointNear(run, center, ring) {
+    const active = run.enemies.filter(enemy => enemy.alive);
     for (let attempt = 0; attempt < 36; attempt++) {
       const angle = run.random() * Math.PI * 2;
       const span = ring + run.random() * 22;
       const candidate = {
-        x: clamp(emperor.x + Math.cos(angle) * span, WORLD.margin + 25, WORLD.width - WORLD.margin - 25),
-        y: clamp(emperor.y + Math.sin(angle) * span, WORLD.margin + 25, WORLD.height - WORLD.margin - 25)
+        x: clamp(center.x + Math.cos(angle) * span, WORLD.margin + 25, WORLD.width - WORLD.margin - 25),
+        y: clamp(center.y + Math.sin(angle) * span, WORLD.margin + 25, WORLD.height - WORLD.margin - 25)
       };
-      if (distance(candidate, emperor) < 58 || distance(candidate, run.player) < 42) continue;
-      if (activeEnemies.some(enemy => distance(candidate, enemy) < 38)) continue;
-      point = candidate;
-      break;
+      if (distance(candidate, center) < 58 || distance(candidate, run.player) < 42) continue;
+      if (active.some(enemy => distance(candidate, enemy) < 38)) continue;
+      return candidate;
     }
-    if (!point) {
-      const angle = run.random() * Math.PI * 2;
-      point = {
-        x: clamp(emperor.x + Math.cos(angle) * 92, WORLD.margin + 25, WORLD.width - WORLD.margin - 25),
-        y: clamp(emperor.y + Math.sin(angle) * 92, WORLD.margin + 25, WORLD.height - WORLD.margin - 25)
-      };
+    const angle = run.random() * Math.PI * 2;
+    return {
+      x: clamp(center.x + Math.cos(angle) * 92, WORLD.margin + 25, WORLD.width - WORLD.margin - 25),
+      y: clamp(center.y + Math.sin(angle) * 92, WORLD.margin + 25, WORLD.height - WORLD.margin - 25)
+    };
+  }
+
+  function emperorSummonsAlive(run) {
+    return run.enemies.filter(enemy => enemy.alive && !enemy.friendly && enemy.summoned).length;
+  }
+
+  // Summons from the emperor. Returns how many hostile units actually arrived.
+  function spawnImperialUnits(run, units, general, kind) {
+    if (!run.emperor.alive) return 0;
+    const room = REINFORCE_CAP - emperorSummonsAlive(run);
+    if (room <= 0) return 0;
+    const roster = units.slice(0, general ? Math.max(0, room - 1) : room);
+    const point = freePointNear(run, run.emperor, 82 + Math.min(run.layerGeneralsSpawned, 5) * 12);
+    const defects = general && run.talents.defection > 0 && run.random() < .4;
+    const group = addFormation(run, point, {general, units: roster, friendly: defects});
+    group.kind = defects ? 'mutiny' : kind;
+    group.alerted = true;
+    if (general) run.layerGeneralsSpawned++;
+    for (const unit of group.members) unit.summoned = !defects;
+    combatCue(run, 'summon', 'guard', point);
+    if (defects) {
+      run.message = '倒戈：皇帝召来的将领转投你这一边。';
+      return 0;
     }
-    const group = addFormation(run, point, {general: true, soldiers: 0});
-    group.kind = phaseSummon ? 'emperorPhase' : 'emperorGuard';
-    run.layerGeneralsSpawned++;
-    run.message = phaseSummon ? '皇帝进入第二阶段，召来将领围攻。' : '皇帝召来一名将领增援。';
+    return group.members.length;
+  }
+
+  function enterEmperorPhase(run, index, now) {
+    const emperor = run.emperor;
+    emperor.phase = index;
+    const phase = emperor.plan[index];
+    emperor.phaseName = phase.name;
+    emperor.moveCycle = 0;
+    emperor.wardUntil = now + 1;
+    emperor.nextActionAt = Math.min(emperor.nextActionAt, now + .6);
+    combatCue(run, 'phase', 'guard', emperor);
+    const entry = {
+      护驾: () => spawnImperialUnits(run, ['shield', 'shield'], false, 'emperorPhase'),
+      守阵: () => spawnImperialUnits(run, ['shield', 'shield'], false, 'emperorPhase'),
+      齐射: () => spawnImperialUnits(run, ['archer'], false, 'emperorPhase'),
+      弓阵: () => spawnImperialUnits(run, ['archer', 'archer'], false, 'emperorPhase'),
+      追袭: () => 0
+    }[phase.name];
+    entry?.();
+    const lines = {
+      护驾: '皇帝喝令护驾，盾兵围上来了。', 守阵: '皇帝结成守阵，盾兵护在身前。',
+      齐射: '皇帝下令齐射：注意三道红线。', 弓阵: '皇帝转入弓阵：箭线与盾兵交替压上。',
+      追袭: '皇帝亲自追袭：直线冲锋之后会喘息，抓住破绽。'
+    };
+    run.message = `皇帝进入「${phase.name}」阶段。${lines[phase.name] || ''}`;
+  }
+
+  /* ---------- damage ---------- */
+  function isOpen(target, now) {
+    if (target.type === 'emperor') return now < target.openUntil;
+    if (target.type === 'shield') return now < target.openUntil;
+    if (target.type === 'spearman') return now < target.recoverUntil;
+    return false;
+  }
+
+  function finishLayer(run) {
+    if (run.layerCleared) return false;
+    run.layerCleared = true;
+    run.telegraphs = [];
+    return completeLayerIfReady(run);
+  }
+
+  function damageTarget(run, target, amount, now, weapon, source = null) {
+    if (!target.alive) return 0;
+    let scaled = amount;
+    if (!target.friendly && source) {
+      if (isOpen(target, now)) scaled *= 1.25 + .35 * (source === run.player ? run.talents.counter : 0);
+      else if (target.type === 'emperor' && now < target.wardUntil) scaled = 0;
+      else if (target.type === 'emperor' && target.engaged) scaled *= run.layer >= 5 ? .55 : .8;
+      else if (target.type === 'shield' && !target.friendly) {
+        const from = Math.atan2(source.y - target.y, source.x - target.x);
+        if (angleGap(from, target.facing) <= 60 * DEG) {
+          scaled *= .45;
+          target.blockedAt = now;
+          combatCue(run, 'block', 'guard', target);
+        }
+      }
+    }
+    const dealt = Math.min(Math.ceil(scaled), target.hp);
+    target.hp = Math.max(0, target.hp - dealt);
+    target.hitUntil = now + .2;
+    const delay = weapon === 'bow' ? ARROW_TRAVEL : 0;
+    combatCue(run, 'impact', weapon, target, delay);
+    run.hitText = {x: target.x, y: target.y, value: `−${dealt}`, start: now + delay, until: now + delay + .72};
+    if (target.type === 'emperor') {
+      if (!target.engaged) engageEmperor(run, now);
+      if (target.hp > 0) {
+        const index = phaseIndexFor(target);
+        if (index > target.phase) { enterEmperorPhase(run, index, now); return dealt; }
+      }
+    }
+    if (target.hp > 0) {
+      {
+        const hit = target.friendly ? '援军受击' : `命中${target.label}`;
+        const tag = target.type === 'emperor' && now < target.wardUntil ? '（换阵护体，刀枪不入）' : target.blockedAt === now ? '（被盾挡下大半）' : isOpen(target, now) && !target.friendly ? '（破绽）' : '';
+        run.message = `${hit}${tag}：−${dealt}，剩余 ${Math.ceil(target.hp)} / ${target.maxHp}。`;
+      }
+      return dealt;
+    }
+    target.alive = false;
+    if (target.friendly) {
+      run.message = '援军已被击退。';
+    } else if (target.type === 'emperor') {
+      run.bossKills++;
+      run.message = `皇帝已被击败，第 ${run.layer} 层结束。`;
+      finishLayer(run);
+    } else {
+      if (target.type === 'marshal') run.marshalKills++;
+      if (target.type === 'general') run.generalKills++;
+      run.enemyKills++;
+      run.message = `${target.label}已被击退。`;
+      if (run.talents.bloodlust > 0 && run.player.hp > 0) {
+        run.player.hp = Math.min(run.player.maxHp, run.player.hp + 4 * run.talents.bloodlust);
+      }
+      run.telegraphs = run.telegraphs.filter(item => item.owner !== target || item.done);
+    }
+    return dealt;
   }
 
   function reviveOrEnd(run, now) {
     if (run.player.hp > 0) return;
+    if (run.phoenixReady) {
+      run.phoenixReady = false;
+      run.player.hp = run.player.maxHp;
+      run.player.invulnerableUntil = now + 2;
+      run.flashUntil = now + 2;
+      burst(run, run.player.x, run.player.y, 120, 'phoenix');
+      combatCue(run, 'phoenix', 'guard', run.player);
+      const ring = {kind: 'circle', x: run.player.x, y: run.player.y, radius: 120};
+      for (const target of targetList(run)) {
+        if (inShape(ring, target, target.radius)) damageTarget(run, target, 40 * floorScale(run).damage, now, 'guard', run.player);
+        if (run.phase !== 'playing') return;
+      }
+      run.message = '涅槃：浴火复起，体力全满。本层不再触发。';
+      return;
+    }
     if (run.reviveCharges > 0) {
       run.reviveCharges--;
       run.player.hp = Math.ceil(run.player.maxHp * .6);
@@ -393,13 +619,83 @@
     return true;
   }
 
+  /* ---------- telegraphs: one record drives the warning and the hit ---------- */
+  function warn(run, owner, shape, delay, damage, label, extra = {}) {
+    const stretch = 1 + .3 * (run.talents.foresight || 0);
+    const telegraph = {
+      id: `t-${run.telegraphSequence++}`, owner, ...shape, damage, label,
+      startAt: run.elapsed, resolveAt: run.elapsed + delay * stretch, done: false, ...extra
+    };
+    run.telegraphs.push(telegraph);
+    combatCue(run, 'warn', 'guard', owner || shape);
+    return telegraph;
+  }
+
+  function resolveTelegraphs(run, now) {
+    for (const telegraph of run.telegraphs) {
+      if (telegraph.done || now < telegraph.resolveAt) continue;
+      telegraph.done = true;
+      telegraph.doneAt = now;
+      const owner = telegraph.owner;
+      if (owner && owner.alive === false) continue;
+      if (telegraph.arrow) {
+        const reach = telegraph.length;
+        run.projectileEffects.push({
+          x1: telegraph.x, y1: telegraph.y,
+          x2: telegraph.x + Math.cos(telegraph.facing) * reach, y2: telegraph.y + Math.sin(telegraph.facing) * reach,
+          startedAt: now, until: now + .22, hostile: true
+        });
+      }
+      if (telegraph.damage) {
+        if (inShape(telegraph, run.player, run.player.radius * .55)) {
+          if (takeHit(run, now, telegraph.damage, telegraph.label)) combatCue(run, 'impact', 'guard', run.player);
+          if (run.phase !== 'playing') return;
+        }
+        for (const ally of run.enemies) {
+          if (ally.alive && ally.friendly && inShape(telegraph, ally, ally.radius * .5)) damageTarget(run, ally, telegraph.damage, now, 'guard');
+        }
+      }
+      if (telegraph.then === 'dash' && owner) {
+        const length = telegraph.length - owner.radius;
+        owner.dash = {
+          x0: owner.x, y0: owner.y, startedAt: now, until: now + .24,
+          x1: clamp(owner.x + Math.cos(telegraph.facing) * length, WORLD.margin, WORLD.width - WORLD.margin),
+          y1: clamp(owner.y + Math.sin(telegraph.facing) * length, WORLD.margin, WORLD.height - WORLD.margin)
+        };
+        combatCue(run, 'dash', 'guard', owner);
+      }
+      if (telegraph.then === 'lockburst') burst(run, telegraph.x, telegraph.y, telegraph.radius, 'lock');
+      if (telegraph.opening && owner) {
+        const until = now + telegraph.opening + (telegraph.then === 'dash' ? .24 : 0);
+        if (owner.type === 'spearman') owner.recoverUntil = until;
+        else owner.openUntil = Math.max(owner.openUntil || 0, until);
+      }
+    }
+    run.telegraphs = run.telegraphs.filter(item => !item.done || now - item.doneAt < .28);
+  }
+
+  function pendingFor(run, owner) {
+    return run.telegraphs.some(item => item.owner === owner && !item.done);
+  }
+
+  function stepDash(actor, now) {
+    if (!actor.dash) return false;
+    const k = clamp((now - actor.dash.startedAt) / (actor.dash.until - actor.dash.startedAt), 0, 1);
+    actor.x = actor.dash.x0 + (actor.dash.x1 - actor.dash.x0) * k;
+    actor.y = actor.dash.y0 + (actor.dash.y1 - actor.dash.y0) * k;
+    if (k >= 1) actor.dash = null;
+    return true;
+  }
+
+  /* ---------- player attacks ---------- */
   function createTalentChoices(run) {
     const selected = [];
+    const owned = card => card.unique && run.talents[card.id] > 0;
     while (selected.length < 3) {
       const availableByRarity = Object.fromEntries(Object.entries(TALENT_CARDS).map(([rarity, cards]) => [
-        rarity, cards.filter(card => !selected.some(item => item.id === card.id))
+        rarity, cards.filter(card => !owned(card) && !selected.some(item => item.id === card.id))
       ]));
-      const availableRarities = Object.keys(availableByRarity).filter(rarity => availableByRarity[rarity].length);
+      const availableRarities = RARITY_ORDER.filter(rarity => availableByRarity[rarity].length);
       if (!availableRarities.length) break;
       const totalWeight = availableRarities.reduce((sum, rarity) => sum + TALENT_WEIGHTS[rarity], 0);
       let roll = run.random() * totalWeight;
@@ -416,7 +712,7 @@
 
   function completeLayerIfReady(run) {
     if (run.emperor.alive) return false;
-    run.score = Math.floor(run.elapsed * 10) + run.bossKills * 300 + run.marshalKills * 220 + run.enemyKills * 35;
+    run.score = scoreOf(run);
     run.phase = 'upgrade';
     if (run.layer < 5) {
       run.level = run.layer + 1;
@@ -428,49 +724,10 @@
     } else {
       run.level = 5;
       run.upgradeChoices = createTalentChoices(run);
-      run.message = `第 ${run.layer} 层皇帝已击败。选择一项进阶天赋，继续挑战更强的下一层。`;
+      const legend = run.upgradeChoices.some(card => card.rarity === 'legendary');
+      run.message = `第 ${run.layer} 层皇帝已击败。${legend ? '出现了传说天赋！' : ''}选择一项进阶天赋，继续挑战更强的下一层。`;
     }
     return true;
-  }
-
-  function combatCue(run, kind, weapon, actor, delay = 0) {
-    run.combatCues.push({kind, weapon, x: actor.x, y: actor.y, delay});
-  }
-
-  function damageTarget(run, target, amount, now, weapon) {
-    if (!target.alive) return;
-    const dealt = Math.min(Math.ceil(amount), target.hp);
-    target.hp = Math.max(0, target.hp - dealt);
-    target.hitUntil = now + .2;
-    const delay = weapon === 'bow' ? ARROW_TRAVEL : 0;
-    combatCue(run, 'impact', weapon, target, delay);
-    run.hitText = {x: target.x, y: target.y, value: `−${dealt}`, start: now + delay, until: now + delay + .72};
-    if (target.type === 'emperor' && target.hp > 0 && run.layer >= 5 && target.phase === 1 && target.hp <= target.maxHp / 2) {
-      target.phase = 2;
-      run.message = `皇帝进入第二阶段：召来 ${target.phaseSummonCount} 名将领。`;
-      for (let index = 0; index < target.phaseSummonCount; index++) spawnImperialGeneral(run, true);
-      run.message = `皇帝进入第二阶段：召来 ${target.phaseSummonCount} 名将领。`;
-    }
-    if (target.hp > 0) {
-      const hit = target.friendly ? '援军受击' : `命中${target.label}`;
-      run.message = `${hit}：−${dealt}，剩余 ${Math.ceil(target.hp)} / ${target.maxHp}。`;
-      return;
-    }
-    target.alive = false;
-    if (target.friendly) {
-      run.message = '援军已被击退。';
-    } else if (target.type === 'emperor') {
-      run.bossKills++;
-      run.score += 300;
-      run.message = `皇帝已被击败，第 ${run.layer} 层结束。`;
-      completeLayerIfReady(run);
-    } else {
-      if (target.type === 'marshal') run.marshalKills++;
-      if (target.type === 'general') run.generalKills++;
-      run.enemyKills++;
-      run.score += target.points;
-      run.message = `${target.label}已被击退。`;
-    }
   }
 
   function nearestTarget(from, targets) {
@@ -489,52 +746,87 @@
   }
 
   function damageBonus(run, weapon) {
-    const {strength, startSword, startPoleaxe} = run.talents;
-    return 30 * strength + (weapon === 'bow' ? 0 : 10 * (startSword + startPoleaxe));
+    const {strength, startSword, startPoleaxe, startSpear = 0} = run.talents;
+    return 30 * strength + (weapon === 'bow' ? 0 : 10 * (startSword + startPoleaxe + startSpear));
+  }
+
+  function meleeShape(player, weapon, facing) {
+    if (weapon.shape === 'line') return {kind: 'line', x: player.x, y: player.y, facing, length: weapon.range, width: weapon.width};
+    if (weapon.shape === 'fan') return {kind: 'fan', x: player.x, y: player.y, facing, range: weapon.range, arc: weapon.arc};
+    return {kind: 'fan', x: player.x, y: player.y, facing, range: weapon.range, arc: 70 * DEG};
+  }
+
+  function meleeVictims(run, weapon, shape, targets, primary) {
+    if (weapon.shape === 'single') return [primary];
+    const inside = targets.filter(target => inShape(shape, target, target.radius));
+    if (weapon.shape === 'line') {
+      return inside.sort((a, b) => alongLine(shape, a) - alongLine(shape, b)).slice(0, weapon.pierce);
+    }
+    return inside;
   }
 
   function performAttack(run, now) {
     if (now < run.nextAttackAt) return;
     const targets = targetList(run);
-    const melee = run.player.meleeWeapon ? MELEE_WEAPONS[run.player.meleeWeapon] : null;
-    const inMeleeRange = melee ? targets.filter(target => distance(run.player, target) <= melee.range + target.radius) : [];
-    if (inMeleeRange.length) {
-      run.nextAttackAt = now + melee.cooldown;
-      run.player.swingStartedAt = now;
-      run.player.swingResolved = true;
-      run.player.swingUntil = now + .28;
-      const target = nearestTarget(run.player, inMeleeRange).target;
-      run.player.facing = Math.atan2(target.y - run.player.y, target.x - run.player.x);
-      run.player.swingFacing = run.player.facing;
-      run.player.swingRange = melee.range;
-      run.player.swingWeapon = run.player.meleeWeapon;
-      combatCue(run, 'swing', run.player.swingWeapon, run.player);
-      const damageMultiplier = 1 + damageBonus(run, run.player.swingWeapon) / 100;
-      for (const hit of inMeleeRange) {
-        damageTarget(run, hit, melee.damage * damageMultiplier, now, run.player.swingWeapon);
+    const weaponId = run.player.meleeWeapon;
+    const melee = weaponId ? MELEE_WEAPONS[weaponId] : null;
+    const reachable = melee ? targets.filter(target => distance(run.player, target) <= melee.range + target.radius) : [];
+    if (reachable.length) {
+      const primary = nearestTarget(run.player, reachable).target;
+      const facing = Math.atan2(primary.y - run.player.y, primary.x - run.player.x);
+      const shape = meleeShape(run.player, melee, facing);
+      const victims = meleeVictims(run, melee, shape, reachable, primary);
+      const haste = Math.max(.6, 1 - .08 * run.talents.swiftBlade);
+      run.nextAttackAt = now + melee.cooldown * haste;
+      Object.assign(run.player, {
+        facing, swingFacing: facing, swingRange: melee.range, swingWeapon: weaponId, swingShape: shape,
+        swingStartedAt: now, swingResolved: true, swingUntil: now + (weaponId === 'spear' ? .22 : .28)
+      });
+      combatCue(run, 'swing', weaponId, run.player);
+      const multiplier = 1 + damageBonus(run, weaponId) / 100;
+      for (const hit of victims) {
+        damageTarget(run, hit, melee.damage * multiplier, now, weaponId, run.player);
         if (run.phase !== 'playing') return;
+      }
+      if (run.talents.thunder > 0 && ++run.meleeHits % 4 === 0) {
+        const ring = {kind: 'circle', x: run.player.x, y: run.player.y, radius: 95};
+        burst(run, ring.x, ring.y, ring.radius, 'thunder');
+        combatCue(run, 'thunder', weaponId, run.player);
+        for (const target of targetList(run)) {
+          if (!inShape(ring, target, target.radius)) continue;
+          damageTarget(run, target, melee.damage * multiplier * .6, now, weaponId, run.player);
+          if (run.phase !== 'playing') return;
+        }
       }
       return;
     }
     if (run.player.bowAmmo <= 0) return;
     const closest = nearestTarget(run.player, targets);
-    if (!closest || closest.span > 240) return;
+    if (!closest || closest.span > BOW_RANGE) return;
     const target = closest.target;
     run.player.bowAmmo--;
     run.player.hasWeapon = Boolean(run.player.meleeWeapon || run.player.bowAmmo);
-    run.player.facing = Math.atan2(target.y - run.player.y, target.x - run.player.x);
-    run.player.swingStartedAt = now;
-    run.player.swingResolved = true;
-    run.player.swingUntil = now + .24;
-    run.player.swingFacing = run.player.facing;
-    run.player.swingRange = closest.span;
-    run.player.swingWeapon = 'bow';
+    const facing = Math.atan2(target.y - run.player.y, target.x - run.player.x);
+    Object.assign(run.player, {
+      facing, swingFacing: facing, swingRange: closest.span, swingWeapon: 'bow', swingShape: null,
+      swingStartedAt: now, swingResolved: true, swingUntil: now + .24
+    });
     run.nextAttackAt = now + .72;
     combatCue(run, 'swing', 'bow', run.player);
-    run.projectileEffects.push({x1: run.player.x, y1: run.player.y, x2: target.x, y2: target.y, startedAt: now, until: now + ARROW_TRAVEL});
-    damageTarget(run, target, (ARROW_DAMAGE[target.type] || 13) * (1 + damageBonus(run, 'bow') / 100), now, 'bow');
+    const volley = [{target, share: 1}];
+    if (run.talents.arrowStorm > 0) {
+      targets.filter(item => item !== target && distance(run.player, item) <= BOW_RANGE)
+        .sort((a, b) => distance(run.player, a) - distance(run.player, b))
+        .slice(0, 2).forEach(item => volley.push({target: item, share: .6}));
+    }
+    for (const shot of volley) {
+      run.projectileEffects.push({x1: run.player.x, y1: run.player.y, x2: shot.target.x, y2: shot.target.y, startedAt: now, until: now + ARROW_TRAVEL});
+      damageTarget(run, shot.target, (ARROW_DAMAGE[shot.target.type] || 13) * shot.share * (1 + damageBonus(run, 'bow') / 100), now, 'bow', run.player);
+      if (run.phase !== 'playing') return;
+    }
   }
 
+  /* ---------- enemy behaviour ---------- */
   function moveToward(entity, point, speed, dt) {
     const dx = point.x - entity.x;
     const dy = point.y - entity.y;
@@ -551,14 +843,16 @@
         actor.swingResolved = true;
         combatCue(run, 'swing', 'guard', actor);
         const hit = actor.swingTarget;
-        if (hit && hit.alive !== false && distance(actor, hit) <= actor.attackRange + hit.radius) {
+        const shape = {kind: 'fan', x: actor.x, y: actor.y, facing: actor.swingFacing, range: actor.attackRange, arc: 110 * DEG};
+        if (hit && hit.alive !== false && inShape(shape, hit, hit.radius)) {
           if (hit === run.player) {
-            if (takeHit(run, now, actor.damage, `${actor.label}挥砍命中`))combatCue(run, 'impact', 'guard', hit);
+            if (takeHit(run, now, actor.damage, `${actor.label}挥砍命中`)) combatCue(run, 'impact', 'guard', hit);
           } else {
             const damage = actor.friendly ? (actor.type === 'general' ? 26 : 18) : actor.damage;
-            damageTarget(run, hit, damage, now, 'guard');
+            damageTarget(run, hit, damage, now, 'guard', actor);
           }
         }
+        if (actor.type === 'shield' && !actor.friendly) actor.openUntil = now + .8;
       }
       if (swingTime >= actor.swingWindup + .2) {
         actor.swingStartedAt = null;
@@ -568,9 +862,12 @@
     }
     if (!target) return;
     const span = distance(actor, target);
-    actor.facing = Math.atan2(target.y - actor.y, target.x - actor.x);
+    const opened = actor.type === 'shield' && now < actor.openUntil;
+    if (!opened) actor.facing = Math.atan2(target.y - actor.y, target.x - actor.x);
     if (span > actor.attackRange + target.radius) {
-      moveToward(actor, target, actor.speed, dt);
+      const facing = actor.facing;
+      moveToward(actor, target, actor.speed * (opened ? .35 : 1), dt);
+      if (opened) actor.facing = facing;
       return;
     }
     if (now - actor.lastAttackAt >= actor.attackDelay) {
@@ -582,6 +879,121 @@
     }
   }
 
+  function updateArcher(run, archer, target, now, dt) {
+    if (now < archer.aimUntil || pendingFor(run, archer)) return;
+    const span = distance(archer, target);
+    const facing = Math.atan2(target.y - archer.y, target.x - archer.x);
+    archer.facing = facing;
+    if (now >= archer.nextSkillAt && span <= 300) {
+      archer.nextSkillAt = now + 3;
+      archer.aimUntil = now + .9;
+      warn(run, archer, {kind: 'line', x: archer.x, y: archer.y, facing, length: 320, width: 16}, .9, archer.damage + 2, '弓手冷箭命中', {arrow: true});
+      return;
+    }
+    if (span < 140) {
+      moveToward(archer, {x: archer.x * 2 - target.x, y: archer.y * 2 - target.y}, archer.speed * .9, dt);
+      archer.facing = facing;
+    } else if (span > 200) moveToward(archer, target, archer.speed, dt);
+    else {
+      const side = (archer.enemySide ??= run.random() < .5 ? 1 : -1);
+      moveToward(archer, {x: archer.x - Math.sin(facing) * side * 40, y: archer.y + Math.cos(facing) * side * 40}, archer.speed * .4, dt);
+      archer.facing = facing;
+    }
+  }
+
+  function updateSpearman(run, spearman, target, now, dt) {
+    if (stepDash(spearman, now)) return;
+    if (now < spearman.recoverUntil || pendingFor(run, spearman)) return;
+    const span = distance(spearman, target);
+    if (now >= spearman.nextSkillAt && span <= 200 && span > 30) {
+      const facing = Math.atan2(target.y - spearman.y, target.x - spearman.x);
+      spearman.facing = facing;
+      spearman.nextSkillAt = now + 3.5;
+      warn(run, spearman, {kind: 'line', x: spearman.x, y: spearman.y, facing, length: 200, width: 28}, .9, spearman.damage + 3, '枪兵冲刺命中', {then: 'dash', opening: .8});
+      return;
+    }
+    updateMeleeActor(run, spearman, target, now, dt);
+  }
+
+  function updateUnit(run, unit, target, now, dt) {
+    if (!target) return;
+    if (unit.friendly) return updateMeleeActor(run, unit, target, now, dt);
+    if (unit.type === 'archer') return updateArcher(run, unit, target, now, dt);
+    if (unit.type === 'spearman') return updateSpearman(run, unit, target, now, dt);
+    return updateMeleeActor(run, unit, target, now, dt);
+  }
+
+  function engageEmperor(run, now) {
+    const emperor = run.emperor;
+    if (emperor.engaged) return;
+    emperor.engaged = true;
+    emperor.nextActionAt = now + .9;
+    run.nextImperialGeneralAt = now + REINFORCE_INTERVAL;
+    combatCue(run, 'engage', 'guard', emperor);
+    run.message = `皇帝发现了你，「${emperor.phaseName}」开始。保持移动，看清地上的预警。`;
+  }
+
+  function emperorAct(run, emperor, target, now) {
+    const phase = emperor.plan[emperor.phase];
+    const span = distance(emperor, target);
+    const facing = Math.atan2(target.y - emperor.y, target.x - emperor.x);
+    const late = run.layer >= 5;
+    const gap = Math.max(.55, 1.15 - run.layer * .06);
+    const moves = phase.moves;
+    const close = span <= emperor.attackRange + target.radius + 6;
+    // up close the emperor still slips in a special every third action
+    if (close && !(moves.length && emperor.sweeps >= 2)) {
+      emperor.sweeps = (emperor.sweeps || 0) + 1;
+      emperor.facing = facing;
+      const delay = emperor.swingWindup;
+      warn(run, emperor, {kind: 'fan', x: emperor.x, y: emperor.y, facing, range: emperor.attackRange, arc: 150 * DEG}, delay, Math.ceil(emperor.damage * (late ? 2 : 1.4)), '皇帝横扫命中', {opening: late ? .45 : .6});
+      emperor.busyUntil = now + delay + .4;
+      emperor.nextActionAt = emperor.busyUntil + gap * .5;
+      return true;
+    }
+    if (!moves.length) return false;
+    emperor.sweeps = 0;
+    const move = moves[emperor.moveCycle++ % moves.length];
+    emperor.facing = facing;
+    if (move === 'guard') {
+      const arrived = spawnImperialUnits(run, late ? ['shield', 'soldier'] : ['shield'], false, 'emperorGuard');
+      if (arrived) run.message = '皇帝喝令护驾。';
+      emperor.busyUntil = now + .5;
+    } else if (move === 'volley') {
+      const spread = late ? 16 : 20;
+      for (const offset of [-spread, 0, spread]) {
+        warn(run, emperor, {kind: 'line', x: emperor.x, y: emperor.y, facing: facing + offset * DEG, length: 360, width: 18}, 1, Math.ceil(emperor.damage * .8), '皇帝齐射命中', {arrow: true});
+      }
+      emperor.busyUntil = now + 1.25;
+      emperor.openUntil = now + 1 + .6;
+    } else if (move === 'charge') {
+      const length = Math.min(260, span + 40);
+      warn(run, emperor, {kind: 'line', x: emperor.x, y: emperor.y, facing, length, width: 36}, .9, Math.ceil(emperor.damage * 1.3), '皇帝冲锋命中', {then: 'dash', opening: 1});
+      emperor.busyUntil = now + .9 + .24 + 1;
+    } else if (move === 'lock') {
+      warn(run, emperor, {kind: 'circle', x: target.x, y: target.y, radius: 64}, 1, Math.ceil(emperor.damage * 1.4), '落点封锁命中', {then: 'lockburst', opening: 1});
+      emperor.busyUntil = now + 2;
+    }
+    emperor.nextActionAt = emperor.busyUntil + gap;
+    return true;
+  }
+
+  function updateEmperor(run, now, dt, defenders) {
+    const emperor = run.emperor;
+    if (!emperor.alive) return;
+    if (!emperor.engaged) {
+      if (distance(run.player, emperor) <= FOG.revealRadius + 50) engageEmperor(run, now);
+      else return;
+    }
+    if (stepDash(emperor, now)) return;
+    if (now < emperor.busyUntil || pendingFor(run, emperor)) return;
+    const target = nearestTarget(emperor, defenders)?.target;
+    if (!target) return;
+    if (now >= emperor.nextActionAt && emperorAct(run, emperor, target, now)) return;
+    if (distance(emperor, target) > emperor.attackRange * .8) moveToward(emperor, target, emperor.speed, dt);
+    else emperor.facing = Math.atan2(target.y - emperor.y, target.x - emperor.x);
+  }
+
   function updateEnemies(run, now, dt) {
     const defenders = [run.player, ...run.enemies.filter(unit => unit.friendly && unit.alive)];
     const imperial = defenders.length > 1 ? targetList(run) : [];
@@ -589,8 +1001,7 @@
       if (group.friendly) {
         for (const ally of group.members) {
           if (!ally.alive) continue;
-          const target = nearestTarget(ally, imperial)?.target;
-          updateMeleeActor(run, ally, target, now, dt);
+          updateUnit(run, ally, nearestTarget(ally, imperial)?.target, now, dt);
           if (run.phase !== 'playing') return;
         }
         continue;
@@ -602,23 +1013,18 @@
         group.alerted = true;
         run.message = spotted.friendly ? '敌军发现了援军，开始迎战。' : group.command
           ? '大将军的亲兵发现了你，附近的将领小队也正赶来。'
-          : group.kind?.startsWith('emperor')
-            ? '皇帝召来的将领发现了你，正在追击。'
+          : group.squad ? `将领率${group.squad}发现了你。`
             : group.members.some(enemy => enemy.type === 'general')
               ? '将领发现了你，所属小队开始追击。'
               : '追兵发现了你，正在靠近。';
       }
       for (const enemy of group.members) {
         if (!enemy.alive || !group.alerted) continue;
-        const target = nearestTarget(enemy, defenders)?.target;
-        updateMeleeActor(run, enemy, target, now, dt);
+        updateUnit(run, enemy, nearestTarget(enemy, defenders)?.target, now, dt);
         if (run.phase === 'over') return;
       }
     }
-    if (run.emperor.alive) {
-      const target = nearestTarget(run.emperor, defenders)?.target;
-      updateMeleeActor(run, run.emperor, target, now, dt);
-    }
+    updateEmperor(run, now, dt, defenders);
   }
 
   function spawnHealingPack(run) {
@@ -647,11 +1053,15 @@
     group.kind = 'mutiny';
   }
 
+  function pruneDead(run) {
+    run.enemies = run.enemies.filter(enemy => enemy.alive);
+    run.groups = run.groups.filter(group => group.members.some(enemy => enemy.alive));
+  }
+
   function spawnMutinyAllies(run) {
     const count = run.talents.mutiny;
     let generals = 0;
-    run.enemies = run.enemies.filter(enemy => enemy.alive);
-    run.groups = run.groups.filter(group => group.members.some(enemy => enemy.alive));
+    pruneDead(run);
     for (let i = 0; i < count; i++) {
       const general = run.random() < .1;
       if (general) generals++;
@@ -659,6 +1069,52 @@
     }
     run.message = `宫门兵变：援军加入，小兵 ${count - generals} 名、将领 ${generals} 名。`;
   }
+
+  /* ---------- weapon pickup and swap ---------- */
+  function nearestSwap(run) {
+    let best = null;
+    for (const item of run.weaponPickups) {
+      if (item.collected || item.type === 'bow' || item.type === run.player.meleeWeapon) continue;
+      const span = distance(run.player, item);
+      if (span < SWAP_RADIUS && (!best || span < best.span)) best = {item, span};
+    }
+    return best?.item || null;
+  }
+
+  function swapWeapon(run) {
+    const item = run.swapCandidate;
+    if (!item || item.collected || !run.player.meleeWeapon) return false;
+    const old = run.player.meleeWeapon;
+    item.collected = true;
+    run.player.meleeWeapon = item.type;
+    // the old weapon is laid down where the new one was; attack cooldown carries over
+    run.weaponPickups.push({x: item.x, y: item.y, type: old, collected: false, dropped: true});
+    run.swapCandidate = null;
+    run.swappedAt = run.elapsed;
+    const next = MELEE_WEAPONS[item.type];
+    run.message = `换上${next.label}（${next.note}），放下${MELEE_WEAPONS[old].label}。`;
+    return true;
+  }
+
+  function collectItems(run) {
+    for (const weapon of run.weaponPickups) {
+      if (weapon.collected || distance(run.player, weapon) >= 30) continue;
+      if (weapon.type === 'bow') {
+        weapon.collected = true;
+        run.player.bowAmmo += weapon.arrows;
+        run.message = `拾到弓箭：获得 ${weapon.arrows} 支箭，当前剩余 ${run.player.bowAmmo} 支。近战够不着时会自动射向 ${BOW_RANGE} 内最近的目标。`;
+      } else if (!run.player.meleeWeapon) {
+        weapon.collected = true;
+        run.player.meleeWeapon = weapon.type;
+        const next = MELEE_WEAPONS[weapon.type];
+        run.message = `拾到${next.label}：${next.note}，伤害 ${next.damage}，间隔 ${next.cooldown} 秒。`;
+      }
+      run.player.hasWeapon = Boolean(run.player.meleeWeapon || run.player.bowAmmo);
+    }
+    run.swapCandidate = run.player.meleeWeapon ? nearestSwap(run) : null;
+  }
+
+  const scoreOf = run => Math.floor(run.elapsed * 10) + run.bossKills * 300 + run.marshalKills * 220 + run.enemyKills * 35;
 
   function advance(run, input, deltaSeconds) {
     run.combatCues.length = 0;
@@ -677,25 +1133,13 @@
     run.player.y = clamp(run.player.y + moveY / magnitude * run.player.speed * dt, WORLD.margin, WORLD.height - WORLD.margin);
     markExplored(run);
 
-    for (const weapon of run.weaponPickups) {
-      if (weapon.collected || distance(run.player, weapon) >= 30) continue;
-      weapon.collected = true;
-      if (weapon.type === 'bow') {
-        run.player.bowAmmo += weapon.arrows;
-        run.message = `拾到弓箭：获得 ${weapon.arrows} 支箭，当前剩余 ${run.player.bowAmmo} 支。弓箭会自动瞄准 240 范围内最近的目标。`;
-      } else {
-        const current = run.player.meleeWeapon && MELEE_WEAPONS[run.player.meleeWeapon];
-        const next = MELEE_WEAPONS[weapon.type];
-        if (!current || next.range > current.range) run.player.meleeWeapon = weapon.type;
-        run.message = `拾到${next.label}：近战挥击半径 ${next.range}，范围内的敌人会同时受击。`;
-      }
-      run.player.hasWeapon = Boolean(run.player.meleeWeapon || run.player.bowAmmo);
-    }
+    collectItems(run);
+    if (input?.swap) swapWeapon(run);
     for (const item of run.healingItems) {
       if (item.collected || run.player.hp >= run.player.maxHp || distance(run.player, item) >= 30) continue;
       item.collected = true;
       const before = run.player.hp;
-      run.player.hp = Math.min(run.player.maxHp, run.player.hp + 32);
+      run.player.hp = Math.min(run.player.maxHp, run.player.hp + 32 + 10 * run.talents.herbal);
       run.message = `拾取回血药：体力恢复 ${Math.ceil(run.player.hp - before)} 点。`;
     }
     if (run.talents.regeneration > 0 && run.player.hp > 0 && run.player.hp < run.player.maxHp) {
@@ -703,10 +1147,13 @@
     }
     updateEnemies(run, now, dt);
     if (run.phase !== 'playing') return;
+    resolveTelegraphs(run, now);
+    if (run.phase !== 'playing') return;
 
-    if (run.emperor.alive && now >= run.nextImperialGeneralAt) {
-      spawnImperialGeneral(run);
-      run.nextImperialGeneralAt = now + 5;
+    if (run.emperor.alive && run.emperor.engaged && now >= run.nextImperialGeneralAt) {
+      const arrived = spawnImperialUnits(run, [], true, 'emperorGuard');
+      if (arrived) run.message = '皇帝召来一名将领增援。';
+      run.nextImperialGeneralAt = now + REINFORCE_INTERVAL;
     }
     if (now + 1e-9 >= run.nextMutinyAt) {
       spawnMutinyAllies(run);
@@ -719,14 +1166,15 @@
     performAttack(run, now);
     if (run.phase !== 'playing') return;
 
+    const shelter = Math.max(.4, 1 - .2 * run.talents.steady);
     for (const hazard of run.hazards) {
       const state = hazardState(hazard, run.stageElapsed);
       if (state.active && distance(run.player, hazard) < hazard.radius && now >= run.player.invulnerableUntil) {
-        run.player.hp = Math.max(0, run.player.hp - hazard.damagePerSecond * dt);
+        run.player.hp = Math.max(0, run.player.hp - hazard.damagePerSecond * shelter * dt);
         if (now >= hazard.damagePulseAt) {
           hazard.damagePulseAt = now + .5;
           run.flashUntil = now + .12;
-          run.message = `${hazard.name}区生效，每秒扣除 ${hazard.damagePerSecond} 点体力。`;
+          run.message = `${hazard.name}区生效，每秒扣除 ${Math.round(hazard.damagePerSecond * shelter * 10) / 10} 点体力。`;
         }
         if (run.player.hp <= 0) {
           reviveOrEnd(run, now);
@@ -734,8 +1182,10 @@
         }
       }
     }
+    if (run.enemies.length > 60) pruneDead(run);
     run.projectileEffects = run.projectileEffects.filter(effect => effect.until > now);
-    run.score = Math.floor(run.elapsed * 10) + run.bossKills * 300 + run.marshalKills * 220 + run.enemyKills * 35;
+    run.bursts = run.bursts.filter(effect => effect.until > now);
+    run.score = scoreOf(run);
   }
 
   function applyTalent(run, choice) {
@@ -777,5 +1227,8 @@
     return true;
   }
 
-  return Object.freeze({WORLD, FOG, MELEE_WEAPONS, createRun, advance, chooseUpgrade, hazardState, damageBonus});
+  return Object.freeze({
+    WORLD, FOG, MELEE_WEAPONS, ENEMY_TYPES, TALENT_CARDS, SCENES, SWAP_RADIUS, BOW_RANGE,
+    createRun, advance, chooseUpgrade, hazardState, damageBonus, inShape, isOpen
+  });
 });

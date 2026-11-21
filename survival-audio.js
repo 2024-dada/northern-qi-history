@@ -12,6 +12,7 @@
     sword: {air: 1950, length: .105, knock: 285, ring: 1640, tail: .15},
     longSword: {air: 1180, length: .18, knock: 185, ring: 1160, tail: .25},
     poleaxe: {air: 580, length: .23, knock: 89, ring: 540, tail: .27},
+    spear: {air: 1500, length: .12, knock: 160, ring: 980, tail: .18},
     bow: {air: 2280, length: .09, knock: 234, ring: 780, tail: .10},
     guard: {air: 950, length: .14, knock: 135, ring: 820, tail: .16}
   };
@@ -231,7 +232,14 @@
     if (now - (lastPlayed.get(key) ?? -Infinity) < .075) return;
     lastPlayed.set(key, now);
     const at = now + delay;
-    const sound = options[weapon];
+    const sound = options[weapon] || options.guard;
+    if (kind === 'warn') { tone(880, 820, .05, .045 * gain, at); return; }
+    if (kind === 'block') { tone(210, 150, .07, .2 * gain, at); pulse('bandpass', 700, 300, .06, .08 * gain, at); return; }
+    if (kind === 'dash') { pulse('bandpass', 900, 400, .2, .12 * gain, at); return; }
+    if (kind === 'thunder') { pulse('lowpass', 260, 120, .35, .3 * gain, at); tone(90, 50, .3, .22 * gain, at); return; }
+    if (kind === 'phoenix') { event('revive'); return; }
+    if (kind === 'phase' || kind === 'engage') { event('drum'); return; }
+    if (kind === 'summon') { tone(300, 240, .18, .07 * gain, at); return; }
     if (kind === 'swing') {
       pulse('bandpass', sound.air, sound.air * .43, sound.length, .17 * gain, at);
       if (weapon === 'bow') tone(560, 210, .07, .11 * gain, at);

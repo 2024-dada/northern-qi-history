@@ -14,6 +14,8 @@
 
 《越过宫门》循环配乐使用 PeriTune 的《Wuxia》官方循环版 MP3。[作品出处](https://peritune.com/blog/2018/06/24/wuxia/) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
+2026-11-22：《越过宫门》战斗重做。四种近战各有判定形状（宝剑单体、长剑 120° 扇面、长柄斧 180° 半圆、长枪直线贯穿两人），已持兵器时靠近另一把可按 E 或点“换武器”交换。新增盾兵、弓手、枪兵，逐层登场；皇帝分阶段换招（护驾、齐射、追袭、落点封锁），招后有破绽，召兵同时最多 3 名。地上预警与伤害判定使用同一份数据。三层场景：宫门外廊、内廷庭院、正殿前庭。天赋扩充并新增传说品质（雷霆、涅槃、万箭齐发、倒戈）。规则测试：`node tools/test-survival-engine.cjs`。资源版本为 `20261122arena`。
+
 2026-11-20：《越过宫门》有独立游戏音效与音量控制。主页古琴《酒狂》由 Charlie Huang 演奏（2006），采用 Wikimedia Commons 提供的 MP3 转码，录音内容保持原样。[录音出处](https://commons.wikimedia.org/wiki/File:Jiu_Kuang.ogg) · [CC BY 2.5](https://creativecommons.org/licenses/by/2.5/)
 
 2026-11-20：五套主题现在拥有各自的背景、正文底板与界面配色。新增宣纸城楼、竹林江舟、青花远山、月下宫阙四张背景；赭红石青沿用原有矿物纸面。主站、人物故事、讲解石和游戏共用主题。主站侧栏新增《越过宫门》独立入口。资源版本为 `20261120landscapes`。
@@ -115,7 +117,8 @@
 | dossier.js / dossier.css | 文档线索融入统一材料及动画 |
 | animation.js / animation.css | 斛律光案四幕引导动画 |
 | survival.html / survival.css / survival.js | 独立全屏闯关页、Canvas 操作和本机排行榜 |
-| survival-engine.js | 游戏移动、地图迷雾、分组追兵、自动范围近战、自动弓箭、回血刷新、无限层成长与计分规则 |
+| survival-engine.js | 游戏移动、地图迷雾、兵种行为、武器判定形状与换武器、皇帝阶段、预警数据、天赋、无限层成长与计分规则 |
+| tools/test-survival-engine.cjs | 固定种子的规则测试：判定形状、盾牌朝向、换武器冷却、阶段跳转、只结算一次、站桩无法通关 |
 | survival-game-data.js | 从41条项目材料卡生成的游戏索引；不替代史料卡 |
 | survival-portal.css | 主站旧游戏位置的全屏闯关入口卡片 |
 | tools/build-survival-data.mjs | 从事件卡和 dossier 分类生成41条游戏索引 |

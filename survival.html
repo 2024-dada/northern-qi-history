@@ -7,16 +7,16 @@
   <meta name="theme-color" content="#15221d">
   <meta name="description" content="《越过宫门》：受北齐史料启发的非写实生存闯关游戏。">
   <title>越过宫门 · 北齐生存闯关</title>
-  <link rel="stylesheet" href="survival.css?v=20261122mutinybalance">
-  <link rel="stylesheet" href="theme.css?v=20261122mutinybalance">
-  <link rel="stylesheet" href="theme-landscapes.css?v=20261122mutinybalance">
-  <link rel="stylesheet" href="polish.css?v=20261122mutinybalance">
-  <script src="theme.js?v=20261122mutinybalance"></script>
-  <script src="survival-game-data.js?v=20261122mutinybalance" defer></script>
-  <script src="survival-engine.js?v=20261122mutinybalance" defer></script>
-  <script src="survival-hazards.js?v=20261122mutinybalance" defer></script>
-  <script src="survival-audio.js?v=20261122mutinybalance" defer></script>
-  <script src="survival.js?v=20261122mutinybalance" defer></script>
+  <link rel="stylesheet" href="survival.css?v=20261122arena">
+  <link rel="stylesheet" href="theme.css?v=20261122arena">
+  <link rel="stylesheet" href="theme-landscapes.css?v=20261122arena">
+  <link rel="stylesheet" href="polish.css?v=20261122arena">
+  <script src="theme.js?v=20261122arena"></script>
+  <script src="survival-game-data.js?v=20261122arena" defer></script>
+  <script src="survival-engine.js?v=20261122arena" defer></script>
+  <script src="survival-hazards.js?v=20261122arena" defer></script>
+  <script src="survival-audio.js?v=20261122arena" defer></script>
+  <script src="survival.js?v=20261122arena" defer></script>
 </head>
 <body class="survival-page">
   <header class="survival-header">
@@ -69,18 +69,19 @@
               <p class="survival-eyebrow">每局地图与危险区域都会变化</p>
               <h2 id="start-title">准备进入宫禁</h2>
               <p class="survival-lead">在黑雾笼罩的宫苑里寻找武器和回血药，击败每层的皇帝就能进入下一层。你只控制移动，攻击会自动进行。</p>
-              <div class="survival-keys" aria-hidden="true"><span class="survival-keycaps"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>或方向键移动</span><span class="survival-keys-sep">·</span><span>手机用左下角摇杆</span><span class="survival-keys-sep">·</span><span><kbd>Esc</kbd> 暂停</span></div>
+              <div class="survival-keys" aria-hidden="true"><span class="survival-keycaps"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>或方向键移动</span><span class="survival-keys-sep">·</span><span>手机用左下角摇杆</span><span class="survival-keys-sep">·</span><span><kbd>E</kbd> 换武器</span><span class="survival-keys-sep">·</span><span><kbd>Esc</kbd> 暂停</span></div>
               <div class="survival-start-form">
               <label for="player-name">玩家名称</label>
               <input id="player-name" name="player-name" type="text" maxlength="16" autocomplete="nickname" placeholder="输入一个名称" required>
               <button type="button" data-game-action="start" class="survival-primary">开始闯关</button>
               </div>
-              <details class="survival-rules"><summary>完整规则：武器、敌人、危险区与天赋</summary>
-              <p>未探索区域会被黑雾遮住，走到附近才会显现；武器、回血药和敌人都不会提前显示。使用传统 WASD 移动：W 向上、A 向左、S 向下、D 向右；方向键也可移动。</p>
-              <p>玩家只控制移动，攻击自动进行。宝剑挥击半径小、长剑中、长柄斧最大；靠近时会挥击半径内的全部敌人。弓箭自动瞄准 240 范围内最近目标，每支箭只命中一人；每个箭袋补充 5 支。初始体力下，追兵约需 3 箭、将领 5 箭、皇帝 10 箭，楼层越高敌人越强。双方会展示挥击预警，只有攻击范围内才造成伤害。</p>
-              <p>皇帝每 5 秒召来一名将领。第五层起出现大将军；皇帝体力低于一半后召集 4 名将领，之后每升一层再多召 1 名。击败皇帝即可进入下一层，不必清光所有追兵。回血药每 5 秒随机刷新，地图最多保留 4 个未拾取药包。</p>
-              <p>每层从 7 种酷刑区里随机抽出 4 种。留意扑跃的猎犬、甩尾的蝎子、翻腾的火焰等动景。圆圈标出扣血范围，虚线时可通过，边缘亮起变成实线后，区内会持续扣血。侧栏可查每种危险的伤害值和相关史料。</p>
-              <p>前四层过关后可选移速或闪避。从第五层过关起，每层从三张随机天赋中选一张。天赋分普通、稀有和史诗，同一项可以反复选择，效果叠加。每局结束后可在侧栏查看本机前十名。</p>
+              <details class="survival-rules"><summary>完整规则：武器、敌人、皇帝、危险区与天赋</summary>
+              <p>未探索区域会被黑雾遮住，走到附近才会显现。WASD 或方向键移动，攻击自动进行；空手时走过兵器自动拾取，已持兵器时靠近另一把会弹出对比，按 <kbd>E</kbd>（手机点“换武器”）交换，旧兵器留在原地，出手冷却不重置。</p>
+              <p>四种近战各有形状：宝剑 18 伤害、0.5 秒，只砍最近一人；长剑 26 伤害、0.75 秒，前方 120° 扇面；长柄斧 35 伤害、1.15 秒，180° 半圆；长枪 30 伤害、0.95 秒，110 远的直线突刺，最多贯穿两人。近战够不着时，弓会自动射向 240 内最近的目标。地上预警的形状就是真实的伤害范围。</p>
+              <p>每层只新加一种兵：第二层盾兵（正面减伤 55%，挥盾后露出 0.8 秒破绽），第三层弓手（保持距离，红线瞄准 0.9 秒后放箭），第四层枪兵（直线预警后冲刺，冲完收势 0.8 秒），第四层必有一杆长枪。第五层起是大将军亲兵与盾阵、弓阵、枪阵三队将领。</p>
+              <p>皇帝在你走近或被打中后才开战。第一层只会横扫；第二到四层体力过 60% 后分别进入护驾、齐射、追袭；第五层起按守阵、弓阵、追袭三段推进（70%、35% 换阵），末段加入落点封锁。皇帝一次只出一招，招式之后会喘息——这时伤害更高；换阵时有 1 秒护体。召来的援兵同时最多 3 名。击败皇帝即可进入下一层。</p>
+              <p>每层从 7 种酷刑区里随机抽出 4 种：圆圈标出扣血范围，虚线时可通过，亮成实线后区内持续扣血。回血药每 5 秒刷新，地图最多保留 4 个。</p>
+              <p>前四层过关后可选移速或闪避。第五层起每层从三张天赋中选一张：普通、稀有、史诗，以及少见的传说（雷霆、涅槃、万箭齐发、倒戈）。传说与“洞察”只能选一次，其余可叠加。每局结束后可在侧栏查看本机前十名。</p>
               </details>
               <p class="survival-local-note">排行榜只保存在本机浏览器，不会上传。关闭浏览器存储后，记录可能无法保留。</p>
             </div>
@@ -90,7 +91,7 @@
             <div class="survival-overlay-card">
               <p class="survival-eyebrow">关底已通过 · 下一层开启</p>
               <h2 id="upgrade-title">选择一项加成</h2>
-              <p>体力保留。已选过的天赋可以再次选择，效果会叠加。选择后立即进入下一层。</p>
+              <p>体力保留。多数天赋可以叠加，传说只能选一次。选择后立即进入下一层。</p>
               <div class="survival-upgrades" data-upgrade-choices></div>
             </div>
           </section>
@@ -118,6 +119,7 @@
             </div>
           </section>
 
+          <button type="button" class="survival-swap" data-game-action="swap" data-swap hidden><span data-swap-label>换武器</span><kbd>E</kbd></button>
           <div class="survival-touch" aria-label="手机移动控制">
             <div class="survival-stick" data-stick role="application" aria-label="移动摇杆：按住并向方向拖动">
               <span class="survival-stick-base" aria-hidden="true"></span><span class="survival-stick-knob" data-stick-knob aria-hidden="true"></span>

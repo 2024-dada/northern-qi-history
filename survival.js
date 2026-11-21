@@ -67,6 +67,7 @@
     sword: {color: '#f4e8b4', width: 3, burst: 19, sparks: 4},
     longSword: {color: '#b8e2e0', width: 4, burst: 25, sparks: 5},
     poleaxe: {color: '#fac080', width: 7, burst: 35, sparks: 7},
+    spear: {color: '#f0d9a0', width: 4, burst: 22, sparks: 5},
     bow: {color: '#ffe3a0', width: 2, burst: 14, sparks: 4},
     guard: {color: '#e9a688', width: 3, burst: 15, sparks: 3}
   };
@@ -241,7 +242,7 @@
     // The animation loop checks the upgrade phase every frame. Keep the existing
     // buttons while the choices are unchanged so pointerup/click can reach them.
     if (renderedUpgradeChoices === run.upgradeChoices) return;
-    const ranks = {basic: '基础加成', common: '普通天赋', rare: '稀有天赋', epic: '史诗天赋'};
+    const ranks = {basic: '基础加成', common: '普通天赋', rare: '稀有天赋', epic: '史诗天赋', legendary: '传说天赋'};
     choices.innerHTML = run.upgradeChoices.map(choice => {
       const count = (choice.rarity === 'basic' ? run.upgrades : run.talents)[choice.id];
       return `<button type="button" data-game-upgrade="${escapeHtml(choice.id)}" class="talent-${escapeHtml(choice.rarity)}">
@@ -251,6 +252,17 @@
       </button>`;
     }).join('');
     renderedUpgradeChoices = run.upgradeChoices;
+  }
+
+  const swapButton = $('[data-swap]');
+  let swapShown = null;
+  function updateSwapButton() {
+    const item = run?.phase === 'playing' ? run.swapCandidate : null;
+    const key = item ? item.type : '';
+    if (key === swapShown) return;
+    swapShown = key;
+    swapButton.hidden = !item;
+    if (item) $('[data-swap-label]').textContent = `换${engine.MELEE_WEAPONS[item.type].label}`;
   }
 
   function resetHud() {
@@ -303,6 +315,7 @@
   }
 
   function endGame() {
+    swapButton.hidden = true; swapShown = null;
     if (mode === 'over') return;
     mode = 'over';
     audio?.setPlaying(false);
@@ -373,13 +386,16 @@
     setLive('输入名称后开始。WASD 控制移动；近战自动挥击，弓箭自动瞄准。');
   }
 
+  let swapQueued = false;
   function moveVector() {
     let x = stickVector.x, y = stickVector.y;
     if (pressed.has('ArrowLeft') || pressed.has('a') || pressed.has('A')) x--;
     if (pressed.has('ArrowRight') || pressed.has('d') || pressed.has('D')) x++;
     if (pressed.has('ArrowUp') || pressed.has('w') || pressed.has('W')) y--;
     if (pressed.has('ArrowDown') || pressed.has('s') || pressed.has('S')) y++;
-    return {x: Math.max(-1, Math.min(1, x)), y: Math.max(-1, Math.min(1, y))};
+    const swap = swapQueued;
+    swapQueued = false;
+    return {x: Math.max(-1, Math.min(1, x)), y: Math.max(-1, Math.min(1, y)), swap};
   }
 
   function circle(x, y, radius, fill, stroke, width = 1) {
@@ -405,7 +421,7 @@
     return Number.isFinite(n) ? [(n >> 16) & 255, (n >> 8) & 255, n & 255] : [212, 195, 148];
   }
 
-  function buildFloor() {
+  function buildFloor(scene = 'gate') {
     const f = floorCtx;
     let seed = 20261121;
     const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
@@ -469,7 +485,7 @@
     f.strokeStyle = trim(.18);
     f.lineWidth = 1;
     f.strokeRect(32, 32, W - 64, H - 64);
-    for (const x of [82, W - 82]) {
+    for (const x of scene === 'court' ? [] : [82, W - 82]) {
       for (let y = 60; y < H - 50; y += 82) {
         f.fillStyle = 'rgba(0,0,0,.35)';
         f.beginPath(); f.ellipse(x + 3, y + 5, 13, 7, 0, 0, Math.PI * 2); f.fill();
@@ -479,6 +495,7 @@
         f.stroke();
       }
     }
+    drawSceneDressing(f, scene, trim, rand);
     // Vignette: corners fall into shadow.
     const v = f.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .28, W / 2, H / 2, Math.hypot(W, H) * .56);
     v.addColorStop(0, 'rgba(0,0,0,0)');
@@ -488,8 +505,81 @@
     floorDirty = false;
   }
 
+  let builtScene = null;
+  // Edge dressing per floor: 宫门外廊 / 内廷庭院 / 正殿前庭. Kept to the outer band so it never hides play.
+  function drawSceneDressing(f, scene, trim, rand) {
+    const lacquer = 'rgba(122,38,28,.55)', gold = 'rgba(214,176,98,.5)';
+    if (scene === 'gate') {
+      // gate towers on the top wall, doors with studs
+      for (const cx of [W * .28, W * .72]) {
+        f.fillStyle = 'rgba(0,0,0,.35)'; f.fillRect(cx - 62, 6, 124, 30);
+        f.fillStyle = lacquer; f.fillRect(cx - 54, 10, 108, 24);
+        f.fillStyle = gold;
+        for (let i = 0; i < 4; i++) for (let j = 0; j < 9; j++) { f.beginPath(); f.arc(cx - 44 + j * 11, 15 + i * 5.2, 1.1, 0, Math.PI * 2); f.fill(); }
+        f.strokeStyle = trim(.45); f.lineWidth = 1.5; f.beginPath(); f.moveTo(cx, 10); f.lineTo(cx, 34); f.stroke();
+        f.fillStyle = 'rgba(20,16,12,.8)'; f.beginPath(); f.moveTo(cx - 74, 9); f.quadraticCurveTo(cx, -4, cx + 74, 9); f.lineTo(cx + 66, 13); f.quadraticCurveTo(cx, 2, cx - 66, 13); f.fill();
+      }
+      // hanging lanterns along the corridor
+      for (const x of [82, W - 82]) for (let y = 101; y < H - 60; y += 164) {
+        const g = f.createRadialGradient(x, y, 1, x, y, 26); g.addColorStop(0, 'rgba(255,170,90,.32)'); g.addColorStop(1, 'rgba(255,170,90,0)');
+        f.fillStyle = g; f.beginPath(); f.arc(x, y, 26, 0, Math.PI * 2); f.fill();
+        f.fillStyle = 'rgba(176,58,36,.85)'; f.beginPath(); f.ellipse(x, y, 5.5, 7.5, 0, 0, Math.PI * 2); f.fill();
+        f.fillStyle = gold; f.fillRect(x - 3, y - 9, 6, 2); f.fillRect(x - 3, y + 7, 6, 2);
+      }
+    } else if (scene === 'court') {
+      // rockeries and pines in the corners, bronze vats on the long sides
+      const rock = (x, y, s) => {
+        f.fillStyle = 'rgba(0,0,0,.35)'; f.beginPath(); f.ellipse(x + 4, y + s * .55, s * 1.1, s * .35, 0, 0, Math.PI * 2); f.fill();
+        f.fillStyle = 'rgba(96,104,96,.6)'; f.beginPath();
+        f.moveTo(x - s, y + s * .5); f.quadraticCurveTo(x - s * 1.1, y - s * .4, x - s * .3, y - s); f.quadraticCurveTo(x + s * .2, y - s * .4, x + s * .5, y - s * .9);
+        f.quadraticCurveTo(x + s * 1.1, y - s * .2, x + s, y + s * .5); f.closePath(); f.fill();
+        f.strokeStyle = 'rgba(20,24,20,.6)'; f.lineWidth = 1; f.stroke();
+        f.fillStyle = 'rgba(10,12,10,.55)';
+        for (let i = 0; i < 3; i++) { f.beginPath(); f.ellipse(x - s * .4 + i * s * .4, y - s * .2 + (i % 2) * s * .3, s * .12, s * .18, 0, 0, Math.PI * 2); f.fill(); }
+      };
+      const pine = (x, y) => {
+        f.strokeStyle = 'rgba(60,40,26,.8)'; f.lineWidth = 3; f.beginPath(); f.moveTo(x, y + 18); f.quadraticCurveTo(x - 6, y, x + 4, y - 16); f.stroke();
+        f.fillStyle = 'rgba(40,74,52,.7)';
+        for (const [dx, dy, r] of [[-10, -10, 11], [8, -16, 12], [0, -26, 9], [14, -4, 8]]) { f.beginPath(); f.ellipse(x + dx, y + dy, r * 1.5, r * .6, 0, 0, Math.PI * 2); f.fill(); }
+      };
+      rock(70, 78, 20); pine(102, 70); rock(W - 72, H - 76, 22); pine(W - 106, H - 64);
+      rock(W - 70, 82, 16); rock(76, H - 80, 17); pine(W - 94, 96);
+      for (const x of [74, W - 74]) for (const y of [H * .35, H * .65]) {
+        f.fillStyle = 'rgba(0,0,0,.35)'; f.beginPath(); f.ellipse(x + 3, y + 10, 16, 6, 0, 0, Math.PI * 2); f.fill();
+        f.fillStyle = 'rgba(92,110,82,.75)'; f.beginPath(); f.ellipse(x, y, 14, 12, 0, 0, Math.PI * 2); f.fill();
+        f.strokeStyle = gold; f.lineWidth = 1.2; f.beginPath(); f.ellipse(x, y - 5, 13, 5, 0, 0, Math.PI * 2); f.stroke();
+        f.fillStyle = 'rgba(20,30,34,.8)'; f.beginPath(); f.ellipse(x, y - 5, 11, 3.6, 0, 0, Math.PI * 2); f.fill();
+      }
+    } else {
+      // raised hall platform with balustrade along the top, red pillars, incense burners
+      f.fillStyle = 'rgba(0,0,0,.32)'; f.fillRect(36, 22, W - 72, 26);
+      f.fillStyle = 'rgba(196,186,160,.16)'; f.fillRect(36, 22, W - 72, 20);
+      f.strokeStyle = trim(.42); f.lineWidth = 1;
+      f.beginPath(); f.moveTo(36, 42); f.lineTo(W - 36, 42); f.stroke();
+      for (let x = 44; x < W - 40; x += 22) { f.beginPath(); f.moveTo(x, 24); f.lineTo(x, 42); f.stroke(); f.beginPath(); f.arc(x, 23, 2, 0, Math.PI * 2); f.stroke(); }
+      // stairs in the middle of the platform
+      for (let i = 0; i < 5; i++) { f.fillStyle = `rgba(210,196,160,${.1 + i * .03})`; f.fillRect(W / 2 - 70 + i * 3, 24 + i * 5, 140 - i * 6, 4); }
+      for (const x of [82, W - 82]) for (let y = 60; y < H - 50; y += 82) {
+        f.fillStyle = 'rgba(150,40,30,.5)'; f.beginPath(); f.arc(x, y, 7, 0, Math.PI * 2); f.fill();
+      }
+      for (const x of [W / 2 - 110, W / 2 + 110]) {
+        const y = 74;
+        f.fillStyle = 'rgba(0,0,0,.4)'; f.beginPath(); f.ellipse(x + 3, y + 10, 18, 6, 0, 0, Math.PI * 2); f.fill();
+        f.fillStyle = 'rgba(120,98,60,.85)'; f.beginPath(); f.ellipse(x, y, 13, 10, 0, 0, Math.PI * 2); f.fill();
+        f.fillRect(x - 9, y + 6, 3, 7); f.fillRect(x + 6, y + 6, 3, 7);
+        f.strokeStyle = gold; f.lineWidth = 1; f.beginPath(); f.ellipse(x, y - 4, 10, 3.5, 0, 0, Math.PI * 2); f.stroke();
+        f.strokeStyle = 'rgba(220,210,190,.18)'; f.lineWidth = 2;
+        f.beginPath(); f.moveTo(x, y - 8); f.bezierCurveTo(x - 8, y - 22, x + 8, y - 30, x - 2, y - 44); f.stroke();
+      }
+      // red carpet on the imperial road
+      f.fillStyle = 'rgba(120,30,24,.22)'; f.fillRect(W / 2 - 40, 48, 80, H - 84);
+      f.strokeStyle = gold; f.lineWidth = 1; f.strokeRect(W / 2 - 36, 48, 72, H - 84);
+    }
+  }
+
   function drawBackdrop(time) {
-    if (floorDirty) buildFloor();
+    const scene = run?.scene || 'gate';
+    if (floorDirty || builtScene !== scene) { buildFloor(scene); builtScene = scene; }
     ctx.drawImage(floorCanvas, 0, 0, W, H);
     ctx.save();
     ctx.globalAlpha = .12;
@@ -502,7 +592,7 @@
     ctx.setLineDash([]);
     circle(W / 2, H / 2, 118 + Math.sin(time * .3) * 3, null, mapTrim, 1);
     ctx.restore();
-    text('北齐宫苑 · 游戏示意地图', 47, 48, 'rgba(235,222,190,.48)', 10, 'left', 400);
+    text(`北齐宫苑 · ${run?.sceneName || '宫门外廊'}`, 47, 48, 'rgba(235,222,190,.48)', 10, 'left', 400);
   }
 
   // Warm torchlight around the player, with a faint flicker.
@@ -671,6 +761,14 @@
     if (ring) { ctx.strokeStyle = '#c9a45e'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(-2.4, 0, 2.6, 0, Math.PI * 2); ctx.stroke(); }
     ctx.restore();
   }
+  function drawPoleaxe(x, y, angle) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(angle || 0);
+    ctx.strokeStyle = '#5a3a22'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(30, 0); ctx.stroke();
+    const g = ctx.createLinearGradient(0, -12, 0, 12); g.addColorStop(0, '#6b7670'); g.addColorStop(.5, '#f1e9d2'); g.addColorStop(1, '#8c968f');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(28, -1); ctx.quadraticCurveTo(30, -13, 20, -12); ctx.quadraticCurveTo(22, -6, 21, -1); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(26, 1); ctx.lineTo(23, 7); ctx.lineTo(20, 1); ctx.fill();
+    ctx.restore();
+  }
   function spawnPuff(x, y, color, count = 10, power = 1) {
     if (reducedMotion.matches) count = Math.ceil(count / 3);
     for (let i = 0; i < count; i++) {
@@ -715,6 +813,9 @@
       ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(1, -20); ctx.quadraticCurveTo(14, -18, 13, -7); ctx.quadraticCurveTo(7, -10, 1, -9); ctx.closePath(); ctx.fill();
       ctx.beginPath(); ctx.moveTo(-1, -18); ctx.lineTo(-7, -15); ctx.lineTo(-1, -12); ctx.fill();
       ctx.fillStyle = '#a3402f'; ctx.fillRect(-2, -8, 4, 3);
+    } else if (weapon.type === 'spear') {
+      ctx.restore(); ctx.save(); ctx.translate(weapon.x, weapon.y + lift);
+      drawSpear(-14, 10, -Math.PI / 4, 34);
     } else {
       const len = weapon.type === 'longSword' ? 34 : 26;
       drawBlade(-len / 2 + 2, 0, -Math.PI / 4, len, '#b8c2ba');
@@ -759,7 +860,7 @@
     if (ratio > .45) { c.addColorStop(0, '#7f9d5f'); c.addColorStop(1, '#b9cf8e'); } else { c.addColorStop(0, '#a8402c'); c.addColorStop(1, '#e08a62'); }
     ctx.fillStyle = c;
     roundRect(x, y, width * ratio, 4, 2); ctx.fill();
-    text(`${title} ${Math.ceil(entity.hp)}/${entity.maxHp}`, entity.x, y - 7, '#f3e8cc', 9, 'center', 650);
+    if (title) text(`${title} ${Math.ceil(entity.hp)}/${entity.maxHp}`, entity.x, y - 7, '#f3e8cc', 9, 'center', 650);
   }
   function roundRect(x, y, w, h, r) {
     ctx.beginPath();
@@ -769,14 +870,17 @@
 
   const enemyLook = {
     soldier: {robe: '#4d5a52', trim: '#b9aa83', sash: '#7b3a2c', skin: '#c8ab86', head: 'helmet', helm: '#3b4440', plume: '#8e3527'},
-    general: {robe: '#7a3b30', trim: '#e0c07c', sash: '#2a2118', skin: '#caa984', head: 'helmet', helm: '#5c4a2c', plume: '#d6a04a'},
+    shield: {robe: '#5a5446', trim: '#c7b07c', sash: '#4a2a1e', skin: '#c8ab86', head: 'helmet', helm: '#45403a', plume: '#6d6a5e'},
+    archer: {robe: '#4c5a3e', trim: '#b8b487', sash: '#6e4a26', skin: '#c9ad88', head: 'helmet', helm: '#3a3f2f', plume: '#a88a4a'},
+    spearman: {robe: '#3f4d5e', trim: '#a9b7c4', sash: '#7b3a2c', skin: '#c8ab86', head: 'helmet', helm: '#2f3a46', plume: '#c64a36'},
+    general: {robe: '#7a3b30', trim: '#e0c07c', sash: '#2a2118', skin: '#caa984', head: 'helmet', helm: '#5c4a2c', plume: '#d6a04a', banner: '#c48a2e'},
     marshal: {robe: '#8f6a33', trim: '#f2d48a', sash: '#6b2017', skin: '#cfae86', head: 'helmet', helm: '#2b2620', plume: '#b8322a', banner: '#a3352a'},
     friendly: {robe: '#3f6a56', trim: '#a9dcb0', sash: '#d5c27e', skin: '#c9ad88', head: 'cap'}
   };
   function drawEnemy(enemy, time) {
     const m = moveState(enemy, time);
     if (!enemy.alive) {
-      if (m.alive) { m.alive = false; spawnPuff(enemy.x, enemy.y, enemy.friendly ? 'rgba(120,170,140,.8)' : 'rgba(25,22,20,.85)', enemy.type === 'soldier' ? 9 : 16, enemy.type === 'soldier' ? .9 : 1.3); spawnPuff(enemy.x, enemy.y - 6, 'rgba(160,48,34,.7)', 4, .6); }
+      if (m.alive) { m.alive = false; const big = enemy.type === 'general' || enemy.type === 'marshal'; spawnPuff(enemy.x, enemy.y, enemy.friendly ? 'rgba(120,170,140,.8)' : 'rgba(25,22,20,.85)', big ? 16 : 9, big ? 1.3 : .9); spawnPuff(enemy.x, enemy.y - 6, 'rgba(160,48,34,.7)', 4, .6); }
       return;
     }
     m.alive = true;
@@ -788,7 +892,7 @@
       const k = age / .7;
       ctx.save();
       ctx.globalAlpha = (1 - k) * .9;
-      ctx.strokeStyle = enemy.friendly ? '#a9dcb0' : enemy.type === 'soldier' ? '#c9a46a' : '#e8b85c';
+      ctx.strokeStyle = enemy.friendly ? '#a9dcb0' : enemy.type === 'general' || enemy.type === 'marshal' ? '#e8b85c' : '#c9a46a';
       ctx.lineWidth = 1.6;
       ctx.translate(enemy.x, enemy.y + r * .9);
       ctx.scale(1, .42);
@@ -800,10 +904,181 @@
     } else ctx.save();
     drawFigure(enemy.x, enemy.y, r, {...look, m, ghost: hurt && Math.floor(time * 30) % 2}, time);
     if (hurt) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; circle(enemy.x, enemy.y - r * .3, r * 1.1, 'rgba(255,170,120,.18)', null); ctx.restore(); }
-    const bladeLength = enemy.type === 'marshal' ? 30 : enemy.type === 'general' ? 25 : 20;
-    drawBlade(enemy.x + Math.cos(enemy.facing || 0) * 4, enemy.y - r * .1 + Math.sin(enemy.facing || 0) * 4, enemy.facing, bladeLength, enemy.friendly ? '#c6e6b8' : '#c2c9c0', enemy.type !== 'soldier');
+    drawEnemyGear(enemy, time);
     ctx.restore();
-    drawHealthBar(enemy, enemy.type === 'soldier' ? 36 : enemy.type === 'general' ? 50 : 66, enemy.label);
+    if (!enemy.friendly && engine.isOpen(enemy, run.elapsed)) drawOpening(enemy, time);
+    const officer = enemy.type === 'general' || enemy.type === 'marshal';
+    const named = officer || enemy.friendly || run.elapsed - (m.namedAt ?? -9) < 1.4 || enemy.hp < enemy.maxHp && run.elapsed < enemy.hitUntil + 1.2;
+    if (hurt) m.namedAt = run.elapsed;
+    drawHealthBar(enemy, enemy.type === 'marshal' ? 66 : enemy.type === 'general' ? 50 : 34, named ? enemy.label : '');
+  }
+
+  function drawSpear(x, y, angle, length, shaft = '#6a4a2c') {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(angle || 0);
+    ctx.strokeStyle = shaft; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-length * .35, 0); ctx.lineTo(length - 8, 0); ctx.stroke();
+    ctx.fillStyle = '#d8ddd4'; ctx.beginPath(); ctx.moveTo(length - 9, -2.6); ctx.lineTo(length + 4, 0); ctx.lineTo(length - 9, 2.6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#a3352a'; ctx.beginPath(); ctx.moveTo(length - 10, 0); ctx.lineTo(length - 15, -4); ctx.lineTo(length - 13, 0); ctx.lineTo(length - 15, 4); ctx.closePath(); ctx.fill();
+    ctx.lineCap = 'butt'; ctx.restore();
+  }
+  function drawBow(x, y, angle, drawn = 0) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(angle || 0);
+    ctx.strokeStyle = '#6b4526'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(4, 0, 10, -1.2, 1.2); ctx.stroke();
+    ctx.strokeStyle = '#d9b46a'; ctx.lineWidth = .9; ctx.beginPath(); ctx.arc(4, 0, 10, -1.2, 1.2); ctx.stroke();
+    const pull = 7.6 - drawn * 6;
+    ctx.strokeStyle = '#efe4c6'; ctx.lineWidth = .7; ctx.beginPath(); ctx.moveTo(7.6, -9.3); ctx.lineTo(pull, 0); ctx.lineTo(7.6, 9.3); ctx.stroke();
+    if (drawn > 0) { ctx.strokeStyle = '#cdbb8e'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pull, 0); ctx.lineTo(18, 0); ctx.stroke(); }
+    ctx.restore();
+  }
+  function drawRoundShield(x, y, r, angle, lowered) {
+    ctx.save(); ctx.translate(x, y);
+    const g = ctx.createRadialGradient(-r * .3, -r * .3, 1, 0, 0, r);
+    g.addColorStop(0, '#9a6a3a'); g.addColorStop(1, '#4a2c18');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, lowered ? r * .45 : 0, r * (lowered ? .9 : .62), r, angle, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#d0a95c'; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.fillStyle = '#e0c07c'; ctx.beginPath(); ctx.arc(0, lowered ? r * .45 : 0, r * .2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  // Silhouette props per unit: round shield, long pole, bow and quiver, back flags.
+  function drawEnemyGear(enemy, time) {
+    const r = enemy.radius, f = enemy.facing || 0, t = run.elapsed;
+    const hx = enemy.x + Math.cos(f) * 4, hy = enemy.y - r * .1 + Math.sin(f) * 4;
+    const tint = enemy.friendly ? '#c6e6b8' : '#c2c9c0';
+    if (enemy.type === 'shield' && !enemy.friendly) {
+      drawBlade(hx, hy, f, 17, tint, false);
+      const open = t < enemy.openUntil, blocked = t - (enemy.blockedAt ?? -9) < .18;
+      const sx = enemy.x + Math.cos(f) * r * (open ? .4 : .95), sy = enemy.y + Math.sin(f) * r * .55 - (open ? -2 : 2);
+      drawRoundShield(sx, sy, r * .95, f + Math.PI / 2, open);
+      if (blocked) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; circle(sx, sy, r * 1.1, 'rgba(255,220,150,.35)', null); ctx.restore(); }
+    } else if (enemy.type === 'archer' && !enemy.friendly) {
+      // quiver on the back
+      ctx.save(); ctx.translate(enemy.x - Math.cos(f) * r * .6, enemy.y - r * .7); ctx.rotate(-.5);
+      ctx.fillStyle = '#5a3a22'; ctx.fillRect(-3, -8, 6, 14);
+      ctx.strokeStyle = '#e6d6aa'; ctx.lineWidth = .9; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * 1.6, -8); ctx.lineTo(i * 1.6, -13); ctx.stroke(); }
+      ctx.restore();
+      const aiming = t < enemy.aimUntil ? 1 - (enemy.aimUntil - t) / .9 : 0;
+      drawBow(hx, hy, f, aiming);
+    } else if (enemy.type === 'spearman' && !enemy.friendly) {
+      const recovering = t < enemy.recoverUntil;
+      drawSpear(hx, hy, recovering ? f + .7 : f, 40);
+    } else {
+      const bladeLength = enemy.type === 'marshal' ? 30 : enemy.type === 'general' ? 25 : 20;
+      drawBlade(hx, hy, f, bladeLength, tint, enemy.type === 'general' || enemy.type === 'marshal');
+    }
+  }
+  function drawOpening(enemy, time) {
+    const pulse = reducedMotion.matches ? .6 : .5 + Math.sin(time * 14) * .5;
+    ctx.save();
+    ctx.strokeStyle = `rgba(255,214,120,${.5 + pulse * .4})`; ctx.lineWidth = 1.6;
+    ctx.setLineDash([3, 4]);
+    circle(enemy.x, enemy.y, enemy.radius + 7, null, ctx.strokeStyle, 1.6);
+    ctx.setLineDash([]);
+    ctx.restore();
+    text('破绽', enemy.x, enemy.y - enemy.radius * 2.15 - 30, '#ffd98a', 10, 'center', 800);
+  }
+
+  // Warnings come from run.telegraphs — the same records the engine uses for hits.
+  function telegraphPath(t, reach = 1) {
+    ctx.beginPath();
+    if (t.kind === 'line') {
+      const c = Math.cos(t.facing), s = Math.sin(t.facing), hw = t.width / 2, L = t.length * reach;
+      ctx.moveTo(t.x - s * hw, t.y + c * hw); ctx.lineTo(t.x - s * hw + c * L, t.y + c * hw + s * L);
+      ctx.lineTo(t.x + s * hw + c * L, t.y - c * hw + s * L); ctx.lineTo(t.x + s * hw, t.y - c * hw); ctx.closePath();
+    } else if (t.kind === 'fan') {
+      ctx.moveTo(t.x, t.y); ctx.arc(t.x, t.y, t.range * reach, t.facing - t.arc / 2, t.facing + t.arc / 2); ctx.closePath();
+    } else {
+      ctx.arc(t.x, t.y, t.radius * reach, 0, Math.PI * 2);
+    }
+  }
+  function drawTelegraphs(time) {
+    for (const t of run.telegraphs) {
+      if (!t.damage && !t.then) continue;
+      const span = t.resolveAt - t.startAt;
+      const k = t.done ? 1 : Math.min(1, (time - t.startAt) / span);
+      const flash = t.done ? Math.max(0, 1 - (time - t.doneAt) / .28) : 0;
+      ctx.save();
+      // outline: full shape, always visible
+      telegraphPath(t);
+      ctx.fillStyle = t.done ? `rgba(255,190,140,${(.35 * flash).toFixed(3)})` : 'rgba(200,54,36,.12)';
+      ctx.fill();
+      ctx.strokeStyle = t.done ? `rgba(255,220,170,${flash.toFixed(3)})` : `rgba(236,96,70,${(.5 + k * .45).toFixed(3)})`;
+      ctx.lineWidth = t.done ? 2.4 : 1.4;
+      if (!t.done && k < .5) ctx.setLineDash([6, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // fill grows toward resolution, so the moment of impact is readable
+      if (!t.done) {
+        telegraphPath(t, t.kind === 'line' ? k : Math.max(.08, k));
+        ctx.fillStyle = `rgba(214,62,40,${(.16 + k * .26).toFixed(3)})`;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+  function drawBursts(time) {
+    for (const b of run.bursts) {
+      const k = Math.min(1, (time - b.startedAt) / (b.until - b.startedAt));
+      const color = b.kind === 'phoenix' ? '255,150,70' : b.kind === 'thunder' ? '170,210,255' : '255,120,90';
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const g = ctx.createRadialGradient(b.x, b.y, b.radius * k * .4, b.x, b.y, b.radius * (.5 + k * .5));
+      g.addColorStop(0, `rgba(${color},0)`); g.addColorStop(.85, `rgba(${color},${(.4 * (1 - k)).toFixed(3)})`); g.addColorStop(1, `rgba(${color},0)`);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = `rgba(${color},${(1 - k).toFixed(3)})`; ctx.lineWidth = 3 * (1 - k) + .6;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.radius * (.5 + k * .5), 0, Math.PI * 2); ctx.stroke();
+      if (b.kind === 'thunder' && !reducedMotion.matches) {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const a = i * Math.PI / 3 + b.x * .01;
+          let x = b.x, y = b.y; ctx.moveTo(x, y);
+          for (let j = 1; j <= 4; j++) { const d = b.radius * j / 4 * (.5 + k * .5); x = b.x + Math.cos(a + (j % 2 ? .18 : -.18)) * d; y = b.y + Math.sin(a + (j % 2 ? .18 : -.18)) * d; ctx.lineTo(x, y); }
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  // Comparison tablet over a weapon the player could swap to.
+  function drawSwapPrompt(time) {
+    const item = run.swapCandidate;
+    if (!item) return;
+    const next = engine.MELEE_WEAPONS[item.type], cur = engine.MELEE_WEAPONS[run.player.meleeWeapon];
+    const lines = [`按 E 换上 ${next.label}`, `伤害 ${next.damage}  间隔 ${next.cooldown}s  距离 ${next.range}`, `${next.note} · 现持${cur.label}`];
+    ctx.save();
+    ctx.font = '600 11px "Microsoft YaHei", sans-serif';
+    const w = Math.max(...lines.map(line => ctx.measureText(line).width)) + 20, h = 52;
+    const x = Math.max(8, Math.min(W - w - 8, item.x - w / 2)), y = Math.max(8, item.y - 46 - h);
+    ctx.fillStyle = 'rgba(14,12,10,.86)'; roundRect(x, y, w, h, 6); ctx.fill();
+    ctx.strokeStyle = 'rgba(232,200,128,.7)'; ctx.lineWidth = 1; roundRect(x + .5, y + .5, w - 1, h - 1, 6); ctx.stroke();
+    ctx.restore();
+    text(lines[0], x + w / 2, y + 15, '#f3d38a', 12, 'center', 800);
+    text(lines[1], x + w / 2, y + 31, '#efe6cf', 10, 'center', 600);
+    text(lines[2], x + w / 2, y + 45, 'rgba(236,222,190,.7)', 9, 'center', 500);
+  }
+
+  // Boss bar across the top once the emperor engages, with phase-threshold ticks.
+  function drawBossBar(time) {
+    const boss = run.emperor;
+    if (!boss.alive || !boss.engaged) return;
+    const m = motion.get(boss);
+    const w = Math.min(420, W * .42), x = W / 2 - w / 2, y = 20;
+    const ratio = Math.max(0, boss.hp / boss.maxHp), trail = m ? Math.min(1, Math.max(boss.hp, m.shownHp) / boss.maxHp) : ratio;
+    ctx.save();
+    ctx.fillStyle = 'rgba(8,8,7,.8)'; roundRect(x - 4, y - 4, w + 8, 16, 4); ctx.fill();
+    ctx.strokeStyle = 'rgba(214,176,98,.6)'; ctx.lineWidth = 1; roundRect(x - 4.5, y - 4.5, w + 9, 17, 4); ctx.stroke();
+    ctx.fillStyle = 'rgba(240,200,140,.5)'; roundRect(x, y, w * trail, 8, 2); ctx.fill();
+    const g = ctx.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, '#7a1e16'); g.addColorStop(1, '#d4553a');
+    ctx.fillStyle = g; roundRect(x, y, w * ratio, 8, 2); ctx.fill();
+    for (const at of boss.thresholds) {
+      const tx = x + w * at;
+      ctx.fillStyle = ratio > at ? '#f3d38a' : 'rgba(243,211,138,.35)';
+      ctx.fillRect(tx - 1, y - 5, 2, 18);
+      ctx.beginPath(); ctx.moveTo(tx - 4, y - 7); ctx.lineTo(tx + 4, y - 7); ctx.lineTo(tx, y - 2); ctx.fill();
+    }
+    ctx.restore();
+    const state = run.elapsed < boss.wardUntil ? '换阵护体' : engine.isOpen(boss, run.elapsed) ? '破绽' : '';
+    text(`皇帝 · ${boss.phaseName}${state ? ' · ' + state : ''}`, W / 2, y + 23, state === '破绽' ? '#ffd98a' : '#f3e8cc', 11, 'center', 800);
   }
 
   function drawSwingTelegraph(actor, time, color) {
@@ -812,7 +1087,7 @@
     const windup = actor.swingWindup || .025;
     const progress = Math.min(1, elapsed / (windup + .2));
     const facing = actor.swingFacing ?? actor.facing ?? 0;
-    const span = Math.PI * (.22 + progress * .16);
+    const span = Math.PI * 110 / 360 * (.85 + progress * .15);
     const radius = actor.swingRange || actor.attackRange || 48;
     ctx.save();
     ctx.globalAlpha = elapsed < windup ? .6 : Math.max(.12, .75 - (elapsed - windup) * 2.4);
@@ -851,8 +1126,11 @@
     const progress = Math.min(1, (time - player.swingStartedAt) / .28);
     const radius = player.swingRange;
     const facing = player.swingFacing;
-    const end = facing - 1.15 + Math.min(progress * 2, 1) * 2.3;
-    const start = Math.max(facing - 1.25, end - 1.35);
+    const shape = player.swingShape;
+    if (shape?.kind === 'line') { drawThrust(player, shape, progress, finish); return; }
+    const half = shape?.kind === 'fan' ? Math.min(1.55, shape.arc / 2) : 1.15;
+    const end = facing - half + Math.min(progress * 2, 1) * half * 2;
+    const start = Math.max(facing - half - .1, end - Math.min(1.35, half * 1.2));
     const steps = 22, thick = finish.width * 2.6;
     const fade = Math.max(0, 1 - progress);
     ctx.save();
@@ -881,6 +1159,28 @@
     ctx.lineWidth = Math.max(1, finish.width * .45);
     ctx.lineCap = 'round';
     ctx.beginPath(); ctx.arc(player.x, player.y, radius, Math.max(start, end - .5), end); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawThrust(player, shape, progress, finish) {
+    const fade = Math.max(0, 1 - progress);
+    const reach = shape.length * Math.min(1, progress * 3);
+    const c = Math.cos(shape.facing), s = Math.sin(shape.facing);
+    ctx.save();
+    const g = ctx.createLinearGradient(player.x, player.y, player.x + c * shape.length, player.y + s * shape.length);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, finish.color);
+    ctx.globalAlpha = fade * .8;
+    ctx.fillStyle = g;
+    const hw = shape.width / 2 * (1 - progress * .5);
+    ctx.beginPath();
+    ctx.moveTo(player.x - s * hw * .3, player.y + c * hw * .3);
+    ctx.lineTo(player.x + c * reach - s * hw, player.y + s * reach + c * hw);
+    ctx.lineTo(player.x + c * (reach + 10), player.y + s * (reach + 10));
+    ctx.lineTo(player.x + c * reach + s * hw, player.y + s * reach - c * hw);
+    ctx.lineTo(player.x + s * hw * .3, player.y - c * hw * .3);
+    ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = fade; ctx.strokeStyle = '#fffaf0'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(player.x + c * reach * .4, player.y + s * reach * .4); ctx.lineTo(player.x + c * (reach + 8), player.y + s * (reach + 8)); ctx.stroke();
     ctx.restore();
   }
 
@@ -913,7 +1213,7 @@
       spawnPuff(run.player.x, run.player.y, 'rgba(240,205,130,.7)', 8, .55);
     }
     if (now.alive < before.alive) audio?.event?.('defeat');
-    if (now.bossPhase === 2 && before.bossPhase !== 2) { audio?.event?.('drum'); shake = Math.max(shake, 7); }
+    if (now.bossPhase > before.bossPhase) { audio?.event?.('drum'); shake = Math.max(shake, 7); }
   }
 
   function cueCombat() {
@@ -969,7 +1269,7 @@
       if (!reducedMotion.matches) {
         const trail = ctx.createLinearGradient(-38, 0, 0, 0);
         trail.addColorStop(0, 'rgba(247,206,128,0)');
-        trail.addColorStop(1, 'rgba(247,206,128,.72)');
+        trail.addColorStop(1, arrow.hostile ? 'rgba(236,110,80,.75)' : 'rgba(247,206,128,.72)');
         ctx.strokeStyle = trail;
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(-38, 0); ctx.lineTo(0, 0); ctx.stroke();
@@ -1033,14 +1333,19 @@
     }
     m.alive = true;
     const hurt = boss.hitUntil > run.elapsed;
-    if (boss.phase === 2) {
-      const a = .28 + Math.sin(time * 6) * .12;
+    if (boss.dash && !reducedMotion.matches) spawnPuff(boss.x, boss.y + 10, 'rgba(60,40,30,.5)', 1, .4);
+    if (boss.phase > 0) {
+      const a = .2 + boss.phase * .06 + (reducedMotion.matches ? 0 : Math.sin(time * 6) * .1);
       const g = ctx.createRadialGradient(boss.x, boss.y, 10, boss.x, boss.y, 54);
       g.addColorStop(0, `rgba(220,90,60,${a})`); g.addColorStop(1, 'rgba(220,90,60,0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(boss.x, boss.y, 54, 0, Math.PI * 2); ctx.fill();
     }
     drawFigure(boss.x, boss.y, boss.radius || 24, {robe: '#6e2a20', trim: '#e8c46a', sash: '#d2a548', skin: '#d2b48c', head: 'crown', m, ghost: hurt && Math.floor(time * 30) % 2}, time);
-    drawHealthBar(boss, 78, boss.phase === 2 ? '皇帝 · 震怒' : '皇帝');
+    if (run.elapsed < boss.wardUntil) {
+      ctx.save(); ctx.strokeStyle = 'rgba(243,211,138,.8)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(boss.x, boss.y - 4, 36, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    } else if (engine.isOpen(boss, run.elapsed)) drawOpening(boss, time);
+    if (!boss.engaged) drawHealthBar(boss, 78, '皇帝');
   }
 
   function drawPlayer(time) {
@@ -1052,8 +1357,13 @@
     ring.addColorStop(0, hurt ? 'rgba(230,110,80,.28)' : 'rgba(240,215,150,.18)'); ring.addColorStop(1, 'rgba(240,215,150,0)');
     ctx.fillStyle = ring; ctx.beginPath(); ctx.ellipse(player.x, player.y + 12, 30, 12, 0, 0, Math.PI * 2); ctx.fill();
     drawFigure(player.x, player.y, 18, {robe: '#d9d2bf', trim: '#8c7b5c', sash: '#6f5b3e', skin: '#d2b48c', head: 'loose', m, ghost: hurt && Math.floor(time * 22) % 2}, time);
-    if (player.meleeWeapon) {
-      const len = player.meleeWeapon === 'poleaxe' ? 30 : player.meleeWeapon === 'longSword' ? 27 : 22;
+    if (player.meleeWeapon === 'spear') {
+      const thrust = player.swingStartedAt !== null && player.swingWeapon === 'spear' ? Math.sin(Math.min(1, (time - player.swingStartedAt) / .22) * Math.PI) * 14 : 0;
+      drawSpear(player.x + Math.cos(player.facing || 0) * (5 + thrust), player.y - 2 + Math.sin(player.facing || 0) * (5 + thrust), player.facing, 42);
+    } else if (player.meleeWeapon === 'poleaxe') {
+      drawPoleaxe(player.x + Math.cos(player.facing || 0) * 5, player.y - 2 + Math.sin(player.facing || 0) * 5, player.facing);
+    } else if (player.meleeWeapon) {
+      const len = player.meleeWeapon === 'longSword' ? 27 : 22;
       drawBlade(player.x + Math.cos(player.facing || 0) * 5, player.y - 2 + Math.sin(player.facing || 0) * 5, player.facing, len, '#d4dbd2');
     } else if (player.bowAmmo > 0) {
       ctx.save(); ctx.translate(player.x, player.y - 2); ctx.rotate(player.facing || 0);
@@ -1098,7 +1408,8 @@
     ctx.fillStyle = '#fbeedd'; ctx.font = '600 18px "STSong", "Songti SC", serif'; ctx.fillText('宫', sx + 15, sy + 18);
     ctx.font = '500 13px "Microsoft YaHei", sans-serif';
     ctx.fillStyle = 'rgba(236,222,190,.85)';
-    ctx.fillText(run.layer >= 5 ? '大将军镇守 · 击败皇帝方可前进' : '寻找武器 · 击败皇帝方可前进', W / 2, H / 2 + 28 + rise);
+    const intro = {1: '寻找武器 · 击败皇帝方可前进', 2: '盾兵登场 · 绕到背后或等它挥盾', 3: '弓手登场 · 看见红线就横移', 4: '枪兵登场 · 躲开冲刺再反击'}[run.layer] || '大将军镇守 · 盾阵弓阵枪阵';
+    ctx.fillText(`${run.sceneName} · ${intro}`, W / 2, H / 2 + 28 + rise);
     ctx.restore();
   }
   function drawLowHealth(time) {
@@ -1170,12 +1481,13 @@
       if (!enemy.alive) continue;
       drawSwingTelegraph(enemy, time, enemy.friendly ? 'rgba(146,220,157,.32)' : 'rgba(225,124,92,.3)');
     }
-    if (run.emperor.alive) drawSwingTelegraph(run.emperor, time, 'rgba(224,95,72,.36)');
+    drawTelegraphs(time);
     drawPlayerSweep(time);
     for (const enemy of run.enemies) drawEnemy(enemy, time);
     drawEmperor(time);
     drawPlayer(time);
     drawArrowEffects(time);
+    drawBursts(time);
     drawImpacts(time);
     drawParticles(mode === 'playing' ? dt : 0);
     drawAnnouncements(mode === 'playing' ? dt : 0);
@@ -1193,7 +1505,9 @@
     drawFog();
     drawLowHealth(time);
     drawHurtVignette();
+    drawSwapPrompt(time);
     drawMinimap();
+    drawBossBar(time);
     drawStageBanner();
     text('未探索区域被黑雾遮挡', W - 28, 48, 'rgba(226,220,197,.68)', 10, 'right', 500);
     if (run.phase === 'upgrade') {
@@ -1214,6 +1528,7 @@
       cueCombat();
       cueEvents();
       updateHud();
+      updateSwapButton();
       if (run.message) setLive(run.message);
       if (run.phase === 'upgrade') {
         renderUpgradeChoices();
@@ -1227,6 +1542,7 @@
 
   function handleAction(action, target) {
     if (action === 'start') startGame();
+    if (action === 'swap' && mode === 'playing') { swapQueued = true; canvas.focus({preventScroll: true}); }
     if (action === 'pause') pauseGame();
     if (action === 'resume') resumeGame();
     if (action === 'toggle-fullscreen') {
@@ -1288,6 +1604,10 @@
     if (event.key === 'Escape') {
       if (mode === 'playing') pauseGame();
       else if (mode === 'paused') resumeGame();
+      return;
+    }
+    if ((event.key === 'e' || event.key === 'E') && mode === 'playing' && !(event.target instanceof Element && event.target.closest('input'))) {
+      swapQueued = true;
       return;
     }
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D'].includes(event.key)) {
