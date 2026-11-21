@@ -1940,3 +1940,15 @@ html[data-ui-theme]:where(:not([data-ui-theme=mural])) .has-sidebar .glossary {
   .has-sidebar .hero h1 i { display:none; }
   .has-sidebar .hero h1 span::after { content:"。"; color:var(--ui-accent,#9d4236); font-size:.55em; margin-left:.02em; vertical-align:baseline; }
 }
+
+/* ---------- 15. Companion pages: calmer painted ground behind long reading ---------- */
+@media screen {
+  html[data-ui-theme=mural] :is(body.qi-companion,body.lecture-page)::before {
+    background-image:
+      var(--paper-grain),
+      radial-gradient(100% 90% at 50% 42%,#f4e8d0f0 38%,#f4e8d0a6 78%,#f4e8d066 100%),
+      url("assets/mineral-paper.webp");
+  }
+  .lecture-page main { box-shadow:var(--qi-shadow-soft); border-radius:8px; }
+  .lecture-page video { border-radius:6px; box-shadow:0 18px 36px -18px #0008; }
+}

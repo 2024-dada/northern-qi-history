@@ -305,11 +305,19 @@
     const labelScale = Math.min(Math.max(worldUnitsPerCssPixel, 1), 1.85);
     ctx.translate(0, -radius - 4);
     ctx.scale(labelScale, labelScale);
-    ctx.fillStyle = '#0d1715f3';
-    ctx.strokeStyle = `${rim}b0`;
-    ctx.lineWidth = 1;
-    ctx.fillRect(-58, -30, 116, 30);
-    ctx.strokeRect(-58, -30, 116, 30);
+    // Hanging lacquer tag with a coloured status bead.
+    ctx.fillStyle = 'rgba(0,0,0,.35)';
+    ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-57, -28, 116, 30, 5); else ctx.rect(-57, -28, 116, 30); ctx.fill();
+    const tag = ctx.createLinearGradient(0, -30, 0, 0);
+    tag.addColorStop(0, '#1d2320f5'); tag.addColorStop(1, '#101412f5');
+    ctx.fillStyle = tag;
+    ctx.strokeStyle = active || warning ? rim : `${rim}90`;
+    ctx.lineWidth = active ? 1.6 : 1;
+    ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-58, -30, 116, 30, 5); else ctx.rect(-58, -30, 116, 30); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(232,200,128,.18)'; ctx.lineWidth = 1;
+    ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-55, -27, 110, 24, 3); else ctx.rect(-55, -27, 110, 24); ctx.stroke();
+    ctx.fillStyle = active ? rim : warning ? '#e6b45a' : '#6f7a70';
+    ctx.beginPath(); ctx.arc(-46, -15, active ? 3.4 : 2.6, 0, Math.PI * 2); ctx.fill();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = '700 11px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif';

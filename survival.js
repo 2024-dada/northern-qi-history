@@ -487,8 +487,9 @@
     const flicker = reducedMotion.matches ? 0 : Math.sin(time * 9.1) * 4 + Math.sin(time * 23.7) * 2;
     const r = engine.FOG.revealRadius + 26 + flicker;
     const g = ctx.createRadialGradient(p.x, p.y - 6, 8, p.x, p.y, r);
-    g.addColorStop(0, 'rgba(255,214,150,.16)');
-    g.addColorStop(.5, 'rgba(255,190,120,.07)');
+    g.addColorStop(0, 'rgba(255,214,150,.1)');
+    g.addColorStop(.35, 'rgba(255,196,128,.055)');
+    g.addColorStop(.7, 'rgba(255,180,110,.02)');
     g.addColorStop(1, 'rgba(255,170,100,0)');
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
@@ -741,18 +742,20 @@
     const span = Math.PI * (.22 + progress * .16);
     const radius = actor.swingRange || actor.attackRange || 48;
     ctx.save();
-    ctx.globalAlpha = elapsed < windup ? .55 : Math.max(.16, .72 - (elapsed - windup) * 2.2);
-    ctx.fillStyle = color;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2.2;
+    ctx.globalAlpha = elapsed < windup ? .6 : Math.max(.12, .75 - (elapsed - windup) * 2.4);
+    const wedge = ctx.createRadialGradient(actor.x, actor.y, radius * .25, actor.x, actor.y, radius);
+    wedge.addColorStop(0, 'rgba(0,0,0,0)');
+    wedge.addColorStop(.7, color);
+    wedge.addColorStop(1, color.replace(/[\d.]+\)$/, '0.75)'));
+    ctx.fillStyle = wedge;
     ctx.beginPath();
     ctx.moveTo(actor.x, actor.y);
     ctx.arc(actor.x, actor.y, radius, facing - span, facing + span);
     ctx.closePath();
     ctx.fill();
-    ctx.setLineDash([4, 5]);
+    ctx.strokeStyle = color.replace(/[\d.]+\)$/, '0.9)');
+    ctx.lineWidth = 1.6;
     ctx.beginPath(); ctx.arc(actor.x, actor.y, radius, facing - span, facing + span); ctx.stroke();
-    ctx.setLineDash([]);
     ctx.restore();
   }
 
@@ -776,16 +779,35 @@
     const radius = player.swingRange;
     const facing = player.swingFacing;
     const end = facing - 1.15 + Math.min(progress * 2, 1) * 2.3;
-    const start = Math.max(facing - 1.25, end - 1.3);
+    const start = Math.max(facing - 1.25, end - 1.35);
+    const steps = 22, thick = finish.width * 2.6;
+    const fade = Math.max(0, 1 - progress);
     ctx.save();
+    // brush crescent: thick at the leading edge, tapering to a dry tail
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps, a = start + (end - start) * t;
+      ctx.lineTo(player.x + Math.cos(a) * (radius + thick * .25 * t), player.y + Math.sin(a) * (radius + thick * .25 * t));
+    }
+    for (let i = steps; i >= 0; i--) {
+      const t = i / steps, a = start + (end - start) * t;
+      const w = thick * Math.pow(t, 1.6);
+      ctx.lineTo(player.x + Math.cos(a) * (radius - w), player.y + Math.sin(a) * (radius - w));
+    }
+    ctx.closePath();
+    const sx = player.x + Math.cos(start) * radius, sy = player.y + Math.sin(start) * radius;
+    const ex = player.x + Math.cos(end) * radius, ey = player.y + Math.sin(end) * radius;
+    const g = ctx.createLinearGradient(sx, sy, ex, ey);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(1, finish.color);
+    ctx.globalAlpha = fade * .85;
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.globalAlpha = fade;
+    ctx.strokeStyle = '#fffaf0';
+    ctx.lineWidth = Math.max(1, finish.width * .45);
     ctx.lineCap = 'round';
-    ctx.strokeStyle = finish.color;
-    ctx.globalAlpha = (1 - progress) * .28;
-    ctx.lineWidth = finish.width * 3.1;
-    ctx.beginPath(); ctx.arc(player.x, player.y, radius - finish.width, start, end); ctx.stroke();
-    ctx.globalAlpha = (1 - progress) * .98;
-    ctx.lineWidth = finish.width;
-    ctx.beginPath(); ctx.arc(player.x, player.y, radius, start, end); ctx.stroke();
+    ctx.beginPath(); ctx.arc(player.x, player.y, radius, Math.max(start, end - .5), end); ctx.stroke();
     ctx.restore();
   }
 
@@ -835,9 +857,13 @@
       if (progress < 0 || progress >= 1) continue;
       const effect = weaponEffects[impact.weapon];
       const {x, y} = impact;
+      if (!impact.puffed) { impact.puffed = true; spawnPuff(x, y, 'rgba(150,40,28,.75)', 3, .45); }
       ctx.save();
       ctx.globalAlpha = (1 - progress) * .86;
-      circle(x, y, 5 + effect.burst * progress, null, effect.color, effect.width * .5);
+      circle(x, y, 5 + effect.burst * progress, null, effect.color, effect.width * .9 * (1 - progress) + .4);
+      ctx.globalCompositeOperation = 'lighter';
+      circle(x, y, 4 + 6 * (1 - progress), `rgba(255,236,190,${(.55 * (1 - progress)).toFixed(3)})`, null);
+      ctx.globalCompositeOperation = 'source-over';
       if (!reducedMotion.matches) {
         ctx.strokeStyle = effect.color;
         ctx.lineWidth = 1.4;
@@ -870,9 +896,12 @@
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(-38, 0); ctx.lineTo(0, 0); ctx.stroke();
       }
-      ctx.strokeStyle = 'rgba(248,226,167,.94)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(9, 0); ctx.stroke();
-      ctx.fillStyle = '#f2d18b'; ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(5, -3); ctx.lineTo(5, 3); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#a77a45'; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(8, 0); ctx.stroke();
+      ctx.fillStyle = '#e9e2cf'; ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(6, -3.2); ctx.lineTo(7.5, 0); ctx.lineTo(6, 3.2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#9e3a2b';
+      ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(-15, -3.5); ctx.lineTo(-8, -1); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(-15, 3.5); ctx.lineTo(-8, 1); ctx.closePath(); ctx.fill();
       ctx.restore();
     }
   }
