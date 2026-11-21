@@ -15,7 +15,7 @@
   });
   const ARROW_DAMAGE = Object.freeze({soldier: 17, general: 20, marshal: 25, emperor: 13});
   const ARROW_TRAVEL = .18;
-  const MUTINY_INTERVAL = 1;
+  const MUTINY_INTERVAL = 5;
   const TALENT_WEIGHTS = Object.freeze({common: 45, rare: 30, epic: 25});
   const TALENT_CARDS = {
     common: [
@@ -32,7 +32,7 @@
     epic: [
       {id: 'startPoleaxe', rarity: 'epic', title: '长柄重器', description: '每层自带长柄斧，每点近战伤害 +10%。'},
       {id: 'revive', rarity: 'epic', title: '续命', description: '每点获得一次复起机会，恢复至 60% 体力并保护 2 秒。'},
-      {id: 'mutiny', rarity: 'epic', title: '宫门兵变', description: '每点每秒独立召唤一名援军，10% 将领、90% 小兵。'}
+      {id: 'mutiny', rarity: 'epic', title: '宫门兵变', description: '每 5 秒触发一次，每点召唤一名援军，10% 将领、90% 小兵。'}
     ]
   };
   const HAZARD_PROFILES = Object.freeze({

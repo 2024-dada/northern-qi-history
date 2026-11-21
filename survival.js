@@ -222,7 +222,7 @@
     if (meleeBonus) $('[data-hud-strength] b').textContent = meleeBonus === bowBonus
       ? `+${meleeBonus}%` : `近战 +${meleeBonus}% · 弓箭 +${bowBonus}%`;
     $('[data-hud-mutiny]').hidden = !mutiny;
-    if (mutiny) $('[data-hud-mutiny] b').textContent = `${mutiny} 名/秒`;
+    if (mutiny) $('[data-hud-mutiny] b').textContent = `${mutiny} 名/5秒`;
     $('[data-hud-hp]').textContent = `${Math.ceil(run.player.hp)} / ${run.player.maxHp}`;
     $('[data-hud-health-fill]').style.width = `${Math.max(0, run.player.hp / run.player.maxHp * 100)}%`;
     $('[data-hud-health-fill]').style.background = run.player.hp / run.player.maxHp <= .3
