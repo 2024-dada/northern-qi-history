@@ -987,6 +987,85 @@
     text('被囚者', player.x, player.y + 34, '#efe6cf', 10, 'center', 650);
   }
 
+
+  // ---- Stage banner, low-health pulse and minimap ----
+  const numerals = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+  function layerName(n) {
+    if (n <= 10) return numerals[n];
+    if (n < 20) return '十' + numerals[n - 10];
+    const tens = Math.floor(n / 10), ones = n % 10;
+    return (tens < 10 ? numerals[tens] : String(tens)) + '十' + (ones ? numerals[ones] : '');
+  }
+  function drawStageBanner() {
+    const t = run.stageElapsed;
+    if (t > 2.6 || run.phase !== 'playing') return;
+    const alpha = t < .35 ? t / .35 : t > 1.9 ? Math.max(0, (2.6 - t) / .7) : 1;
+    const rise = reducedMotion.matches ? 0 : (1 - Math.min(1, t / .5)) * 12;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const band = ctx.createLinearGradient(0, 0, W, 0);
+    band.addColorStop(0, 'rgba(10,12,11,0)'); band.addColorStop(.25, 'rgba(10,12,11,.78)'); band.addColorStop(.75, 'rgba(10,12,11,.78)'); band.addColorStop(1, 'rgba(10,12,11,0)');
+    ctx.fillStyle = band;
+    ctx.fillRect(0, H / 2 - 62 + rise, W, 112);
+    ctx.strokeStyle = 'rgba(214,182,120,.45)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(W * .3, H / 2 - 56 + rise); ctx.lineTo(W * .7, H / 2 - 56 + rise); ctx.moveTo(W * .3, H / 2 + 44 + rise); ctx.lineTo(W * .7, H / 2 + 44 + rise); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#f2dfae';
+    ctx.font = '600 44px "STSong", "Songti SC", "Noto Serif SC", "SimSun", serif';
+    ctx.fillText(`第${layerName(run.layer)}层`, W / 2 - 18, H / 2 - 12 + rise);
+    // vermilion seal
+    const sx = W / 2 + ctx.measureText(`第${layerName(run.layer)}层`).width / 2 + 4, sy = H / 2 - 30 + rise;
+    ctx.fillStyle = '#a3352a'; ctx.fillRect(sx, sy, 30, 34);
+    ctx.strokeStyle = '#f5e2c0'; ctx.lineWidth = 1.4; ctx.strokeRect(sx + 3, sy + 3, 24, 28);
+    ctx.fillStyle = '#fbeedd'; ctx.font = '600 18px "STSong", "Songti SC", serif'; ctx.fillText('宫', sx + 15, sy + 18);
+    ctx.font = '500 13px "Microsoft YaHei", sans-serif';
+    ctx.fillStyle = 'rgba(236,222,190,.85)';
+    ctx.fillText(run.layer >= 5 ? '大将军镇守 · 击败皇帝方可前进' : '寻找武器 · 击败皇帝方可前进', W / 2, H / 2 + 28 + rise);
+    ctx.restore();
+  }
+  function drawLowHealth(time) {
+    const ratio = run.player.hp / run.player.maxHp;
+    if (ratio > .3 || run.phase !== 'playing') return;
+    const beat = reducedMotion.matches ? .5 : Math.pow(Math.max(0, Math.sin(time * 5.2)), 6);
+    const a = (.16 + beat * .22) * (1 - ratio / .3 * .5);
+    const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .38, W / 2, H / 2, Math.hypot(W, H) * .56);
+    g.addColorStop(0, 'rgba(120,18,10,0)'); g.addColorStop(1, `rgba(120,18,10,${a.toFixed(3)})`);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  const mapCanvas = document.createElement('canvas');
+  const mapCtx = mapCanvas.getContext('2d');
+  let mapStamp = -1;
+  function drawMinimap() {
+    const fog = engine.FOG, cols = Math.ceil(W / fog.cellSize), rows = Math.ceil(H / fog.cellSize);
+    const mw = 132, mh = Math.round(mw * H / W), x0 = W - mw - 22, y0 = H - mh - 58;
+    if (mapCanvas.width !== cols) { mapCanvas.width = cols; mapCanvas.height = rows; mapStamp = -1; }
+    let count = 0;
+    for (let i = 0; i < run.explored.length; i++) count += run.explored[i];
+    if (count !== mapStamp) {
+      mapStamp = count;
+      const img = mapCtx.createImageData(cols, rows);
+      for (let i = 0; i < run.explored.length; i++) {
+        const on = run.explored[i];
+        img.data[i * 4] = on ? 120 : 10; img.data[i * 4 + 1] = on ? 104 : 12; img.data[i * 4 + 2] = on ? 76 : 11; img.data[i * 4 + 3] = on ? 220 : 170;
+      }
+      mapCtx.putImageData(img, 0, 0);
+    }
+    ctx.save();
+    ctx.globalAlpha = .9;
+    ctx.fillStyle = 'rgba(8,10,9,.7)'; ctx.fillRect(x0 - 4, y0 - 4, mw + 8, mh + 8);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(mapCanvas, x0, y0, mw, mh);
+    ctx.strokeStyle = 'rgba(214,182,120,.55)'; ctx.lineWidth = 1; ctx.strokeRect(x0 - 4.5, y0 - 4.5, mw + 9, mh + 9);
+    const px = x0 + run.player.x / W * mw, py = y0 + run.player.y / H * mh;
+    ctx.fillStyle = '#f5ead0'; ctx.beginPath(); ctx.arc(px, py, 2.6, 0, Math.PI * 2); ctx.fill();
+    const boss = run.emperor;
+    const bi = Math.floor(boss.y / fog.cellSize) * cols + Math.floor(boss.x / fog.cellSize);
+    if (boss.alive && run.explored[bi]) { ctx.fillStyle = '#d24a35'; ctx.beginPath(); ctx.arc(x0 + boss.x / W * mw, y0 + boss.y / H * mh, 3, 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    text('宫苑舆图', x0 + mw / 2, y0 - 11, 'rgba(232,214,170,.75)', 9, 'center', 600);
+    ctx.restore();
+  }
+
   let lastDraw = performance.now();
   function draw() {
     const nowMs = performance.now();
@@ -1033,7 +1112,10 @@
     }
     drawLight(time);
     drawFog();
+    drawLowHealth(time);
     drawHurtVignette();
+    drawMinimap();
+    drawStageBanner();
     text('未探索区域被黑雾遮挡', W - 28, 48, 'rgba(226,220,197,.68)', 10, 'right', 500);
     if (run.phase === 'upgrade') {
       ctx.fillStyle = 'rgba(213,190,130,.8)';
