@@ -1100,7 +1100,9 @@ window.RESEARCH = {
     {id:'paper',name:'原版宣纸',description:'淡墨城楼、芦苇与素白纸纹',colors:['#f4eddf','#332b23','#8b4b38']},
     {id:'jade',name:'青瓷竹影',description:'竹林临江，一叶小舟穿过晨雾',colors:['#e5f0e5','#183f32','#23664d']},
     {id:'blue',name:'月白藏蓝',description:'青花远山、曲水与石桥',colors:['#eaf0fa','#223b58','#365f95']},
-    {id:'night',name:'墨夜阅读',description:'月下宫阙，靛蓝夜色与暖灯',colors:['#141d29','#f0ebdf','#ebbd84']}
+    {id:'night',name:'墨夜阅读',description:'月下宫阙，靛蓝夜色与暖灯',colors:['#141d29','#f0ebdf','#ebbd84']},
+    {id:'amber',name:'金砂秋阙',description:'银杏映阙楼，暖绢与深茶色',colors:['#f1e5ce','#362a22','#875025']},
+    {id:'frost',name:'霜梅雪庭',description:'雪庭、胭脂梅与浅灰紫',colors:['#eee9f1','#332838','#803d59']}
   ];
   const root=document.documentElement,key='qi-ui-theme';
   let selected=defaultTheme;

@@ -490,3 +490,41 @@
     box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ui-edge) 42%,transparent);
   }
 }
+
+
+:root[data-ui-theme=amber] {
+  --ui-bg:#f1e5ce; --ui-surface:#fff8e9; --ui-tint:#ecdbbb;
+  --ui-ink:#362a22; --ui-muted:#624d39; --ui-line:#bda482;
+  --ui-accent:#875025; --ui-on-accent:#fff8e9;
+  --ui-explore:#382820; --ui-explore-ink:#fff2d9; --ui-explore-muted:#e4cba7;
+  --ui-edge:#a17543; --ui-secondary:#754727; --ui-radius:4px;
+  --ui-landscape:url("assets/theme-amber-gate.webp");
+  --ui-map-top:#493927; --ui-map-bottom:#291e1b; --ui-map-trim:#e5bd79;
+  --ui-ornament:linear-gradient(90deg,#875025,#c29554 62%,transparent);
+  --ui-seal-corner:2px 8px;
+  --ui-seal-trim:inset 0 0 0 1px #fff2d980;
+}
+
+:root[data-ui-theme=frost] {
+  --ui-bg:#eee9f1; --ui-surface:#fcf8fc; --ui-tint:#e8dce6;
+  --ui-ink:#332838; --ui-muted:#5f4f62; --ui-line:#b6a4b6;
+  --ui-accent:#803d59; --ui-on-accent:#fff8fb;
+  --ui-explore:#32283b; --ui-explore-ink:#fff1f5; --ui-explore-muted:#dccbdd;
+  --ui-edge:#a0768f; --ui-secondary:#695575; --ui-radius:8px;
+  --ui-landscape:url("assets/theme-frost-plum.webp");
+  --ui-map-top:#3c344c; --ui-map-bottom:#231e30; --ui-map-trim:#e4b6cc;
+  --ui-ornament:radial-gradient(circle at center,#985771 0 1px,transparent 1.6px);
+  --ui-ornament-size:8px 5px;
+  --ui-seal-corner:50% 40% 50% 40%;
+  --ui-seal-trim:inset 0 0 0 1px #ffe8f294;
+}
+
+@media screen {
+  .ui-theme-preview[data-theme-preview=amber] { background-image:url("assets/theme-amber-gate-thumb.webp"); }
+  .ui-theme-preview[data-theme-preview=frost] { background-image:url("assets/theme-frost-plum-thumb.webp"); }
+}
+
+@media screen and (min-width:1660px), screen and (min-width:960px) and (min-resolution:1.5dppx) {
+  :root[data-ui-theme=amber] { --ui-landscape:url("assets/theme-amber-gate-wide.webp"); }
+  :root[data-ui-theme=frost] { --ui-landscape:url("assets/theme-frost-plum-wide.webp"); }
+}
