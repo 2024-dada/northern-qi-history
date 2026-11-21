@@ -55,7 +55,7 @@
     background-image:
       var(--paper-grain),
       radial-gradient(70% 62% at 56% 48%,#f4e8d0d9 25%,#f4e8d000 82%),
-      url("assets/mineral-paper.webp");
+      var(--ui-landscape);
     background-size:var(--qi-grain-size),100% 100%,cover;
     background-position:0 0,center,center;
     background-repeat:repeat,no-repeat,no-repeat;
@@ -85,7 +85,7 @@
     background-repeat:no-repeat;
   }
   html[data-ui-theme=mural] body.survival-page::before {
-    background-image:var(--paper-grain),radial-gradient(75% 65% at 50% 45%,#f3e7cfd9 30%,#f3e7cf00 82%),url("assets/mineral-paper.webp");
+    background-image:var(--paper-grain),radial-gradient(75% 65% at 50% 45%,#f3e7cfd9 30%,#f3e7cf00 82%),var(--ui-landscape);
     background-size:var(--qi-grain-size),100% 100%,cover;
     background-repeat:repeat,no-repeat,no-repeat;
     background-position:0 0,center,center;
@@ -490,7 +490,7 @@ html[data-ui-theme]:where(:not([data-ui-theme=mural])) .has-sidebar .glossary {
     background-image:
       var(--paper-grain),
       radial-gradient(100% 90% at 50% 42%,#f4e8d0f0 38%,#f4e8d0a6 78%,#f4e8d066 100%),
-      url("assets/mineral-paper.webp");
+      var(--ui-landscape);
   }
   .lecture-page main { box-shadow:var(--qi-shadow-soft); border-radius:8px; }
   .lecture-page video { border-radius:6px; box-shadow:0 18px 36px -18px #0008; }
@@ -666,4 +666,26 @@ html[data-ui-theme] #detail-dialog .dialog-close:hover { background:color-mix(in
 }
 @media screen and (max-width:600px) {
   .has-sidebar .case-preview-focus { padding-inline:7px; }
+}
+
+/* Frame the artwork and keep the full-strength colour away from the text. */
+@media screen {
+  .has-sidebar .court-hero picture {
+    box-shadow:0 0 0 1px var(--folio-rule),0 0 0 5px var(--ui-surface),
+      0 0 0 6px var(--ui-line),0 22px 42px -24px #17100899;
+  }
+  .has-sidebar .court-hero figcaption { margin-block-start:14px; }
+  .has-sidebar .site-header {
+    border-inline-end-color:var(--folio-rule);
+  }
+  .has-sidebar .case-preview ol li a:hover {
+    border-color:var(--folio-rule);
+    box-shadow:0 9px 24px -20px var(--ui-ink);
+  }
+}
+@media screen and (min-width:760px) {
+  html[data-ui-theme]:where(:not([data-ui-theme=mural])) body.has-sidebar .hero {
+    background:linear-gradient(95deg,var(--ui-sheet) 26%,
+      color-mix(in srgb,var(--ui-bg) 58%,transparent) 54%,transparent 88%);
+  }
 }
