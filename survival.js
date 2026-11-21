@@ -568,7 +568,11 @@
   }
   function moveState(entity, time) {
     let m = motion.get(entity);
-    if (!m) { m = {x: entity.x, y: entity.y, phase: Math.random() * 6, speed: 0, side: 1, shownHp: entity.hp, alive: entity.alive !== false, lastDust: 0}; motion.set(entity, m); }
+    if (!m) {
+      m = {x: entity.x, y: entity.y, phase: Math.random() * 6, speed: 0, side: 1, shownHp: entity.hp, alive: entity.alive !== false, lastDust: 0, born: run && run.stageElapsed > .6 ? run.elapsed : -9};
+      motion.set(entity, m);
+      if (m.born > 0 && entity.alive !== false) spawnPuff(entity.x, entity.y + 6, entity.friendly ? 'rgba(150,200,160,.55)' : 'rgba(30,26,22,.7)', 7, .7);
+    }
     const dx = entity.x - m.x, dy = entity.y - m.y;
     const step = Math.hypot(dx, dy);
     m.speed = m.speed * .7 + Math.min(step, 6) * .3;
@@ -779,10 +783,26 @@
     const hurt = enemy.hitUntil > run.elapsed;
     const look = enemy.friendly ? enemyLook.friendly : enemyLook[enemy.type] || enemyLook.soldier;
     const r = enemy.radius;
+    const age = run.elapsed - m.born;
+    if (age >= 0 && age < .7) { // summoning seal on the floor while the figure fades in
+      const k = age / .7;
+      ctx.save();
+      ctx.globalAlpha = (1 - k) * .9;
+      ctx.strokeStyle = enemy.friendly ? '#a9dcb0' : enemy.type === 'soldier' ? '#c9a46a' : '#e8b85c';
+      ctx.lineWidth = 1.6;
+      ctx.translate(enemy.x, enemy.y + r * .9);
+      ctx.scale(1, .42);
+      ctx.beginPath(); ctx.arc(0, 0, r * 1.2 + k * r * 1.4, 0, Math.PI * 2); ctx.stroke();
+      ctx.rotate(k * 1.6);
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * .9, Math.sin(a) * r * .9); ctx.lineTo(Math.cos(a) * (r * 1.6 + k * r), Math.sin(a) * (r * 1.6 + k * r)); ctx.stroke(); }
+      ctx.restore();
+      ctx.save(); ctx.globalAlpha = Math.min(1, k * 1.6);
+    } else ctx.save();
     drawFigure(enemy.x, enemy.y, r, {...look, m, ghost: hurt && Math.floor(time * 30) % 2}, time);
     if (hurt) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; circle(enemy.x, enemy.y - r * .3, r * 1.1, 'rgba(255,170,120,.18)', null); ctx.restore(); }
     const bladeLength = enemy.type === 'marshal' ? 30 : enemy.type === 'general' ? 25 : 20;
     drawBlade(enemy.x + Math.cos(enemy.facing || 0) * 4, enemy.y - r * .1 + Math.sin(enemy.facing || 0) * 4, enemy.facing, bladeLength, enemy.friendly ? '#c6e6b8' : '#c2c9c0', enemy.type !== 'soldier');
+    ctx.restore();
     drawHealthBar(enemy, enemy.type === 'soldier' ? 36 : enemy.type === 'general' ? 50 : 66, enemy.label);
   }
 
@@ -1243,7 +1263,14 @@
     const action = event.target.closest('[data-game-action]');
     if (action) handleAction(action.dataset.gameAction, action);
     const upgrade = event.target.closest('[data-game-upgrade]');
-    if (upgrade) handleAction('', upgrade);
+    if (!upgrade) return;
+    const box = upgrade.parentElement;
+    if (reducedMotion.matches || !box || box.dataset.choosing) { if (!box?.dataset.choosing) handleAction('', upgrade); return; }
+    // Brief flourish: the chosen tablet lifts and glows, the others fall away, then the choice applies.
+    box.dataset.choosing = '1';
+    upgrade.classList.add('is-chosen');
+    for (const other of box.querySelectorAll('[data-game-upgrade]')) if (other !== upgrade) other.classList.add('is-dismissed');
+    setTimeout(() => { delete box.dataset.choosing; handleAction('', upgrade); }, 360);
   });
 
   document.addEventListener('fullscreenchange', () => {
