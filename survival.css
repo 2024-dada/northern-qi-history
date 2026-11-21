@@ -217,3 +217,46 @@ html.is-game-fullscreen .survival-touch { bottom: max(42px, calc(env(safe-area-i
 .survival-result .survival-final-score::after { content: "分"; font-size: 18px; margin-left: 6px; letter-spacing: 0; opacity: .7; }
 .survival-result [data-final-summary] { max-width: 34em; margin: 0 auto 6px; }
 @media (max-width: 520px) { .survival-start-form { grid-template-columns: 1fr; } .survival-start-form .survival-primary { width: 100%; margin-top: 10px; } .survival-result .survival-final-score { font-size: 52px !important; } }
+
+/* HUD: ink lacquer bar with gold hairlines. */
+.survival-hud { background: linear-gradient(180deg, #1d2420, #141917); border-bottom: 1px solid #6c5a36; box-shadow: inset 0 -1px 0 rgb(240 210 140 / 10%), 0 6px 16px -10px #000; }
+.survival-hud > span:not(.survival-health) { position: relative; padding-inline-end: clamp(8px, 1.2vw, 14px); }
+.survival-hud > span:not(.survival-health):not(:last-of-type)::after { content: ""; position: absolute; right: 0; top: 4px; bottom: 4px; width: 1px; background: linear-gradient(transparent, rgb(214 182 120 / 35%), transparent); }
+.survival-hud small { color: #bfae84; letter-spacing: .12em; }
+.survival-hud b { color: #fbf1da; }
+.survival-health i { height: 8px; background: #2a2a24; box-shadow: inset 0 1px 2px #000a, 0 0 0 1px rgb(214 182 120 / 25%); }
+.survival-health i span { background: linear-gradient(90deg, #7d4a2c, #c58a45 40%, #e8cf8a); box-shadow: 0 0 8px rgb(232 200 128 / 45%); }
+
+/* Upgrade cards: lacquer tablets with rarity frames. */
+.survival-upgrades button { position: relative; overflow: hidden; border-radius: 6px; border: 1px solid #8f7a4e; background: linear-gradient(160deg, #2a2f28, #1b1f1b); box-shadow: inset 0 1px 0 rgb(255 240 200 / 8%), 0 10px 22px -14px #000; transition: transform .2s cubic-bezier(.22,.7,.2,1), box-shadow .2s, border-color .2s; }
+.survival-upgrades button::before { content: ""; position: absolute; inset: 5px; border: 1px solid rgb(232 200 128 / 22%); border-radius: 3px; pointer-events: none; }
+.survival-upgrades button::after { content: ""; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, rgb(232 200 128 / 18%), transparent 70%); pointer-events: none; }
+.survival-upgrades button:hover, .survival-upgrades button:focus-visible { transform: translateY(-3px); border-color: #f0d38f; box-shadow: inset 0 1px 0 rgb(255 240 200 / 12%), 0 16px 28px -14px #000, 0 0 0 1px rgb(240 211 143 / 35%); background: linear-gradient(160deg, #343a31, #20251f); }
+.survival-upgrades button small { display: inline-block; align-self: flex-start; padding: 1px 8px; border-radius: 999px; font-size: 11px; color: #1d1a12; background: #cdb57c; letter-spacing: .12em; }
+.survival-upgrades strong { font-size: 18px; font-family: "STSong", "Songti SC", "Noto Serif SC", serif; letter-spacing: .04em; }
+.survival-upgrades span { font-size: 12.5px; }
+.survival-upgrades .talent-rare { border-color: #5f8f93; background: linear-gradient(160deg, #213536, #172322); }
+.survival-upgrades .talent-rare small { background: #7fbcbc; color: #0f1d1d; }
+.survival-upgrades .talent-rare::after { background: radial-gradient(circle, rgb(127 188 188 / 22%), transparent 70%); }
+.survival-upgrades .talent-epic { border-color: #a07ab4; background: linear-gradient(160deg, #3a2b45, #1f1b2b); box-shadow: inset 0 1px 0 rgb(255 230 255 / 10%), 0 10px 22px -14px #000, 0 0 18px -6px rgb(190 140 220 / 55%); }
+.survival-upgrades .talent-epic small { background: #c99ae0; color: #23122d; }
+.survival-upgrades .talent-epic::after { width: 140px; height: 140px; background: radial-gradient(circle, rgb(212 169 234 / 28%), transparent 70%); animation: talent-glow 2.6s ease-in-out infinite; }
+@keyframes talent-glow { 50% { opacity: .45; transform: scale(.9); } }
+@media (prefers-reduced-motion: reduce) { .survival-upgrades .talent-epic::after { animation: none; } .survival-upgrades button:hover { transform: none; } }
+
+/* Live message strip under the map. */
+.survival-live { border-top: 1px solid #6c5a36 !important; background: linear-gradient(180deg, #1a1f1c, #141816) !important; color: #e9dcb8 !important; letter-spacing: .03em; }
+
+/* Rarity tablets follow the page theme: tinted paper, coloured frame and seal. */
+html[data-ui-theme] .survival-upgrades button { --rarity: #a8874e; color: var(--ui-ink, #2b2620); background: linear-gradient(160deg, color-mix(in srgb, var(--ui-surface, #f6efe0) 92%, var(--rarity)), color-mix(in srgb, var(--ui-surface, #f6efe0) 80%, var(--rarity))); border-color: color-mix(in srgb, var(--rarity) 70%, transparent); outline: none; }
+html[data-ui-theme] .survival-upgrades button::before { border-color: color-mix(in srgb, var(--rarity) 35%, transparent); }
+html[data-ui-theme] .survival-upgrades button::after { background: radial-gradient(circle, color-mix(in srgb, var(--rarity) 30%, transparent), transparent 70%); }
+html[data-ui-theme] .survival-upgrades button :is(strong,span) { color: var(--ui-ink, #2b2620); }
+html[data-ui-theme] .survival-upgrades button strong { color: color-mix(in srgb, var(--rarity) 55%, var(--ui-ink, #2b2620)); }
+html[data-ui-theme] .survival-upgrades button small { color: #fff8ea; background: var(--rarity); }
+html[data-ui-theme] .survival-upgrades .talent-rare { --rarity: #3f8487; }
+html[data-ui-theme] .survival-upgrades .talent-epic { --rarity: #8a52a8; box-shadow: inset 0 1px 0 rgb(255 255 255 / 25%), 0 10px 22px -14px #0008, 0 0 20px -6px color-mix(in srgb, #8a52a8 60%, transparent); }
+html[data-ui-theme] .survival-upgrades button:is(:hover,:focus-visible) { border-color: var(--rarity); box-shadow: 0 16px 28px -14px #0008, 0 0 0 2px color-mix(in srgb, var(--rarity) 45%, transparent); }
+html[data-ui-theme=night] .survival-upgrades button strong { color: color-mix(in srgb, var(--rarity) 35%, var(--ui-ink, #eee)); }
+html[data-ui-theme] .survival-choice .survival-overlay-card { width: min(680px, calc(100% - 28px)); }
+.survival-choice .survival-upgrades { grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
