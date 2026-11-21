@@ -2187,3 +2187,68 @@ html[data-ui-theme] #detail-dialog .dialog-close:hover { background:color-mix(in
       color-mix(in srgb,var(--ui-bg) 58%,transparent) 54%,transparent 88%);
   }
 }
+
+/* Mount the illustration and repeat the same fine rules across reading surfaces. */
+@media screen {
+  .has-sidebar {
+    --mount-edge:color-mix(in srgb,var(--ui-accent) 42%,var(--ui-line));
+    --mount-highlight:color-mix(in srgb,var(--ui-surface) 87%,var(--ui-edge));
+  }
+  .has-sidebar .hero-copy > .eyebrow {
+    display:flex;
+    align-items:center;
+    gap:.8em;
+    color:var(--ui-muted);
+  }
+  .has-sidebar .hero-copy > .eyebrow::before {
+    content:"";
+    flex:0 0 1.5em;
+    height:2px;
+    background:var(--ui-accent);
+  }
+  .has-sidebar .court-hero picture {
+    display:block;
+    position:relative;
+    overflow:hidden;
+    border-radius:2px;
+    box-shadow:0 0 0 1px var(--mount-edge),0 0 0 5px var(--mount-highlight),
+      0 0 0 6px var(--folio-rule),0 24px 38px -23px #1710089c;
+  }
+  .has-sidebar .court-hero picture::before {
+    content:"";
+    position:absolute;
+    inset:7px;
+    border:1px solid #fff0cb55;
+    z-index:1;
+    pointer-events:none;
+  }
+  .has-sidebar .court-hero figcaption {
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:4px 18px;
+    margin-block-start:18px;
+    padding-block:8px;
+    border-block-start:1px solid var(--folio-rule);
+    line-height:1.55;
+  }
+  .has-sidebar .court-hero figcaption span { color:var(--ui-muted); }
+  .has-sidebar .site-header nav > a.is-current {
+    background:linear-gradient(100deg,var(--ui-tint),var(--folio-paper));
+    border-color:var(--mount-edge);
+    box-shadow:inset 3px 0 var(--ui-accent),0 5px 14px -12px var(--ui-ink);
+  }
+  .has-sidebar .chapter > .eyebrow {
+    width:fit-content;
+    padding-block-end:8px;
+    border-block-end:1px solid var(--mount-edge);
+    color:var(--ui-muted);
+  }
+  .has-sidebar :is(.quote-panel,.comparison article,.event-reading-excerpts) {
+    box-shadow:inset 0 1px var(--mount-highlight),0 12px 24px -23px var(--ui-ink);
+  }
+  .has-sidebar :is(#detail-dialog,.ui-settings-dialog,.ai-help-dialog) {
+    outline:1px solid color-mix(in srgb,var(--ui-edge) 55%,transparent);
+    outline-offset:3px;
+  }
+}
