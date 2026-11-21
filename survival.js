@@ -496,6 +496,7 @@
       }
     }
     drawSceneDressing(f, scene, trim, rand);
+    drawFloorAccents(f, scene);
     // Vignette: corners fall into shadow.
     const v = f.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .28, W / 2, H / 2, Math.hypot(W, H) * .56);
     v.addColorStop(0, 'rgba(0,0,0,0)');
@@ -506,6 +507,39 @@
   }
 
   let builtScene = null;
+  function drawFloorAccents(f, scene) {
+    const windowLight = {
+      gate: [W * .28, .32, .72, '166,215,224'],
+      court: [W * .15, .65, .46, '159,209,168'],
+      hall: [W * .5, .08, .68, '244,181,100']
+    };
+    const [x, top, reach, color] = windowLight[scene] || windowLight.gate;
+    const y = H * top;
+    const glow = f.createRadialGradient(x, y, 12, x, y, H * reach);
+    glow.addColorStop(0, `rgba(${color},.22)`);
+    glow.addColorStop(1, `rgba(${color},0)`);
+    f.fillStyle = glow;
+    f.fillRect(0, 0, W, H);
+
+    f.save();
+    f.strokeStyle = `rgba(${color},.35)`;
+    f.lineWidth = 1.25;
+    for (const cornerX of [30, W - 30]) {
+      for (const cornerY of [30, H - 30]) {
+        const dx = cornerX < W / 2 ? 1 : -1;
+        const dy = cornerY < H / 2 ? 1 : -1;
+        f.beginPath();
+        f.moveTo(cornerX + 42 * dx, cornerY);
+        f.lineTo(cornerX, cornerY);
+        f.lineTo(cornerX, cornerY + 42 * dy);
+        f.moveTo(cornerX + 30 * dx, cornerY + 6 * dy);
+        f.lineTo(cornerX + 6 * dx, cornerY + 6 * dy);
+        f.lineTo(cornerX + 6 * dx, cornerY + 30 * dy);
+        f.stroke();
+      }
+    }
+    f.restore();
+  }
   // Edge dressing per floor: 宫门外廊 / 内廷庭院 / 正殿前庭. Kept to the outer band so it never hides play.
   function drawSceneDressing(f, scene, trim, rand) {
     const lacquer = 'rgba(122,38,28,.55)', gold = 'rgba(214,176,98,.5)';
@@ -590,7 +624,8 @@
     ctx.lineTo(W - 105, H / 2);
     ctx.stroke();
     ctx.setLineDash([]);
-    circle(W / 2, H / 2, 118 + Math.sin(time * .3) * 3, null, mapTrim, 1);
+    const ornamentRadius = 118 + (reducedMotion.matches ? 0 : Math.sin(time * .3) * 3);
+    circle(W / 2, H / 2, ornamentRadius, null, mapTrim, 1);
     ctx.restore();
     text(`北齐宫苑 · ${run?.sceneName || '宫门外廊'}`, 47, 48, 'rgba(235,222,190,.48)', 10, 'left', 400);
   }
@@ -1076,9 +1111,21 @@
       ctx.fillRect(tx - 1, y - 5, 2, 18);
       ctx.beginPath(); ctx.moveTo(tx - 4, y - 7); ctx.lineTo(tx + 4, y - 7); ctx.lineTo(tx, y - 2); ctx.fill();
     }
-    ctx.restore();
     const state = run.elapsed < boss.wardUntil ? '换阵护体' : engine.isOpen(boss, run.elapsed) ? '破绽' : '';
-    text(`皇帝 · ${boss.phaseName}${state ? ' · ' + state : ''}`, W / 2, y + 23, state === '破绽' ? '#ffd98a' : '#f3e8cc', 11, 'center', 800);
+    const label = `皇帝 · ${boss.phaseName}${state ? ' · ' + state : ''}`;
+    const labelScale = W / (canvas.clientWidth || W);
+    ctx.font = `800 ${13 * labelScale}px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`;
+    const labelWidth = Math.min(ctx.measureText(label).width, 230 * labelScale) + 18 * labelScale;
+    const labelHeight = 21 * labelScale;
+    const labelTop = y + 13;
+    roundRect(W / 2 - labelWidth / 2, labelTop, labelWidth, labelHeight, 4);
+    ctx.fillStyle = 'rgba(21,14,10,.9)';
+    ctx.fill();
+    ctx.strokeStyle = state === '破绽' ? '#ddb46d' : 'rgba(212,177,118,.48)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+    text(label, W / 2, labelTop + labelHeight / 2, state === '破绽' ? '#ffd98a' : '#f3e8cc', 13, 'center', 800);
   }
 
   function drawSwingTelegraph(actor, time, color) {
