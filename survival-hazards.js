@@ -261,6 +261,42 @@
     poison: {draw: drawPoison, color: '#a6c888'}
   };
 
+  // Ambient layer inside each zone: embers, mist or dust, plus a breathing inner glow.
+  function ambient(ctx, type, time, {active, warning}, color) {
+    const calm = reduceMotion.matches;
+    const count = type === 'fire' ? 16 : type === 'poison' ? 9 : 10;
+    for (let i = 0; i < count; i++) {
+      const seed = i * 37.17;
+      const cycle = calm ? .5 : ((time * (type === 'fire' ? .55 : .18) + i / count) % 1);
+      const px = Math.sin(seed) * 58 + (calm ? 0 : Math.sin(time * .9 + seed) * 6);
+      if (type === 'fire') {
+        const py = 50 - cycle * 110;
+        ctx.globalAlpha = (1 - cycle) * (active ? .9 : .35);
+        ctx.fillStyle = cycle < .4 ? '#ffd27a' : '#e2623c';
+        ctx.beginPath(); ctx.arc(px * .8, py, 1.6 * (1 - cycle) + .5, 0, tau); ctx.fill();
+      } else if (type === 'poison') {
+        const py = Math.cos(seed) * 40 - cycle * 20;
+        const g = ctx.createRadialGradient(px, py, 1, px, py, 24);
+        g.addColorStop(0, `rgba(166,200,136,${(active ? .22 : .1) * Math.sin(cycle * Math.PI)})`);
+        g.addColorStop(1, 'rgba(166,200,136,0)');
+        ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, 24, 0, tau); ctx.fill();
+      } else {
+        const py = Math.cos(seed * 1.3) * 55 + (calm ? 0 : Math.sin(time * .6 + seed) * 5);
+        ctx.globalAlpha = .12 + .1 * Math.sin(cycle * Math.PI);
+        ctx.fillStyle = '#e8d6a8';
+        ctx.beginPath(); ctx.arc(px, py, .9, 0, tau); ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+    if (active || warning) {
+      const breath = calm ? .5 : .5 + Math.sin(time * (active ? 5 : 3)) * .5;
+      const g = ctx.createRadialGradient(0, 0, 40, 0, 0, 78);
+      g.addColorStop(0, 'rgba(0,0,0,0)');
+      g.addColorStop(1, `${active ? '#ff9a6a' : color}${Math.round((active ? 40 : 22) + breath * 30).toString(16).padStart(2, '0')}`);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 78, 0, tau); ctx.fill();
+    }
+  }
+
   function draw(ctx, hazard, time, state, worldUnitsPerCssPixel) {
     const {x, y, radius, offset, type} = hazard;
     const {active, warning} = state;
@@ -280,6 +316,7 @@
     const scale = radius / 76;
     ctx.scale(scale, scale);
     drawArt(ctx, artTime, state);
+    ambient(ctx, type, artTime, state, color);
     ctx.restore();
 
     const rim = active ? '#ffad80' : color;

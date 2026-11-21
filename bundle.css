@@ -2017,3 +2017,16 @@ html[data-ui-theme] #detail-dialog .dialog-close:hover { background:color-mix(in
 .has-sidebar .case-preview .case-preview-focus { position:relative; transition:color .2s; }
 .has-sidebar .case-preview ol li a:hover .case-preview-focus { color:var(--ui-accent); }
 @media (prefers-reduced-motion:reduce) { .has-sidebar .case-preview ol li a::after { transition:none; transform:none; } }
+
+/* ---------- 21. Hero illustration: mounted like a scroll painting, gentle depth on hover ---------- */
+@media screen and (min-width:701px) {
+  .has-sidebar .court-hero { perspective:1100px; }
+  .has-sidebar .court-hero picture { display:block; position:relative; overflow:hidden; border-radius:3px;
+    box-shadow:0 0 0 1px color-mix(in srgb,var(--ui-accent,#9d4236) 25%,transparent),0 0 0 7px color-mix(in srgb,var(--ui-surface,#f6efe0) 92%,transparent),0 0 0 8px color-mix(in srgb,var(--ui-line,#c5b79b) 90%,transparent),0 28px 48px -26px #1a120899;
+    transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); transition:transform .5s var(--qi-ease),box-shadow .4s; }
+  .has-sidebar .court-hero img { display:block; transform:scale(1.04) translate(var(--pan-x,0px),var(--pan-y,0px)); transition:transform .6s var(--qi-ease),filter .4s; }
+  .has-sidebar .court-hero picture::after { content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(120% 90% at var(--glow-x,50%) var(--glow-y,40%),rgb(255 236 200 / 16%),transparent 55%),linear-gradient(180deg,transparent 60%,rgb(20 12 6 / 22%)); transition:background .3s; }
+  .has-sidebar .court-hero:hover img { filter:saturate(1.06) contrast(1.02); }
+}
+@media (prefers-reduced-motion:reduce) { .has-sidebar .court-hero picture,.has-sidebar .court-hero img { transform:none !important; transition:none; } }

@@ -181,3 +181,27 @@
     eyebrow.append(chip);
   }
 })();
+
+/* Hero painting: slight tilt and pan following the pointer. */
+(() => {
+  'use strict';
+  const fig = document.querySelector('.has-sidebar .court-hero');
+  if (!fig || window.matchMedia('(prefers-reduced-motion: reduce)').matches || !window.matchMedia('(hover: hover)').matches) return;
+  let frame = 0;
+  fig.addEventListener('pointermove', event => {
+    const box = fig.getBoundingClientRect();
+    const x = (event.clientX - box.left) / box.width - .5, y = (event.clientY - box.top) / box.height - .5;
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      fig.style.setProperty('--tilt-x', (-y * 3).toFixed(2) + 'deg');
+      fig.style.setProperty('--tilt-y', (x * 4).toFixed(2) + 'deg');
+      fig.style.setProperty('--pan-x', (-x * 10).toFixed(1) + 'px');
+      fig.style.setProperty('--pan-y', (-y * 8).toFixed(1) + 'px');
+      fig.style.setProperty('--glow-x', (50 + x * 60).toFixed(0) + '%');
+      fig.style.setProperty('--glow-y', (40 + y * 50).toFixed(0) + '%');
+    });
+  });
+  fig.addEventListener('pointerleave', () => {
+    for (const k of ['--tilt-x', '--tilt-y', '--pan-x', '--pan-y', '--glow-x', '--glow-y']) fig.style.removeProperty(k);
+  });
+})();
