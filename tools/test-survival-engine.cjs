@@ -87,8 +87,8 @@ function dummy(r, type, x, y, hp = 999) {
   const r = E.createRun('t', 9);
   for (const layer of [2,3,4,5]) {
     r.emperor.hp = 0; r.emperor.alive = false; r.phase = 'upgrade'; r.layer = layer - 1;
-    r.upgradeChoices = layer - 1 < 5 ? [] : r.upgradeChoices;
-    E.chooseUpgrade(r, 'speed');
+    r.upgradeChoices = [{id:'swift'}];
+    E.chooseUpgrade(r, 'swift');
     const types = new Set(r.enemies.map(e => e.type));
     if (layer === 2) ok(types.has('shield') && !types.has('archer'), 'L2 shield only');
     if (layer === 3) ok(types.has('archer') && !types.has('spearman'), 'L3 adds archer');
@@ -99,7 +99,7 @@ function dummy(r, type, x, y, hp = 999) {
 // emperor: threshold skipping and single clear
 {
   const r = E.createRun('t', 11);
-  while (r.layer < 6) { r.emperor.alive = false; r.phase = 'upgrade'; if (r.layer < 5) E.chooseUpgrade(r,'speed'); else { r.upgradeChoices = [{id:'vitality'}]; E.chooseUpgrade(r,'vitality'); } }
+  while (r.layer < 6) { r.emperor.alive = false; r.phase = 'upgrade'; r.upgradeChoices = [{id:'vitality'}]; E.chooseUpgrade(r,'vitality'); }
   const em = r.emperor; r.enemies = []; r.groups = [];
   r.player.meleeWeapon = 'poleaxe';
   ok(em.phase === 0 && !em.engaged, 'starts idle in phase 0');
@@ -135,7 +135,7 @@ function dummy(r, type, x, y, hp = 999) {
 // idle player dies in late layers even with good gear
 function idleRun(seed) {
   const r = E.createRun('idle', seed);
-  while (r.layer < 6) { r.emperor.alive = false; r.phase = 'upgrade'; if (r.layer < 5) E.chooseUpgrade(r,'speed'); else { r.upgradeChoices = [{id:'strength'}]; E.chooseUpgrade(r,'strength'); } }
+  while (r.layer < 6) { r.emperor.alive = false; r.phase = 'upgrade'; r.upgradeChoices = [{id:'strength'}]; E.chooseUpgrade(r,'strength'); }
   r.player.meleeWeapon = 'poleaxe'; r.player.bowAmmo = 40;
   r.player.x = r.emperor.x + 70; r.player.y = r.emperor.y;
   for (let i = 0; i < 60 * 120 && r.phase === 'playing'; i++) E.advance(r,{x:0,y:0},1/60);
@@ -149,20 +149,58 @@ ok(idleWins === 0, `idle never clears late emperor (${idleWins}/6)`);
   const a = idleRun(42), b = idleRun(42);
   ok(a.elapsed === b.elapsed && a.player.hp === b.player.hp, 'deterministic');
 }
-// talents: legendary shows, uniques not repeated
+// talents: every clear (even layer 1) is a 3-pick from all rarities; owned cards can come again
 {
-  const r = E.createRun('t', 13); let legend = 0;
-  for (let i = 0; i < 400; i++) { const cs = (r.random, E); }
-  const seen = {};
+  const seen = {}; let ownedAgain = 0, layer1Picks = 0;
   for (let s = 0; s < 300; s++) {
-    const x = E.createRun('t', s); x.emperor.alive = false; x.layer = 5;
+    const x = E.createRun('t', s);
     x.talents.thunder = 1;
-    // run completion through damage path is heavy; call via advance after clearing
-    x.phase = 'playing'; x.emperor.hp = 1; x.emperor.alive = true; x.player.meleeWeapon = 'sword';
+    x.emperor.hp = 1; x.emperor.engaged = true; x.player.meleeWeapon = 'sword';
     x.emperor.x = x.player.x + 30; x.emperor.y = x.player.y; x.enemies = []; x.groups = []; x.nextAttackAt = 0;
     E.advance(x,{x:0,y:0},.016);
-    for (const c of x.upgradeChoices) seen[c.rarity] = (seen[c.rarity]||0)+1, c.id === 'thunder' && (legend = -999);
+    if (x.phase === 'upgrade' && x.upgradeChoices.length === 3) layer1Picks++;
+    for (const c of x.upgradeChoices) { seen[c.rarity] = (seen[c.rarity]||0)+1; if (c.id === 'thunder') ownedAgain++; }
   }
-  ok(seen.legendary > 0 && legend === 0, `legendary appears ${JSON.stringify(seen)} and owned unique excluded`);
+  ok(layer1Picks === 300, `layer 1 offers three talents (${layer1Picks})`);
+  ok(['common','rare','epic','legendary'].every(k => seen[k] > 0), `all rarities appear ${JSON.stringify(seen)}`);
+  ok(ownedAgain > 0, 'owned legendary can be offered again');
+  const r = E.createRun('t', 3);
+  r.phase = 'upgrade'; r.emperor.alive = false; r.upgradeChoices = [{id:'thunder'}];
+  E.chooseUpgrade(r,'thunder'); r.phase = 'upgrade'; r.emperor.alive = false; r.upgradeChoices = [{id:'thunder'}];
+  ok(E.chooseUpgrade(r,'thunder') && r.talents.thunder === 2, 'legendary stacks');
+}
+// new weapons
+{
+  const r = bare(21); r.player.meleeWeapon = 'meteor'; r.player.x = 300; r.player.y = 300;
+  const a = dummy(r,'soldier',360,300), b = dummy(r,'soldier',240,300), c = dummy(r,'soldier',300,360), d = dummy(r,'soldier',420,300);
+  E.advance(r,{x:0,y:0},.016);
+  ok(a.hp < 999 && b.hp < 999 && c.hp < 999 && d.hp === 999, 'meteor hits all around, not beyond');
+  const r2 = bare(22); r2.player.meleeWeapon = 'dualBlades'; r2.player.x = 300; r2.player.y = 300;
+  const e = dummy(r2,'soldier',330,300), f = dummy(r2,'soldier',300,335), g = dummy(r2,'soldier',270,300);
+  e.x = 325; f.y = 334;
+  E.advance(r2,{x:0,y:0},.016);
+  ok([e,f,g].filter(u => u.hp < 999).length === 2, 'dual blades hit exactly two');
+  const r3 = bare(23); r3.player.meleeWeapon = 'mace'; r3.player.x = 200; r3.player.y = 300;
+  const s = dummy(r3,'shield',240,300); s.facing = Math.PI;
+  E.advance(r3,{x:0,y:0},.016);
+  ok(999 - s.hp >= 34 && s.stunUntil > r3.elapsed && E.isOpen(s, r3.elapsed), 'mace ignores shield and stuns');
+  const r4 = bare(24); r4.player.meleeWeapon = 'crossbow'; r4.player.x = 100; r4.player.y = 300;
+  const h = dummy(r4,'soldier',250,300), k = dummy(r4,'soldier',300,302);
+  E.advance(r4,{x:0,y:0},.016);
+  ok(h.hp < 999 && k.hp < 999 && r4.player.bowAmmo === 0, 'crossbow reaches far and pierces');
+  const r5 = bare(25); r5.player.meleeWeapon = 'halberd'; r5.player.x = 200; r5.player.y = 300;
+  const m = dummy(r5,'soldier',250,300); const x0 = m.x;
+  E.advance(r5,{x:0,y:0},.016);
+  ok(m.hp < 999 && m.x > x0 + 20, 'halberd knocks back');
+}
+// reach talent extends range
+{
+  const r = bare(26); r.player.meleeWeapon = 'sword'; r.player.x = 200; r.player.y = 300;
+  const far = dummy(r,'soldier',280,300);
+  E.advance(r,{x:0,y:0},.016);
+  ok(far.hp === 999, 'out of plain sword reach');
+  r.talents.reach = 3; r.nextAttackAt = 0;
+  E.advance(r,{x:0,y:0},.016);
+  ok(far.hp < 999, 'reach +36% connects');
 }
 console.log('passed', pass);

@@ -68,6 +68,11 @@
     longSword: {color: '#b8e2e0', width: 4, burst: 25, sparks: 5},
     poleaxe: {color: '#fac080', width: 7, burst: 35, sparks: 7},
     spear: {color: '#f0d9a0', width: 4, burst: 22, sparks: 5},
+    dualBlades: {color: '#e8f0ff', width: 3, burst: 16, sparks: 3},
+    mace: {color: '#f2b46a', width: 8, burst: 34, sparks: 8},
+    halberd: {color: '#f5d48e', width: 6, burst: 28, sparks: 6},
+    meteor: {color: '#ffcc88', width: 6, burst: 30, sparks: 7},
+    crossbow: {color: '#e6d3a0', width: 3, burst: 18, sparks: 3},
     bow: {color: '#ffe3a0', width: 2, burst: 14, sparks: 4},
     guard: {color: '#e9a688', width: 3, burst: 15, sparks: 3}
   };
@@ -215,7 +220,7 @@
     const next = `${run.layer}|${run.level}|${run.score}|${Math.ceil(run.player.hp)}|${run.player.hp}|${run.player.maxHp}|${weapon}|${run.player.bowAmmo}|${meleeBonus}|${bowBonus}|${mutiny}`;
     if (next === lastHud) return;
     $('[data-hud-layer]').textContent = String(run.layer);
-    $('[data-hud-level]').textContent = run.layer > 5 ? '5 · 进阶' : `${run.level} / 5`;
+    $('[data-hud-level]').textContent = String(run.level);
     $('[data-hud-score]').textContent = run.score.toLocaleString('zh-CN');
     $('[data-hud-weapon]').textContent = weapon;
     $('[data-hud-arrows]').textContent = String(run.player.bowAmmo);
@@ -267,7 +272,7 @@
 
   function resetHud() {
     $('[data-hud-layer]').textContent = '—';
-    $('[data-hud-level]').textContent = '— / 5';
+    $('[data-hud-level]').textContent = '—';
     $('[data-hud-score]').textContent = '0';
     $('[data-hud-weapon]').textContent = '未拾取';
     $('[data-hud-arrows]').textContent = '0';
@@ -367,7 +372,7 @@
     audio?.setPlaying(true);
     showOnly(run?.phase === 'upgrade' ? 'upgrade' : null);
     lastMessage = '';
-    setLive(run?.phase === 'upgrade' ? '请选择移速或闪避加成。' : '继续闯关。');
+    setLive(run?.phase === 'upgrade' ? '请从三张天赋中选择一张。' : '继续闯关。');
     canvas.focus({preventScroll: true});
   }
 
@@ -824,6 +829,50 @@
     ctx.globalAlpha = 1;
   }
 
+  // New weapons. Each draws pointing along +x after rotation, so pickups and the hand share one sketch.
+  function drawWeaponSketch(type, x, y, angle, time = 0, swing = 0) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(angle || 0);
+    const steel = (x0, y0, x1, y1) => { const g = ctx.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, '#7e8983'); g.addColorStop(.5, '#f2ebd6'); g.addColorStop(1, '#8c968f'); return g; };
+    if (type === 'dualBlades') {
+      for (const side of [-1, 1]) {
+        ctx.save(); ctx.translate(0, side * 5); ctx.rotate(side * (.18 + swing * .5));
+        ctx.fillStyle = '#4a2c18'; ctx.fillRect(-5, -1.5, 6, 3);
+        ctx.fillStyle = '#c9a24a'; ctx.fillRect(1, -3, 2, 6);
+        ctx.fillStyle = steel(3, -3, 3, 3); ctx.beginPath(); ctx.moveTo(3, -2); ctx.quadraticCurveTo(14, -3.5, 20, side * -1.5); ctx.lineTo(3, 2); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+    } else if (type === 'mace') {
+      ctx.fillStyle = '#4a2c18'; ctx.fillRect(-6, -2, 9, 4);
+      ctx.fillStyle = '#c9a24a'; ctx.fillRect(3, -3.5, 2.5, 7);
+      ctx.fillStyle = steel(5, -3, 5, 3); ctx.fillRect(5.5, -2.6, 20, 5.2);
+      ctx.strokeStyle = 'rgba(40,40,40,.55)'; ctx.lineWidth = 1;
+      for (let k = 9; k < 25; k += 4) { ctx.beginPath(); ctx.moveTo(k, -2.6); ctx.lineTo(k, 2.6); ctx.stroke(); }
+      ctx.fillStyle = '#d8d2bf'; ctx.beginPath(); ctx.arc(26, 0, 2.6, 0, Math.PI * 2); ctx.fill();
+    } else if (type === 'halberd') {
+      ctx.strokeStyle = '#5a3a22'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(34, 0); ctx.stroke(); ctx.lineCap = 'butt';
+      ctx.fillStyle = steel(34, -3, 34, 3); ctx.beginPath(); ctx.moveTo(33, -2.4); ctx.lineTo(46, 0); ctx.lineTo(33, 2.4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = steel(24, -12, 30, 0); ctx.beginPath(); ctx.moveTo(26, -1); ctx.quadraticCurveTo(24, -12, 33, -13); ctx.quadraticCurveTo(29, -7, 32, -1); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#a3352a'; ctx.beginPath(); ctx.moveTo(24, 1); ctx.lineTo(19, 6); ctx.lineTo(22, 1); ctx.fill();
+    } else if (type === 'meteor') {
+      const spin = time * 9 + swing * 6, r = 9 + swing * 6;
+      const bx = Math.cos(spin) * r + 6, by = Math.sin(spin) * r;
+      ctx.fillStyle = '#4a2c18'; ctx.fillRect(-4, -1.6, 7, 3.2);
+      ctx.strokeStyle = '#a9a28c'; ctx.lineWidth = 1; ctx.setLineDash([2, 1.5]);
+      ctx.beginPath(); ctx.moveTo(3, 0); ctx.quadraticCurveTo((3 + bx) / 2, by / 2 + 3, bx, by); ctx.stroke(); ctx.setLineDash([]);
+      const g = ctx.createRadialGradient(bx - 1.5, by - 1.5, .5, bx, by, 5); g.addColorStop(0, '#f0e6cc'); g.addColorStop(1, '#5b5a52');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, 4.6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#d8d2bf'; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; ctx.beginPath(); ctx.arc(bx + Math.cos(a) * 4.8, by + Math.sin(a) * 4.8, 1, 0, Math.PI * 2); ctx.fill(); }
+    } else if (type === 'crossbow') {
+      ctx.fillStyle = '#5a3a22'; ctx.fillRect(-8, -2, 26, 4);
+      ctx.fillStyle = '#c9a24a'; ctx.fillRect(-2, -1, 4, 6);
+      ctx.strokeStyle = '#6b4526'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(15, -12); ctx.quadraticCurveTo(21, 0, 15, 12); ctx.stroke();
+      ctx.strokeStyle = '#efe4c6'; ctx.lineWidth = .7; ctx.beginPath(); ctx.moveTo(15, -12); ctx.lineTo(4 + swing * 6, 0); ctx.lineTo(15, 12); ctx.stroke();
+      if (swing < .5) { ctx.strokeStyle = '#cdbb8e'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(24, 0); ctx.stroke(); }
+    }
+    ctx.restore();
+  }
+  const SKETCHED = new Set(['dualBlades', 'mace', 'halberd', 'meteor', 'crossbow']);
   function drawWeapon(weapon, time) {
     if (weapon.collected) return;
     const lift = Math.sin(time * 3 + weapon.x) * 3;
@@ -851,6 +900,9 @@
     } else if (weapon.type === 'spear') {
       ctx.restore(); ctx.save(); ctx.translate(weapon.x, weapon.y + lift);
       drawSpear(-14, 10, -Math.PI / 4, 34);
+    } else if (SKETCHED.has(weapon.type)) {
+      const span = weapon.type === 'halberd' ? 18 : 10;
+      drawWeaponSketch(weapon.type, -span * .7, span * .7, -Math.PI / 4, time);
     } else {
       const len = weapon.type === 'longSword' ? 34 : 26;
       drawBlade(-len / 2 + 2, 0, -Math.PI / 4, len, '#b8c2ba');
@@ -1174,7 +1226,9 @@
     const radius = player.swingRange;
     const facing = player.swingFacing;
     const shape = player.swingShape;
+    if (player.swingWeapon === 'crossbow') return;
     if (shape?.kind === 'line') { drawThrust(player, shape, progress, finish); return; }
+    if (shape?.kind === 'circle') { drawSpin(player, shape, progress, finish); return; }
     const half = shape?.kind === 'fan' ? Math.min(1.55, shape.arc / 2) : 1.15;
     const end = facing - half + Math.min(progress * 2, 1) * half * 2;
     const start = Math.max(facing - half - .1, end - Math.min(1.35, half * 1.2));
@@ -1209,6 +1263,22 @@
     ctx.restore();
   }
 
+  function drawSpin(player, shape, progress, finish) {
+    const fade = Math.max(0, 1 - progress);
+    const lead = player.swingFacing + progress * Math.PI * 2.2;
+    ctx.save();
+    ctx.globalAlpha = fade * .85;
+    ctx.lineCap = 'round';
+    for (let k = 0; k < 18; k++) {
+      const a0 = lead - k * .2, a1 = a0 - .2;
+      ctx.strokeStyle = finish.color; ctx.globalAlpha = fade * .85 * (1 - k / 18);
+      ctx.lineWidth = finish.width * (1 - k / 22);
+      ctx.beginPath(); ctx.arc(player.x, player.y, shape.radius * .92, a1, a0); ctx.stroke();
+    }
+    ctx.globalAlpha = fade * .25; ctx.fillStyle = finish.color;
+    ctx.beginPath(); ctx.arc(player.x, player.y, shape.radius, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
   function drawThrust(player, shape, progress, finish) {
     const fade = Math.max(0, 1 - progress);
     const reach = shape.length * Math.min(1, progress * 3);
@@ -1407,6 +1477,11 @@
     if (player.meleeWeapon === 'spear') {
       const thrust = player.swingStartedAt !== null && player.swingWeapon === 'spear' ? Math.sin(Math.min(1, (time - player.swingStartedAt) / .22) * Math.PI) * 14 : 0;
       drawSpear(player.x + Math.cos(player.facing || 0) * (5 + thrust), player.y - 2 + Math.sin(player.facing || 0) * (5 + thrust), player.facing, 42);
+    } else if (SKETCHED.has(player.meleeWeapon)) {
+      const swinging = player.swingStartedAt !== null && player.swingWeapon === player.meleeWeapon;
+      const swing = swinging ? Math.sin(Math.min(1, (time - player.swingStartedAt) / .28) * Math.PI) : 0;
+      const push = player.meleeWeapon === 'halberd' ? swing * 12 : 0;
+      drawWeaponSketch(player.meleeWeapon, player.x + Math.cos(player.facing || 0) * (5 + push), player.y - 2 + Math.sin(player.facing || 0) * (5 + push), player.facing, time, swing);
     } else if (player.meleeWeapon === 'poleaxe') {
       drawPoleaxe(player.x + Math.cos(player.facing || 0) * 5, player.y - 2 + Math.sin(player.facing || 0) * 5, player.facing);
     } else if (player.meleeWeapon) {
@@ -1560,7 +1635,7 @@
     if (run.phase === 'upgrade') {
       ctx.fillStyle = 'rgba(213,190,130,.8)';
       ctx.fillRect(W / 2 - 1, H / 2 - 30, 2, 60);
-      text('请选择升级，暂停期间不计时', W / 2, H / 2 + 47, '#ecd69e', 13, 'center', 700);
+      text('请选择天赋，暂停期间不计时', W / 2, H / 2 + 47, '#ecd69e', 13, 'center', 700);
     }
   }
 

@@ -755,6 +755,9 @@ html[data-ui-theme=mural] body.has-sidebar {
 .ai-help-options .ai-help-note { font-size:12px; padding:5px 0; }
 .ai-help-options .ai-help-context,.ai-help-options .ai-help-prompts,.ai-help-options .ai-personal-config { padding-inline:0; }
 @media(max-width:600px) { .ai-help-dialog .ai-help-log { padding:10px 12px; } .ai-help-dialog .ai-help-message { padding:12px; } .ai-help-dialog .ai-help-header small { display:none; } }
+/* A reply arrived while the panel was closed. */
+.ai-help-launch.ai-help-unread{position:relative}
+.ai-help-launch.ai-help-unread::after{content:'';position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#d4553a;box-shadow:0 0 0 2px var(--ui-surface,#fff)}
 
 /* ===== music.css ===== */
 .music-control{display:flex;align-items:center;gap:10px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;background:var(--paper-light);letter-spacing:0;white-space:nowrap}

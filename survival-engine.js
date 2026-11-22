@@ -15,8 +15,15 @@
     sword: {label: '宝剑', range: 52, damage: 18, cooldown: .5, shape: 'single', note: '出手最快，只打最近一人'},
     longSword: {label: '长剑', range: 72, damage: 26, cooldown: .75, shape: 'fan', arc: 120 * DEG, note: '120° 扇面挥砍'},
     poleaxe: {label: '长柄斧', range: 82, damage: 35, cooldown: 1.15, shape: 'fan', arc: 180 * DEG, note: '180° 半圆重劈'},
-    spear: {label: '长枪', range: 110, damage: 30, cooldown: .95, shape: 'line', width: 24, pierce: 2, note: '直线突刺，贯穿两人'}
+    spear: {label: '长枪', range: 110, damage: 30, cooldown: .95, shape: 'line', width: 24, pierce: 2, note: '直线突刺，贯穿两人'},
+    dualBlades: {label: '双刀', range: 48, damage: 10, cooldown: .34, shape: 'twin', arc: 140 * DEG, note: '左右开弓，同时砍最近两人'},
+    mace: {label: '铁锏', range: 56, damage: 34, cooldown: 1.25, shape: 'fan', arc: 90 * DEG, stun: .6, breaker: true, note: '无视盾牌，砸晕 0.6 秒'},
+    halberd: {label: '戟', range: 96, damage: 27, cooldown: 1, shape: 'line', width: 40, pierce: 3, knockback: 26, note: '宽刃直刺，贯穿三人并击退'},
+    meteor: {label: '流星锤', range: 74, damage: 22, cooldown: 1.1, shape: 'circle', note: '360° 抡圈，周身一圈全中'},
+    crossbow: {label: '连弩', range: 220, damage: 16, cooldown: .85, shape: 'line', width: 12, pierce: 3, bolt: true, note: '远射弩矢，直线贯穿三人，不耗箭'}
   });
+  const MELEE_POOL_EARLY = ['sword', 'longSword', 'poleaxe', 'dualBlades', 'mace'];
+  const MELEE_POOL_LATE = [...MELEE_POOL_EARLY, 'spear', 'halberd', 'meteor', 'crossbow'];
   const SWAP_RADIUS = 34;
   const BOW_RANGE = 240;
   const ARROW_DAMAGE = Object.freeze({soldier: 17, shield: 13, archer: 20, spearman: 17, general: 20, marshal: 25, emperor: 13});
@@ -24,22 +31,23 @@
   const MUTINY_INTERVAL = 5;
   const REINFORCE_INTERVAL = 6;
   const REINFORCE_CAP = 3;
-  const TALENT_WEIGHTS = Object.freeze({common: 42, rare: 30, epic: 20, legendary: 8});
+  const TALENT_WEIGHTS = Object.freeze({common: 45, rare: 30, epic: 18, legendary: 7});
   const TALENT_CARDS = {
     common: [
       {id: 'vitality', rarity: 'common', title: '强健体魄', description: '最大体力 +15，并立即恢复 15 点。'},
       {id: 'regeneration', rarity: 'common', title: '调息', description: '每点每秒恢复 0.75 点体力。'},
-      {id: 'swift', rarity: 'common', title: '轻身', description: '每点移动速度 +10。'},
-      {id: 'evasion', rarity: 'common', title: '身法', description: '每点在已有闪避之外，再提供一次 5% 的闪避机会。'},
+      {id: 'swift', rarity: 'common', title: '轻身', description: '每点移动速度 +20，方便穿过宫道。'},
+      {id: 'evasion', rarity: 'common', title: '身法', description: '每点闪避率提高：剩余未闪避部分的 12%（叠得越多越接近但不会到 100%）。'},
       {id: 'herbal', rarity: 'common', title: '识药', description: '每点让回血药多恢复 10 点体力。'},
       {id: 'steady', rarity: 'common', title: '稳步', description: '每点让火焰、犬、蝎等刑区伤害降低 20%（最多 60%）。'}
     ],
     rare: [
-      {id: 'strength', rarity: 'rare', title: '力量', description: '每点让本局近战和弓箭伤害各提高 30%。'},
+      {id: 'strength', rarity: 'rare', title: '力量', description: '每点让本局近战和弓箭伤害各提高 20%。'},
       {id: 'startSword', rarity: 'rare', title: '佩剑随行', description: '每层自带宝剑，每点近战伤害 +10%。'},
       {id: 'startSpear', rarity: 'rare', title: '枪不离身', description: '每层自带长枪，每点近战伤害 +10%。'},
       {id: 'startBow', rarity: 'rare', title: '备箭', description: '每层自带弓，每点在该层开始时提供 10 支箭。'},
       {id: 'swiftBlade', rarity: 'rare', title: '快刀', description: '每点让近战出手间隔缩短 8%（最多 40%）。'},
+      {id: 'reach', rarity: 'rare', title: '臂展', description: '每点让所有近战武器的攻击半径 / 长度 +12%（最多 +100%）。'},
       {id: 'counter', rarity: 'rare', title: '见隙', description: '每点让你对破绽中的敌人（盾兵收盾、枪兵收势、皇帝喘息）多造成 35% 伤害。'}
     ],
     epic: [
@@ -47,13 +55,13 @@
       {id: 'revive', rarity: 'epic', title: '续命', description: '每点获得一次复起机会，恢复至 60% 体力并保护 2 秒。'},
       {id: 'mutiny', rarity: 'epic', title: '宫门兵变', description: '每 5 秒触发一次，每点召唤一名援军，10% 将领、90% 小兵。'},
       {id: 'bloodlust', rarity: 'epic', title: '嗜战', description: '每点让你每击退一名敌人恢复 4 点体力。'},
-      {id: 'foresight', rarity: 'epic', title: '洞察', unique: true, description: '所有敌方预警延长 30%，弓手和枪兵出手更易躲开。只能选一次。'}
+      {id: 'foresight', rarity: 'epic', title: '洞察', description: '每点让所有敌方预警延长 30%（最多延长一倍），弓手和枪兵出手更易躲开。'}
     ],
     legendary: [
-      {id: 'thunder', rarity: 'legendary', title: '雷霆', unique: true, description: '每第 4 次近战命中引发一圈震波，对 95 范围内所有敌人造成该武器 60% 的伤害。'},
-      {id: 'phoenix', rarity: 'legendary', title: '涅槃', unique: true, description: '每层一次：受到致命伤时满体力复起，并以烈焰震退 120 范围内的敌人。'},
-      {id: 'arrowStorm', rarity: 'legendary', title: '万箭齐发', unique: true, description: '每次射箭额外分出两支，射向附近另外两名敌人（各 60% 伤害），不额外耗箭。'},
-      {id: 'defection', rarity: 'legendary', title: '倒戈', unique: true, description: '皇帝召来的将领有 40% 机会当场倒戈，转为你的援军。'}
+      {id: 'thunder', rarity: 'legendary', title: '雷霆', description: '每第 4 次近战命中引发一圈震波，对 95 范围内所有敌人造成该武器 60% 的伤害。再选一次变为每 3 次、之后每 2 次。'},
+      {id: 'phoenix', rarity: 'legendary', title: '涅槃', description: '每点每层一次：受到致命伤时满体力复起，并以烈焰灼伤 120 范围内的敌人。'},
+      {id: 'arrowStorm', rarity: 'legendary', title: '万箭齐发', description: '每点让每次射箭额外分出两支，射向附近其他敌人（各 60% 伤害），不额外耗箭。'},
+      {id: 'defection', rarity: 'legendary', title: '倒戈', description: '皇帝召来的将领有 40% 机会当场倒戈，转为你的援军；每多一点，剩余几率再取 40%。'}
     ]
   };
   const RARITY_ORDER = ['common', 'rare', 'epic', 'legendary'];
@@ -319,7 +327,7 @@
 
     const bossPoint = position(random, [{...run.player, minimum: 320}]);
     const scale = floorScale(run);
-    const bossHp = Math.ceil(125 * scale.health * (run.layer >= 5 ? 1.6 : 1));
+    const bossHp = Math.ceil(125 * scale.health * (run.layer >= 5 ? 1.8 : 1));
     const plan = emperorPlan(run.layer);
     run.emperor = {
       ...bossPoint, id: `emperor-${run.layer}`, label: '皇帝', type: 'emperor',
@@ -334,7 +342,7 @@
     run.nextImperialGeneralAt = Infinity;
     run.layerGeneralsSpawned = 0;
     run.layerCleared = false;
-    run.phoenixReady = run.talents.phoenix > 0;
+    run.phoenixReady = run.talents.phoenix;
     run.player.meleeWeapon = run.talents.startPoleaxe ? 'poleaxe' : run.talents.startSpear ? 'spear' : run.talents.startSword ? 'sword' : null;
     run.player.bowAmmo = run.talents.startBow * 10;
     run.player.hasWeapon = Boolean(run.player.meleeWeapon || run.player.bowAmmo);
@@ -355,8 +363,8 @@
       ...run.hazards.map(hazard => ({...hazard, minimum: hazard.radius + 48})),
       ...run.groups.map(group => ({...group, minimum: 110}))
     ];
-    const meleePool = run.layer >= 3 ? ['sword', 'longSword', 'poleaxe', 'spear'] : ['sword', 'longSword', 'poleaxe'];
-    for (let index = 0; index < 2; index++) {
+    const meleePool = run.layer >= 3 ? MELEE_POOL_LATE : MELEE_POOL_EARLY;
+    for (let index = 0; index < 3; index++) {
       const avoid = [...pickupAvoid, ...run.weaponPickups.map(item => ({...item, minimum: 150}))];
       const type = run.layer === 4 && index === 0 ? 'spear' : meleePool[Math.floor(random() * meleePool.length)];
       run.weaponPickups.push({...position(random, avoid), type, collected: false});
@@ -466,7 +474,7 @@
     if (room <= 0) return 0;
     const roster = units.slice(0, general ? Math.max(0, room - 1) : room);
     const point = freePointNear(run, run.emperor, 82 + Math.min(run.layerGeneralsSpawned, 5) * 12);
-    const defects = general && run.talents.defection > 0 && run.random() < .4;
+    const defects = general && run.talents.defection > 0 && run.random() < 1 - .6 ** run.talents.defection;
     const group = addFormation(run, point, {general, units: roster, friendly: defects});
     group.kind = defects ? 'mutiny' : kind;
     group.alerted = true;
@@ -507,6 +515,7 @@
 
   /* ---------- damage ---------- */
   function isOpen(target, now) {
+    if (now < (target.stunUntil || 0)) return true;
     if (target.type === 'emperor') return now < target.openUntil;
     if (target.type === 'shield') return now < target.openUntil;
     if (target.type === 'spearman') return now < target.recoverUntil;
@@ -520,14 +529,14 @@
     return completeLayerIfReady(run);
   }
 
-  function damageTarget(run, target, amount, now, weapon, source = null) {
+  function damageTarget(run, target, amount, now, weapon, source = null, gear = null) {
     if (!target.alive) return 0;
     let scaled = amount;
     if (!target.friendly && source) {
       if (isOpen(target, now)) scaled *= 1.25 + .35 * (source === run.player ? run.talents.counter : 0);
       else if (target.type === 'emperor' && now < target.wardUntil) scaled = 0;
-      else if (target.type === 'emperor' && target.engaged) scaled *= run.layer >= 5 ? .55 : .8;
-      else if (target.type === 'shield' && !target.friendly) {
+      else if (target.type === 'emperor' && target.engaged) scaled *= run.layer >= 5 ? .5 : .8;
+      else if (target.type === 'shield' && !target.friendly && !gear?.breaker) {
         const from = Math.atan2(source.y - target.y, source.x - target.x);
         if (angleGap(from, target.facing) <= 60 * DEG) {
           scaled *= .45;
@@ -579,8 +588,8 @@
 
   function reviveOrEnd(run, now) {
     if (run.player.hp > 0) return;
-    if (run.phoenixReady) {
-      run.phoenixReady = false;
+    if (run.phoenixReady > 0) {
+      run.phoenixReady--;
       run.player.hp = run.player.maxHp;
       run.player.invulnerableUntil = now + 2;
       run.flashUntil = now + 2;
@@ -591,7 +600,7 @@
         if (inShape(ring, target, target.radius)) damageTarget(run, target, 40 * floorScale(run).damage, now, 'guard', run.player);
         if (run.phase !== 'playing') return;
       }
-      run.message = '涅槃：浴火复起，体力全满。本层不再触发。';
+      run.message = `涅槃：浴火复起，体力全满。本层还剩 ${run.phoenixReady} 次。`;
       return;
     }
     if (run.reviveCharges > 0) {
@@ -621,7 +630,7 @@
 
   /* ---------- telegraphs: one record drives the warning and the hit ---------- */
   function warn(run, owner, shape, delay, damage, label, extra = {}) {
-    const stretch = 1 + .3 * (run.talents.foresight || 0);
+    const stretch = Math.min(2, 1 + .3 * (run.talents.foresight || 0));
     const telegraph = {
       id: `t-${run.telegraphSequence++}`, owner, ...shape, damage, label,
       startAt: run.elapsed, resolveAt: run.elapsed + delay * stretch, done: false, ...extra
@@ -690,10 +699,9 @@
   /* ---------- player attacks ---------- */
   function createTalentChoices(run) {
     const selected = [];
-    const owned = card => card.unique && run.talents[card.id] > 0;
     while (selected.length < 3) {
       const availableByRarity = Object.fromEntries(Object.entries(TALENT_CARDS).map(([rarity, cards]) => [
-        rarity, cards.filter(card => !owned(card) && !selected.some(item => item.id === card.id))
+        rarity, cards.filter(card => !selected.some(item => item.id === card.id))
       ]));
       const availableRarities = RARITY_ORDER.filter(rarity => availableByRarity[rarity].length);
       if (!availableRarities.length) break;
@@ -714,19 +722,9 @@
     if (run.emperor.alive) return false;
     run.score = scoreOf(run);
     run.phase = 'upgrade';
-    if (run.layer < 5) {
-      run.level = run.layer + 1;
-      run.upgradeChoices = [
-        {id: 'speed', rarity: 'basic', title: '移速提升', description: '移动速度 +20，方便穿过宫道。'},
-        {id: 'dodge', rarity: 'basic', title: '闪避提升', description: '闪避率 +10 个百分点。'}
-      ];
-      run.message = `第 ${run.layer} 层皇帝已击败。等级提升至 ${run.level}，选择移速或闪避。`;
-    } else {
-      run.level = 5;
-      run.upgradeChoices = createTalentChoices(run);
-      const legend = run.upgradeChoices.some(card => card.rarity === 'legendary');
-      run.message = `第 ${run.layer} 层皇帝已击败。${legend ? '出现了传说天赋！' : ''}选择一项进阶天赋，继续挑战更强的下一层。`;
-    }
+    run.upgradeChoices = createTalentChoices(run);
+    const legend = run.upgradeChoices.some(card => card.rarity === 'legendary');
+    run.message = `第 ${run.layer} 层皇帝已击败。${legend ? '出现了传说天赋！' : ''}三选一，天赋可以无限叠加。`;
     return true;
   }
 
@@ -747,17 +745,21 @@
 
   function damageBonus(run, weapon) {
     const {strength, startSword, startPoleaxe, startSpear = 0} = run.talents;
-    return 30 * strength + (weapon === 'bow' ? 0 : 10 * (startSword + startPoleaxe + startSpear));
+    return 20 * strength + (weapon === 'bow' ? 0 : 10 * (startSword + startPoleaxe + startSpear));
   }
 
-  function meleeShape(player, weapon, facing) {
-    if (weapon.shape === 'line') return {kind: 'line', x: player.x, y: player.y, facing, length: weapon.range, width: weapon.width};
-    if (weapon.shape === 'fan') return {kind: 'fan', x: player.x, y: player.y, facing, range: weapon.range, arc: weapon.arc};
-    return {kind: 'fan', x: player.x, y: player.y, facing, range: weapon.range, arc: 70 * DEG};
+  const reachOf = run => Math.min(2, 1 + .12 * (run.talents.reach || 0));
+  function meleeShape(player, weapon, facing, reach = 1) {
+    const range = weapon.range * reach;
+    if (weapon.shape === 'line') return {kind: 'line', x: player.x, y: player.y, facing, length: range, width: weapon.width};
+    if (weapon.shape === 'circle') return {kind: 'circle', x: player.x, y: player.y, facing, radius: range};
+    if (weapon.shape === 'fan' || weapon.shape === 'twin') return {kind: 'fan', x: player.x, y: player.y, facing, range, arc: weapon.arc};
+    return {kind: 'fan', x: player.x, y: player.y, facing, range, arc: 70 * DEG};
   }
 
   function meleeVictims(run, weapon, shape, targets, primary) {
     if (weapon.shape === 'single') return [primary];
+    if (weapon.shape === 'twin') return targets.sort((a, b) => distance(run.player, a) - distance(run.player, b)).slice(0, 2);
     const inside = targets.filter(target => inShape(shape, target, target.radius));
     if (weapon.shape === 'line') {
       return inside.sort((a, b) => alongLine(shape, a) - alongLine(shape, b)).slice(0, weapon.pierce);
@@ -770,25 +772,34 @@
     const targets = targetList(run);
     const weaponId = run.player.meleeWeapon;
     const melee = weaponId ? MELEE_WEAPONS[weaponId] : null;
-    const reachable = melee ? targets.filter(target => distance(run.player, target) <= melee.range + target.radius) : [];
+    const reach = reachOf(run);
+    const reachable = melee ? targets.filter(target => distance(run.player, target) <= melee.range * reach + target.radius) : [];
     if (reachable.length) {
       const primary = nearestTarget(run.player, reachable).target;
       const facing = Math.atan2(primary.y - run.player.y, primary.x - run.player.x);
-      const shape = meleeShape(run.player, melee, facing);
+      const shape = meleeShape(run.player, melee, facing, reach);
       const victims = meleeVictims(run, melee, shape, reachable, primary);
       const haste = Math.max(.6, 1 - .08 * run.talents.swiftBlade);
       run.nextAttackAt = now + melee.cooldown * haste;
       Object.assign(run.player, {
-        facing, swingFacing: facing, swingRange: melee.range, swingWeapon: weaponId, swingShape: shape,
+        facing, swingFacing: facing, swingRange: melee.range * reach, swingWeapon: weaponId, swingShape: shape,
         swingStartedAt: now, swingResolved: true, swingUntil: now + (weaponId === 'spear' ? .22 : .28)
       });
       combatCue(run, 'swing', weaponId, run.player);
       const multiplier = 1 + damageBonus(run, weaponId) / 100;
+      if (melee.bolt) run.projectileEffects.push({x1: run.player.x, y1: run.player.y, x2: run.player.x + Math.cos(facing) * shape.length, y2: run.player.y + Math.sin(facing) * shape.length, startedAt: now, until: now + .14, bolt: true});
       for (const hit of victims) {
-        damageTarget(run, hit, melee.damage * multiplier, now, weaponId, run.player);
+        damageTarget(run, hit, melee.damage * multiplier, now, weaponId, run.player, melee);
         if (run.phase !== 'playing') return;
+        if (!hit.alive || hit.type === 'emperor') continue;
+        if (melee.stun) { hit.stunUntil = now + melee.stun; hit.swingStartedAt = null; }
+        if (melee.knockback) {
+          const away = Math.atan2(hit.y - run.player.y, hit.x - run.player.x);
+          hit.x = clamp(hit.x + Math.cos(away) * melee.knockback, WORLD.margin, WORLD.width - WORLD.margin);
+          hit.y = clamp(hit.y + Math.sin(away) * melee.knockback, WORLD.margin, WORLD.height - WORLD.margin);
+        }
       }
-      if (run.talents.thunder > 0 && ++run.meleeHits % 4 === 0) {
+      if (run.talents.thunder > 0 && ++run.meleeHits % Math.max(2, 5 - run.talents.thunder) === 0) {
         const ring = {kind: 'circle', x: run.player.x, y: run.player.y, radius: 95};
         burst(run, ring.x, ring.y, ring.radius, 'thunder');
         combatCue(run, 'thunder', weaponId, run.player);
@@ -817,7 +828,7 @@
     if (run.talents.arrowStorm > 0) {
       targets.filter(item => item !== target && distance(run.player, item) <= BOW_RANGE)
         .sort((a, b) => distance(run.player, a) - distance(run.player, b))
-        .slice(0, 2).forEach(item => volley.push({target: item, share: .6}));
+        .slice(0, 2 * run.talents.arrowStorm).forEach(item => volley.push({target: item, share: .6}));
     }
     for (const shot of volley) {
       run.projectileEffects.push({x1: run.player.x, y1: run.player.y, x2: shot.target.x, y2: shot.target.y, startedAt: now, until: now + ARROW_TRAVEL});
@@ -917,6 +928,7 @@
 
   function updateUnit(run, unit, target, now, dt) {
     if (!target) return;
+    if (now < (unit.stunUntil || 0)) return;
     if (unit.friendly) return updateMeleeActor(run, unit, target, now, dt);
     if (unit.type === 'archer') return updateArcher(run, unit, target, now, dt);
     if (unit.type === 'spearman') return updateSpearman(run, unit, target, now, dt);
@@ -1194,9 +1206,9 @@
       run.player.maxHp += 15;
       run.player.hp = Math.min(run.player.maxHp, run.player.hp + 15);
     } else if (choice.id === 'swift') {
-      run.player.speed += 10;
+      run.player.speed += 20;
     } else if (choice.id === 'evasion') {
-      run.player.dodge += (1 - run.player.dodge) * .05;
+      run.player.dodge += (1 - run.player.dodge) * .12;
     } else if (choice.id === 'revive') {
       run.reviveCharges++;
     } else if (choice.id === 'mutiny' && run.talents.mutiny === 1) {
@@ -1206,29 +1218,17 @@
 
   function chooseUpgrade(run, choiceId) {
     if (run.phase !== 'upgrade') return false;
-    if (run.layer < 5) {
-      if (!['speed', 'dodge'].includes(choiceId)) return false;
-      run.level = Math.min(5, run.level + 1);
-      if (choiceId === 'speed') {
-        run.player.speed += 20;
-        run.upgrades.speed++;
-      } else {
-        run.player.dodge += .1;
-        run.upgrades.dodge++;
-      }
-    } else {
-      const choice = run.upgradeChoices.find(card => card.id === choiceId);
-      if (!choice || !Object.hasOwn(run.talents, choiceId)) return false;
-      applyTalent(run, choice);
-      run.level = 5;
-    }
+    const choice = run.upgradeChoices.find(card => card.id === choiceId);
+    if (!choice || !Object.hasOwn(run.talents, choiceId)) return false;
+    applyTalent(run, choice);
+    run.level++;
     run.layer++;
     spawnLayer(run);
     return true;
   }
 
   return Object.freeze({
-    WORLD, FOG, MELEE_WEAPONS, ENEMY_TYPES, TALENT_CARDS, SCENES, SWAP_RADIUS, BOW_RANGE,
+    WORLD, FOG, MELEE_WEAPONS, MELEE_POOL_LATE, ENEMY_TYPES, TALENT_CARDS, SCENES, SWAP_RADIUS, BOW_RANGE,
     createRun, advance, chooseUpgrade, hazardState, damageBonus, inShape, isOpen
   });
 });

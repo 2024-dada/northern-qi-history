@@ -7,16 +7,16 @@
   <meta name="theme-color" content="#15221d">
   <meta name="description" content="《越过宫门》：受北齐史料启发的非写实生存闯关游戏。">
   <title>越过宫门 · 北齐生存闯关</title>
-  <link rel="stylesheet" href="survival.css?v=20261122neonpets">
-  <link rel="stylesheet" href="theme.css?v=20261122neonpets">
-  <link rel="stylesheet" href="theme-landscapes.css?v=20261122neonpets">
-  <link rel="stylesheet" href="polish.css?v=20261122neonpets">
-  <script src="theme.js?v=20261122neonpets"></script>
-  <script src="survival-game-data.js?v=20261122neonpets" defer></script>
-  <script src="survival-engine.js?v=20261122neonpets" defer></script>
-  <script src="survival-hazards.js?v=20261122neonpets" defer></script>
-  <script src="survival-audio.js?v=20261122neonpets" defer></script>
-  <script src="survival.js?v=20261122neonpets" defer></script>
+  <link rel="stylesheet" href="survival.css?v=20261122talents">
+  <link rel="stylesheet" href="theme.css?v=20261122talents">
+  <link rel="stylesheet" href="theme-landscapes.css?v=20261122talents">
+  <link rel="stylesheet" href="polish.css?v=20261122talents">
+  <script src="theme.js?v=20261122talents"></script>
+  <script src="survival-game-data.js?v=20261122talents" defer></script>
+  <script src="survival-engine.js?v=20261122talents" defer></script>
+  <script src="survival-hazards.js?v=20261122talents" defer></script>
+  <script src="survival-audio.js?v=20261122talents" defer></script>
+  <script src="survival.js?v=20261122talents" defer></script>
 </head>
 <body class="survival-page">
   <header class="survival-header">
@@ -44,7 +44,7 @@
       <section class="survival-play" aria-label="闯关游戏">
         <div class="survival-hud" aria-label="当前游戏状态">
           <span><small>层数</small><b data-hud-layer>—</b></span>
-          <span><small>等级</small><b data-hud-level>— / 5</b></span>
+          <span><small>等级</small><b data-hud-level>—</b></span>
           <span><small>得分</small><b data-hud-score>0</b></span>
           <span><small>近战</small><b data-hud-weapon>未拾取</b></span>
           <span><small>弓箭</small><b data-hud-arrows>0</b></span>
@@ -77,11 +77,11 @@
               </div>
               <details class="survival-rules"><summary>完整规则：武器、敌人、皇帝、危险区与天赋</summary>
               <p>未探索区域会被黑雾遮住，走到附近才会显现。WASD 或方向键移动，攻击自动进行；空手时走过兵器自动拾取，已持兵器时靠近另一把会弹出对比，按 <kbd>E</kbd>（手机点“换武器”）交换，旧兵器留在原地，出手冷却不重置。</p>
-              <p>四种近战各有形状：宝剑 18 伤害、0.5 秒，只砍最近一人；长剑 26 伤害、0.75 秒，前方 120° 扇面；长柄斧 35 伤害、1.15 秒，180° 半圆；长枪 30 伤害、0.95 秒，110 远的直线突刺，最多贯穿两人。近战够不着时，弓会自动射向 240 内最近的目标。地上预警的形状就是真实的伤害范围。</p>
+              <p>九种近战各有判定形状：宝剑 18 伤害、0.5 秒，只砍最近一人；双刀 10 伤害、0.34 秒，同时砍最近两人；长剑 26 伤害、0.75 秒，前方 120° 扇面；长柄斧 35 伤害、1.15 秒，180° 半圆；铁锏 34 伤害、1.25 秒，90° 扇面，无视盾牌并砸晕 0.6 秒；流星锤 22 伤害、1.1 秒，周身 360° 一圈。第三层起还会掉落长枪（30 伤害，110 远直线贯穿两人）、戟（27 伤害，96 远宽刃贯穿三人并击退）和连弩（16 伤害，220 远弩矢贯穿三人，不耗箭）。近战够不着时，弓会自动射向 240 内最近的目标。地上预警的形状就是真实的伤害范围。</p>
               <p>每层只新加一种兵：第二层盾兵（正面减伤 55%，挥盾后露出 0.8 秒破绽），第三层弓手（保持距离，红线瞄准 0.9 秒后放箭），第四层枪兵（直线预警后冲刺，冲完收势 0.8 秒），第四层必有一杆长枪。第五层起是大将军亲兵与盾阵、弓阵、枪阵三队将领。</p>
               <p>皇帝在你走近或被打中后才开战。第一层只会横扫；第二到四层体力过 60% 后分别进入护驾、齐射、追袭；第五层起按守阵、弓阵、追袭三段推进（70%、35% 换阵），末段加入落点封锁。皇帝一次只出一招，招式之后会喘息——这时伤害更高；换阵时有 1 秒护体。召来的援兵同时最多 3 名。击败皇帝即可进入下一层。</p>
               <p>每层从 7 种酷刑区里随机抽出 4 种：圆圈标出扣血范围，虚线时可通过，亮成实线后区内持续扣血。回血药每 5 秒刷新，地图最多保留 4 个。</p>
-              <p>前四层过关后可选移速或闪避。第五层起每层从三张天赋中选一张：普通、稀有、史诗，以及少见的传说（雷霆、涅槃、万箭齐发、倒戈）。传说与“洞察”只能选一次，其余可叠加。每局结束后可在侧栏查看本机前十名。</p>
+              <p>每层过关都从三张天赋中选一张，普通、稀有、史诗、传说按概率出现，任何天赋都可以反复选、无限叠加。稀有天赋“臂展”可以加大所有近战武器的攻击半径。每局结束后可在侧栏查看本机前十名。</p>
               </details>
               <p class="survival-local-note">排行榜只保存在本机浏览器，不会上传。关闭浏览器存储后，记录可能无法保留。</p>
             </div>
@@ -90,8 +90,8 @@
           <section class="survival-overlay survival-choice" data-overlay="upgrade" hidden aria-labelledby="upgrade-title">
             <div class="survival-overlay-card">
               <p class="survival-eyebrow">关底已通过 · 下一层开启</p>
-              <h2 id="upgrade-title">选择一项加成</h2>
-              <p>体力保留。多数天赋可以叠加，传说只能选一次。选择后立即进入下一层。</p>
+              <h2 id="upgrade-title">三选一 · 选择天赋</h2>
+              <p>体力保留。所有天赋都能无限叠加，选择后立即进入下一层。</p>
               <div class="survival-upgrades" data-upgrade-choices></div>
             </div>
           </section>
