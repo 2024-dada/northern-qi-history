@@ -103,6 +103,7 @@
     }
   };
   const gameFullscreenClass = 'is-game-fullscreen';
+  const skillButton = $('[data-game-action="rebellion"]');
   const fullscreenButton = $('[data-game-action="toggle-fullscreen"]');
   const setFullscreenLayout = active => {
     document.documentElement.classList.toggle(gameFullscreenClass, active);
@@ -211,7 +212,16 @@
     }).join('');
   }
 
+  function updateSkillSlot() {
+    const count = (run?.level ?? 1) + 3;
+    const remaining = run ? Math.max(0, Math.ceil(run.nextRebellionAt - run.elapsed)) : 0;
+    const suffix = remaining ? `${remaining} 秒` : `${count} 人 · Q`;
+    skillButton.textContent = `召唤反叛军团 · ${suffix}`;
+    skillButton.disabled = mode !== 'playing' || run?.phase !== 'playing' || remaining > 0;
+  }
+
   function updateHud() {
+    updateSkillSlot();
     if (!run) return;
     const weapon = run.player.meleeWeapon ? engine.MELEE_WEAPONS[run.player.meleeWeapon].label : '未拾取';
     const meleeBonus = engine.damageBonus(run, 'sword');
@@ -271,6 +281,7 @@
   }
 
   function resetHud() {
+    updateSkillSlot();
     $('[data-hud-layer]').textContent = '—';
     $('[data-hud-level]').textContent = '—';
     $('[data-hud-score]').textContent = '0';
@@ -323,6 +334,8 @@
     swapButton.hidden = true; swapShown = null;
     if (mode === 'over') return;
     mode = 'over';
+    rebellionQueued = false;
+    updateSkillSlot();
     audio?.setPlaying(false);
     pressed.clear();
     stickVector = {x: 0, y: 0};
@@ -358,6 +371,8 @@
   function pauseGame() {
     if (mode !== 'playing') return;
     mode = 'paused';
+    rebellionQueued = false;
+    updateSkillSlot();
     audio?.setPlaying(false);
     pressed.clear();
     stickVector = {x: 0, y: 0};
@@ -369,6 +384,7 @@
   function resumeGame() {
     if (mode !== 'paused') return;
     mode = 'playing';
+    updateSkillSlot();
     audio?.setPlaying(true);
     showOnly(run?.phase === 'upgrade' ? 'upgrade' : null);
     lastMessage = '';
@@ -392,6 +408,7 @@
   }
 
   let swapQueued = false;
+  let rebellionQueued = false;
   function moveVector() {
     let x = stickVector.x, y = stickVector.y;
     if (pressed.has('ArrowLeft') || pressed.has('a') || pressed.has('A')) x--;
@@ -399,8 +416,10 @@
     if (pressed.has('ArrowUp') || pressed.has('w') || pressed.has('W')) y--;
     if (pressed.has('ArrowDown') || pressed.has('s') || pressed.has('S')) y++;
     const swap = swapQueued;
+    const rebellion = rebellionQueued;
+    rebellionQueued = false;
     swapQueued = false;
-    return {x: Math.max(-1, Math.min(1, x)), y: Math.max(-1, Math.min(1, y)), swap};
+    return {x: Math.max(-1, Math.min(1, x)), y: Math.max(-1, Math.min(1, y)), swap, rebellion};
   }
 
   function circle(x, y, radius, fill, stroke, width = 1) {
@@ -965,6 +984,7 @@
     friendly: {robe: '#3f6a56', trim: '#a9dcb0', sash: '#d5c27e', skin: '#c9ad88', head: 'cap'}
   };
   function drawEnemy(enemy, time) {
+    if (enemy.hiddenUntil > run.elapsed) return;
     const m = moveState(enemy, time);
     if (!enemy.alive) {
       if (m.alive) { m.alive = false; const big = enemy.type === 'general' || enemy.type === 'marshal'; spawnPuff(enemy.x, enemy.y, enemy.friendly ? 'rgba(120,170,140,.8)' : 'rgba(25,22,20,.85)', big ? 16 : 9, big ? 1.3 : .9); spawnPuff(enemy.x, enemy.y - 6, 'rgba(160,48,34,.7)', 4, .6); }
@@ -1086,9 +1106,9 @@
       ctx.save();
       // outline: full shape, always visible
       telegraphPath(t);
-      ctx.fillStyle = t.done ? `rgba(255,190,140,${(.35 * flash).toFixed(3)})` : 'rgba(200,54,36,.12)';
+      ctx.fillStyle = t.done ? `rgba(255,190,140,${(.35 * flash).toFixed(3)})` : (t.owner?.friendly ? 'rgba(75,188,140,.18)' : 'rgba(200,54,36,.12)');
       ctx.fill();
-      ctx.strokeStyle = t.done ? `rgba(255,220,170,${flash.toFixed(3)})` : `rgba(236,96,70,${(.5 + k * .45).toFixed(3)})`;
+      ctx.strokeStyle = t.done ? `rgba(255,220,170,${flash.toFixed(3)})` : `rgba(${t.owner?.friendly ? '111,229,176' : '236,96,70'},${(.5 + k * .45).toFixed(3)})`;
       ctx.lineWidth = t.done ? 2.4 : 1.4;
       if (!t.done && k < .5) ctx.setLineDash([6, 5]);
       ctx.stroke();
@@ -1664,6 +1684,10 @@
 
   function handleAction(action, target) {
     if (action === 'start') startGame();
+    if (action === 'rebellion' && !skillButton.disabled) {
+      rebellionQueued = true;
+      canvas.focus({preventScroll:true});
+    }
     if (action === 'swap' && mode === 'playing') { swapQueued = true; canvas.focus({preventScroll: true}); }
     if (action === 'pause') pauseGame();
     if (action === 'resume') resumeGame();
@@ -1726,6 +1750,10 @@
     if (event.key === 'Escape') {
       if (mode === 'playing') pauseGame();
       else if (mode === 'paused') resumeGame();
+      return;
+    }
+    if (event.key.toLowerCase() === 'q' && !event.repeat && !event.target.closest?.('input, textarea')) {
+      handleAction('rebellion');
       return;
     }
     if ((event.key === 'e' || event.key === 'E') && mode === 'playing' && !(event.target instanceof Element && event.target.closest('input'))) {

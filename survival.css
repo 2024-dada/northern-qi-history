@@ -331,3 +331,9 @@ html[data-ui-theme] .survival-upgrades .talent-legendary { --rarity: #c08a24; bo
 .survival-swap:focus-visible { outline: 3px solid #fff3c8; outline-offset: 2px; }
 @media (pointer: coarse) { .survival-swap { left: auto; transform: none; bottom: auto; top: 50%; right: 14px; padding: 16px 18px; font-size: 16px; } .survival-swap kbd { display: none; } }
 @media (pointer: coarse) and (orientation: portrait) { .survival-swap { top: auto; bottom: 150px; right: 26px; } }
+
+.survival-hud .survival-skill {
+  border-color:var(--ui-map-trim, #dfc697);
+  font-variant-numeric:tabular-nums;
+}
+.survival-hud .survival-skill:disabled { opacity:.65; }

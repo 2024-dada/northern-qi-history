@@ -404,7 +404,7 @@
       bossKills: 0, marshalKills: 0, generalKills: 0, enemyKills: 0,
       upgrades: {speed: 0, dodge: 0},
       talents: Object.fromEntries(Object.values(TALENT_CARDS).flat().map(({id}) => [id, 0])),
-      reviveCharges: 0, nextMutinyAt: Infinity, meleeHits: 0,
+      reviveCharges: 0, nextRebellionAt: 0, nextMutinyAt: Infinity, meleeHits: 0,
       upgradeChoices: [], nextAttackAt: 0, combatCues: [], projectileEffects: [], telegraphs: [], bursts: [],
       enemySequence: 1, groupSequence: 1, telegraphSequence: 1, lastHitAt: -Infinity, lastContactAt: -Infinity, flashUntil: 0,
       player: {
@@ -488,8 +488,7 @@
     return group.members.length;
   }
 
-  function enterEmperorPhase(run, index, now) {
-    const emperor = run.emperor;
+  function enterEmperorPhase(run, index, now, emperor = run.emperor) {
     emperor.phase = index;
     const phase = emperor.plan[index];
     emperor.phaseName = phase.name;
@@ -497,6 +496,10 @@
     emperor.wardUntil = now + 1;
     emperor.nextActionAt = Math.min(emperor.nextActionAt, now + .6);
     combatCue(run, 'phase', 'guard', emperor);
+    if (emperor.friendly) {
+      if (phase.name !== '追袭') spawnRebelGuard(run, emperor, ['soldier']);
+      return;
+    }
     const entry = {
       护驾: () => spawnImperialUnits(run, ['shield', 'shield'], false, 'emperorPhase'),
       守阵: () => spawnImperialUnits(run, ['shield', 'shield'], false, 'emperorPhase'),
@@ -530,9 +533,9 @@
   }
 
   function damageTarget(run, target, amount, now, weapon, source = null, gear = null) {
-    if (!target.alive) return 0;
+    if (!target.alive || target.hiddenUntil > now) return 0;
     let scaled = amount;
-    if (!target.friendly && source) {
+    if (source && (!target.friendly || target.type === 'emperor')) {
       if (isOpen(target, now)) scaled *= 1.25 + .35 * (source === run.player ? run.talents.counter : 0);
       else if (target.type === 'emperor' && now < target.wardUntil) scaled = 0;
       else if (target.type === 'emperor' && target.engaged) scaled *= run.layer >= 5 ? .5 : .8;
@@ -552,10 +555,10 @@
     combatCue(run, 'impact', weapon, target, delay);
     run.hitText = {x: target.x, y: target.y, value: `−${dealt}`, start: now + delay, until: now + delay + .72};
     if (target.type === 'emperor') {
-      if (!target.engaged) engageEmperor(run, now);
+      if (!target.friendly && !target.engaged) engageEmperor(run, now);
       if (target.hp > 0) {
         const index = phaseIndexFor(target);
-        if (index > target.phase) { enterEmperorPhase(run, index, now); return dealt; }
+        if (index > target.phase) { enterEmperorPhase(run, index, now, target); return dealt; }
       }
     }
     if (target.hp > 0) {
@@ -652,16 +655,21 @@
         run.projectileEffects.push({
           x1: telegraph.x, y1: telegraph.y,
           x2: telegraph.x + Math.cos(telegraph.facing) * reach, y2: telegraph.y + Math.sin(telegraph.facing) * reach,
-          startedAt: now, until: now + .22, hostile: true
+          startedAt: now, until: now + .22, hostile: !owner?.friendly
         });
       }
-      if (telegraph.damage) {
+      if (telegraph.damage && owner?.friendly) {
+        for (const target of targetList(run)) {
+          if (inShape(telegraph, target, target.radius * .5)) damageTarget(run, target, telegraph.damage, now, 'guard', owner);
+          if (run.phase !== 'playing') return;
+        }
+      } else if (telegraph.damage) {
         if (inShape(telegraph, run.player, run.player.radius * .55)) {
           if (takeHit(run, now, telegraph.damage, telegraph.label)) combatCue(run, 'impact', 'guard', run.player);
           if (run.phase !== 'playing') return;
         }
         for (const ally of run.enemies) {
-          if (ally.alive && ally.friendly && inShape(telegraph, ally, ally.radius * .5)) damageTarget(run, ally, telegraph.damage, now, 'guard');
+          if (ally.alive && ally.friendly && !(ally.hiddenUntil > now) && inShape(telegraph, ally, ally.radius * .5)) damageTarget(run, ally, telegraph.damage, now, 'guard');
         }
       }
       if (telegraph.then === 'dash' && owner) {
@@ -745,7 +753,7 @@
 
   function damageBonus(run, weapon) {
     const {strength, startSword, startPoleaxe, startSpear = 0} = run.talents;
-    return 20 * strength + (weapon === 'bow' ? 0 : 10 * (startSword + startPoleaxe + startSpear));
+    return 4 * (run.level - 1) + 20 * strength + (weapon === 'bow' ? 0 : 10 * (startSword + startPoleaxe + startSpear));
   }
 
   const reachOf = run => Math.min(2, 1 + .12 * (run.talents.reach || 0));
@@ -859,7 +867,7 @@
           if (hit === run.player) {
             if (takeHit(run, now, actor.damage, `${actor.label}挥砍命中`)) combatCue(run, 'impact', 'guard', hit);
           } else {
-            const damage = actor.friendly ? (actor.type === 'general' ? 26 : 18) : actor.damage;
+            const damage = actor.friendly ? (actor.type === 'marshal' ? 38 : actor.type === 'general' ? 26 : 18) : actor.damage;
             damageTarget(run, hit, damage, now, 'guard', actor);
           }
         }
@@ -968,8 +976,8 @@
     const move = moves[emperor.moveCycle++ % moves.length];
     emperor.facing = facing;
     if (move === 'guard') {
-      const arrived = spawnImperialUnits(run, late ? ['shield', 'soldier'] : ['shield'], false, 'emperorGuard');
-      if (arrived) run.message = '皇帝喝令护驾。';
+      const arrived = emperor.friendly ? spawnRebelGuard(run, emperor, late ? ['shield', 'soldier'] : ['shield']) : spawnImperialUnits(run, late ? ['shield', 'soldier'] : ['shield'], false, 'emperorGuard');
+      if (arrived) run.message = emperor.friendly ? '反叛皇帝召来护卫。' : '皇帝喝令护驾。';
       emperor.busyUntil = now + .5;
     } else if (move === 'volley') {
       const spread = late ? 16 : 20;
@@ -1007,13 +1015,15 @@
   }
 
   function updateEnemies(run, now, dt) {
-    const defenders = [run.player, ...run.enemies.filter(unit => unit.friendly && unit.alive)];
-    const imperial = defenders.length > 1 ? targetList(run) : [];
+    const defenders = [run.player, ...run.enemies.filter(unit => unit.friendly && unit.alive && !(unit.hiddenUntil > now))];
+    const imperial = run.groups.some(group => group.friendly) ? targetList(run) : [];
     for (const group of run.groups) {
       if (group.friendly) {
         for (const ally of group.members) {
           if (!ally.alive) continue;
-          updateUnit(run, ally, nearestTarget(ally, imperial)?.target, now, dt);
+          const target = nearestTarget(ally, imperial)?.target;
+          if (ally.type === 'emperor') updateRebelEmperor(run, ally, target, now, dt);
+          else updateUnit(run, ally, target, now, dt);
           if (run.phase !== 'playing') return;
         }
         continue;
@@ -1053,6 +1063,71 @@
       ...run.groups.filter(group => !group.friendly).map(group => ({...group, minimum: 95}))
     ];
     run.healingItems.push({...position(run.random, avoid), createdAt: run.elapsed, collected: false});
+  }
+
+  function spawnRebelGuard(run, emperor, units, general = false) {
+    const group = addFormation(run, freePointNear(run, emperor, 48), {units, general, friendly: true});
+    combatCue(run, 'summon', 'guard', emperor);
+    return group.members.length;
+  }
+
+  function updateRebelEmperor(run, emperor, target, now, dt) {
+    if (stepDash(emperor, now) || !target) return;
+    if (emperor.hiddenUntil > now) {
+      const away = Math.atan2(emperor.y - target.y, emperor.x - target.x);
+      moveToward(emperor, {x: emperor.x + Math.cos(away) * 100, y: emperor.y + Math.sin(away) * 100}, emperor.speed, dt);
+      return;
+    }
+    if (now < emperor.busyUntil || pendingFor(run, emperor)) return;
+    if (emperor.hp <= emperor.maxHp * .45 && now >= emperor.nextHideAt && distance(emperor, target) < 160) {
+      emperor.hiddenUntil = now + 1.6;
+      emperor.nextHideAt = now + 7;
+      return;
+    }
+    if (now >= emperor.nextReinforceAt) {
+      spawnRebelGuard(run, emperor, [], true);
+      emperor.nextReinforceAt = now + REINFORCE_INTERVAL;
+    }
+    if (now >= emperor.nextActionAt && emperorAct(run, emperor, target, now)) return;
+    if (distance(emperor, target) > emperor.attackRange * .8) moveToward(emperor, target, emperor.speed, dt);
+  }
+
+  function summonRebellion(run) {
+    if (run.phase !== 'playing' || run.elapsed < run.nextRebellionAt) return false;
+    run.nextRebellionAt = run.elapsed + 10;
+    pruneDead(run);
+    const group = addFormation(run, run.player, {friendly: true});
+    const count = run.level + 3;
+    let monarchs = 0;
+    for (let i = 0; i < count; i++) {
+      const roll = run.random();
+      const point = formationPoint(run, run.player, group.members);
+      if (roll < .01) {
+        const plan = [
+          {at: 1, name: '守阵', moves: ['guard', 'volley', 'charge', 'lock']},
+          ...emperorPlan(5).slice(1).map(phase => ({...phase, moves: [...new Set([...phase.moves, 'guard', 'volley', 'charge', 'lock'])]}))
+        ];
+        const hp = run.emperor.maxHp / 4;
+        group.members.push({
+          ...run.emperor, ...point, id: `rebel-emperor-${run.enemySequence++}`,
+          friendly: true, label: '反叛皇帝', groupId: group.id, alive: true, hp, maxHp: hp,
+          plan, phase: 0, phaseName: plan[0].name, engaged: true, hitUntil: 0,
+          dash: null, swingStartedAt: null, busyUntil: 0, wardUntil: 0, openUntil: 0,
+          moveCycle: 0, sweeps: 0, hiddenUntil: 0, nextHideAt: 0,
+          nextActionAt: run.elapsed, nextReinforceAt: run.elapsed + REINFORCE_INTERVAL
+        });
+        run.enemies.push(group.members.at(-1));
+        monarchs++;
+      } else {
+        const type = roll < .11 ? 'marshal' : roll < .51 ? 'general' : 'soldier';
+        const unit = createEnemy(run, type, point, group.id, null, true);
+        unit.label = `反叛${ENEMY_TYPES[type].label}`;
+        group.members.push(unit);
+      }
+    }
+    combatCue(run, 'summon', 'guard', run.player);
+    run.message = `反叛军团：${count} 名援军加入${monarchs ? `，其中 ${monarchs} 名反叛皇帝` : ''}。`;
+    return true;
   }
 
   function spawnMutinyAlly(run, general) {
@@ -1147,6 +1222,7 @@
 
     collectItems(run);
     if (input?.swap) swapWeapon(run);
+    if (input?.rebellion) summonRebellion(run);
     for (const item of run.healingItems) {
       if (item.collected || run.player.hp >= run.player.maxHp || distance(run.player, item) >= 30) continue;
       item.collected = true;
@@ -1222,6 +1298,8 @@
     if (!choice || !Object.hasOwn(run.talents, choiceId)) return false;
     applyTalent(run, choice);
     run.level++;
+    run.player.maxHp += 12;
+    run.player.speed += 6;
     run.layer++;
     spawnLayer(run);
     return true;
@@ -1229,6 +1307,6 @@
 
   return Object.freeze({
     WORLD, FOG, MELEE_WEAPONS, MELEE_POOL_LATE, ENEMY_TYPES, TALENT_CARDS, SCENES, SWAP_RADIUS, BOW_RANGE,
-    createRun, advance, chooseUpgrade, hazardState, damageBonus, inShape, isOpen
+    createRun, advance, chooseUpgrade, summonRebellion, hazardState, damageBonus, inShape, isOpen
   });
 });

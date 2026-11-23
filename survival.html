@@ -7,16 +7,16 @@
   <meta name="theme-color" content="#15221d">
   <meta name="description" content="《越过宫门》：受北齐史料启发的非写实生存闯关游戏。">
   <title>越过宫门 · 北齐生存闯关</title>
-  <link rel="stylesheet" href="survival.css?v=20261122talents">
-  <link rel="stylesheet" href="theme.css?v=20261122talents">
-  <link rel="stylesheet" href="theme-landscapes.css?v=20261122talents">
-  <link rel="stylesheet" href="polish.css?v=20261122talents">
-  <script src="theme.js?v=20261122talents"></script>
-  <script src="survival-game-data.js?v=20261122talents" defer></script>
-  <script src="survival-engine.js?v=20261122talents" defer></script>
-  <script src="survival-hazards.js?v=20261122talents" defer></script>
-  <script src="survival-audio.js?v=20261122talents" defer></script>
-  <script src="survival.js?v=20261122talents" defer></script>
+  <link rel="stylesheet" href="survival.css?v=20261123rebels">
+  <link rel="stylesheet" href="theme.css?v=20261123rebels">
+  <link rel="stylesheet" href="theme-landscapes.css?v=20261123rebels">
+  <link rel="stylesheet" href="polish.css?v=20261123rebels">
+  <script src="theme.js?v=20261123rebels"></script>
+  <script src="survival-game-data.js?v=20261123rebels" defer></script>
+  <script src="survival-engine.js?v=20261123rebels" defer></script>
+  <script src="survival-hazards.js?v=20261123rebels" defer></script>
+  <script src="survival-audio.js?v=20261123rebels" defer></script>
+  <script src="survival.js?v=20261123rebels" defer></script>
 </head>
 <body class="survival-page">
   <header class="survival-header">
@@ -57,6 +57,7 @@
             <input type="range" min="0" max="100" value="56" data-game-sound-volume aria-label="游戏总音量">
           </div>
           <button type="button" data-game-action="toggle-fullscreen" class="survival-pause">全屏</button>
+          <button type="button" data-game-action="rebellion" class="survival-pause survival-skill" disabled>召唤反叛军团 · Q</button>
           <button type="button" data-game-action="pause" class="survival-pause" disabled>暂停</button>
         </div>
 
@@ -92,6 +93,7 @@
               <p class="survival-eyebrow">关底已通过 · 下一层开启</p>
               <h2 id="upgrade-title">三选一 · 选择天赋</h2>
               <p>体力保留。所有天赋都能无限叠加，选择后立即进入下一层。</p>
+              <p>基础成长：生命上限 +12，移速 +6，武器伤害 +4%。</p>
               <div class="survival-upgrades" data-upgrade-choices></div>
             </div>
           </section>
