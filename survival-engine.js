@@ -1097,7 +1097,7 @@
     run.nextRebellionAt = run.elapsed + 10;
     pruneDead(run);
     const group = addFormation(run, run.player, {friendly: true});
-    const count = run.level + 3;
+    const count = run.level;
     let monarchs = 0;
     for (let i = 0; i < count; i++) {
       const roll = run.random();

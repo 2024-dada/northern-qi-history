@@ -213,7 +213,7 @@
   }
 
   function updateSkillSlot() {
-    const count = (run?.level ?? 1) + 3;
+    const count = run?.level ?? 1;
     const remaining = run ? Math.max(0, Math.ceil(run.nextRebellionAt - run.elapsed)) : 0;
     const suffix = remaining ? `${remaining} 秒` : `${count} 人 · Q`;
     skillButton.textContent = `召唤反叛军团 · ${suffix}`;
