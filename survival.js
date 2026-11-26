@@ -87,7 +87,7 @@
   let lastMessage = '';
   let renderedUpgradeChoices = null;
   let priorFrame = performance.now();
-  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
   const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -213,7 +213,7 @@
   }
 
   function updateSkillSlot() {
-    const count = run?.level ?? 1;
+    const count = run ? 3 + Math.floor((run.layer - 1) / 5) : 3;
     const remaining = run ? Math.max(0, Math.ceil(run.nextRebellionAt - run.elapsed)) : 0;
     const suffix = remaining ? `${remaining} 秒` : `${count} 人 · Q`;
     skillButton.textContent = `召唤反叛军团 · ${suffix}`;
@@ -828,9 +828,10 @@
     ctx.beginPath(); ctx.moveTo(26, 1); ctx.lineTo(23, 7); ctx.lineTo(20, 1); ctx.fill();
     ctx.restore();
   }
+  const MAX_PARTICLES = 180;
   function spawnPuff(x, y, color, count = 10, power = 1) {
     if (reducedMotion.matches) count = Math.ceil(count / 3);
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
       const a = Math.random() * Math.PI * 2, s = (18 + Math.random() * 46) * power;
       particles.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 10, r: 2 + Math.random() * 4 * power, life: 0, max: .45 + Math.random() * .45, color});
     }
@@ -1106,9 +1107,15 @@
       ctx.save();
       // outline: full shape, always visible
       telegraphPath(t);
-      ctx.fillStyle = t.done ? `rgba(255,190,140,${(.35 * flash).toFixed(3)})` : (t.owner?.friendly ? 'rgba(75,188,140,.18)' : 'rgba(200,54,36,.12)');
+      const shockwave = t.then === 'shockwave';
+      ctx.fillStyle = t.done
+        ? `rgba(255,190,140,${(.35 * flash).toFixed(3)})`
+        : shockwave ? 'rgba(247,197,116,.18)' : t.owner?.friendly ? 'rgba(75,188,140,.18)' : 'rgba(200,54,36,.12)';
       ctx.fill();
-      ctx.strokeStyle = t.done ? `rgba(255,220,170,${flash.toFixed(3)})` : `rgba(${t.owner?.friendly ? '111,229,176' : '236,96,70'},${(.5 + k * .45).toFixed(3)})`;
+      ctx.strokeStyle = t.done
+        ? `rgba(255,220,170,${flash.toFixed(3)})`
+        : shockwave ? `rgba(255,207,125,${(.55 + k * .4).toFixed(3)})`
+          : `rgba(${t.owner?.friendly ? '111,229,176' : '236,96,70'},${(.5 + k * .45).toFixed(3)})`;
       ctx.lineWidth = t.done ? 2.4 : 1.4;
       if (!t.done && k < .5) ctx.setLineDash([6, 5]);
       ctx.stroke();
@@ -1125,7 +1132,7 @@
   function drawBursts(time) {
     for (const b of run.bursts) {
       const k = Math.min(1, (time - b.startedAt) / (b.until - b.startedAt));
-      const color = b.kind === 'phoenix' ? '255,150,70' : b.kind === 'thunder' ? '170,210,255' : '255,120,90';
+      const color = b.kind === 'phoenix' ? '255,150,70' : b.kind === 'thunder' ? '170,210,255' : b.kind === 'shockwave' ? '244,197,116' : '255,120,90';
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       const g = ctx.createRadialGradient(b.x, b.y, b.radius * k * .4, b.x, b.y, b.radius * (.5 + k * .5));
@@ -1809,7 +1816,7 @@
   stick.addEventListener('pointercancel', resetStick);
 
   function resizeCanvas() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
   }

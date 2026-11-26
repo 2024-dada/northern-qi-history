@@ -157,15 +157,17 @@
     const right = Math.min(columns - 1, Math.ceil((run.player.x + FOG.revealRadius) / size));
     const top = Math.max(0, Math.floor((run.player.y - FOG.revealRadius) / size));
     const bottom = Math.min(rows - 1, Math.ceil((run.player.y + FOG.revealRadius) / size));
+    const radius = FOG.revealRadius + size * .6;
+    const radiusSquared = radius * radius;
     for (let row = top; row <= bottom; row++) {
+      const dy = (row + .5) * size - run.player.y;
       for (let column = left; column <= right; column++) {
-        const point = {x: (column + .5) * size, y: (row + .5) * size};
-        if (distance(run.player, point) <= FOG.revealRadius + size * .6) {
-          const index = row * columns + column;
-          if (!run.explored[index]) {
-            run.explored[index] = 1;
-            run.exploredDirty = true;
-          }
+        const dx = (column + .5) * size - run.player.x;
+        if (dx * dx + dy * dy > radiusSquared) continue;
+        const index = row * columns + column;
+        if (!run.explored[index]) {
+          run.explored[index] = 1;
+          run.exploredDirty = true;
         }
       }
     }
@@ -498,22 +500,27 @@
     combatCue(run, 'phase', 'guard', emperor);
     if (emperor.friendly) {
       if (phase.name !== '追袭') spawnRebelGuard(run, emperor, ['soldier']);
-      return;
+      run.message = `反叛皇帝进入「${phase.name}」阶段。`;
+    } else {
+      const entry = {
+        护驾: () => spawnImperialUnits(run, ['shield', 'shield'], false, 'emperorPhase'),
+        守阵: () => spawnImperialUnits(run, ['shield', 'shield'], false, 'emperorPhase'),
+        齐射: () => spawnImperialUnits(run, ['archer'], false, 'emperorPhase'),
+        弓阵: () => spawnImperialUnits(run, ['archer', 'archer'], false, 'emperorPhase'),
+        追袭: () => 0
+      }[phase.name];
+      entry?.();
+      const lines = {
+        护驾: '皇帝喝令护驾，盾兵围上来了。', 守阵: '皇帝结成守阵，盾兵护在身前。',
+        齐射: '皇帝下令齐射：注意三道红线。', 弓阵: '皇帝转入弓阵：箭线与盾兵交替压上。',
+        追袭: '皇帝亲自追袭：直线冲锋之后会喘息，抓住破绽。'
+      };
+      run.message = `皇帝进入「${phase.name}」阶段。${lines[phase.name] || ''}`;
     }
-    const entry = {
-      护驾: () => spawnImperialUnits(run, ['shield', 'shield'], false, 'emperorPhase'),
-      守阵: () => spawnImperialUnits(run, ['shield', 'shield'], false, 'emperorPhase'),
-      齐射: () => spawnImperialUnits(run, ['archer'], false, 'emperorPhase'),
-      弓阵: () => spawnImperialUnits(run, ['archer', 'archer'], false, 'emperorPhase'),
-      追袭: () => 0
-    }[phase.name];
-    entry?.();
-    const lines = {
-      护驾: '皇帝喝令护驾，盾兵围上来了。', 守阵: '皇帝结成守阵，盾兵护在身前。',
-      齐射: '皇帝下令齐射：注意三道红线。', 弓阵: '皇帝转入弓阵：箭线与盾兵交替压上。',
-      追袭: '皇帝亲自追袭：直线冲锋之后会喘息，抓住破绽。'
-    };
-    run.message = `皇帝进入「${phase.name}」阶段。${lines[phase.name] || ''}`;
+    if (index >= 1) {
+      scheduleEmperorShockwave(run, emperor, now);
+      run.message += ' 周身震荡波正在蓄力，迅速拉开距离。';
+    }
   }
 
   /* ---------- damage ---------- */
@@ -658,12 +665,12 @@
           startedAt: now, until: now + .22, hostile: !owner?.friendly
         });
       }
-      if (telegraph.damage && owner?.friendly) {
+      if (telegraph.damage && telegraph.then !== 'shockwave' && owner?.friendly) {
         for (const target of targetList(run)) {
           if (inShape(telegraph, target, target.radius * .5)) damageTarget(run, target, telegraph.damage, now, 'guard', owner);
           if (run.phase !== 'playing') return;
         }
-      } else if (telegraph.damage) {
+      } else if (telegraph.damage && telegraph.then !== 'shockwave') {
         if (inShape(telegraph, run.player, run.player.radius * .55)) {
           if (takeHit(run, now, telegraph.damage, telegraph.label)) combatCue(run, 'impact', 'guard', run.player);
           if (run.phase !== 'playing') return;
@@ -682,6 +689,36 @@
         combatCue(run, 'dash', 'guard', owner);
       }
       if (telegraph.then === 'lockburst') burst(run, telegraph.x, telegraph.y, telegraph.radius, 'lock');
+      if (telegraph.then === 'shockwave') {
+        burst(run, telegraph.x, telegraph.y, telegraph.radius, 'shockwave');
+        const targets = owner?.friendly
+          ? targetList(run)
+          : [run.player, ...run.enemies.filter(unit => unit.alive && unit.friendly && !(unit.hiddenUntil > now))];
+        for (const target of targets) {
+          if (target === owner || target.alive === false || distance(target, telegraph) > telegraph.radius + target.radius) continue;
+          if (target === run.player) {
+            const landed = takeHit(run, now, telegraph.damage, telegraph.label);
+            if (landed) combatCue(run, 'impact', 'guard', target);
+          } else {
+            damageTarget(run, target, telegraph.damage, now, 'guard', owner);
+          }
+          if (run.phase !== 'playing' || target.alive === false) continue;
+          const dx = target.x - telegraph.x;
+          const dy = target.y - telegraph.y;
+          const span = Math.hypot(dx, dy) || 1;
+          const angle = span > 1 ? Math.atan2(dy, dx) : (owner?.facing || 0) + Math.PI;
+          const distanceOut = telegraph.knockback || 118;
+          target.swingStartedAt = null;
+          target.swingTarget = null;
+          target.dash = {
+            x0: target.x, y0: target.y, startedAt: now, until: now + .22,
+            x1: clamp(target.x + Math.cos(angle) * distanceOut, WORLD.margin, WORLD.width - WORLD.margin),
+            y1: clamp(target.y + Math.sin(angle) * distanceOut, WORLD.margin, WORLD.height - WORLD.margin)
+          };
+        }
+        if (owner && !owner.friendly) run.message = '震荡波爆发，将周围的敌人击退。';
+        if (run.phase !== 'playing') return;
+      }
       if (telegraph.opening && owner) {
         const until = now + telegraph.opening + (telegraph.then === 'dash' ? .24 : 0);
         if (owner.type === 'spearman') owner.recoverUntil = until;
@@ -856,6 +893,7 @@
   }
 
   function updateMeleeActor(run, actor, target, now, dt) {
+    if (stepDash(actor, now)) return;
     if (actor.swingStartedAt !== null) {
       const swingTime = now - actor.swingStartedAt;
       if (!actor.swingResolved && swingTime >= actor.swingWindup) {
@@ -899,6 +937,7 @@
   }
 
   function updateArcher(run, archer, target, now, dt) {
+    if (stepDash(archer, now)) return;
     if (now < archer.aimUntil || pendingFor(run, archer)) return;
     const span = distance(archer, target);
     const facing = Math.atan2(target.y - archer.y, target.x - archer.x);
@@ -953,6 +992,19 @@
     run.message = `皇帝发现了你，「${emperor.phaseName}」开始。保持移动，看清地上的预警。`;
   }
 
+  function scheduleEmperorShockwave(run, emperor, now) {
+    const radius = 172;
+    const delay = .62;
+    warn(run, emperor, {
+      kind: 'circle', x: emperor.x, y: emperor.y, radius
+    }, delay, Math.ceil(emperor.damage * 1.2), '皇帝震荡波命中', {
+      then: 'shockwave', knockback: 118
+    });
+    emperor.busyUntil = now + delay + .35;
+    emperor.nextActionAt = emperor.busyUntil;
+    return radius;
+  }
+
   function emperorAct(run, emperor, target, now) {
     const phase = emperor.plan[emperor.phase];
     const span = distance(emperor, target);
@@ -961,6 +1013,13 @@
     const gap = Math.max(.55, 1.15 - run.layer * .06);
     const moves = phase.moves;
     const close = span <= emperor.attackRange + target.radius + 6;
+    if (emperor.phase >= 1 && run.random() < .05) {
+      scheduleEmperorShockwave(run, emperor, now);
+      run.message = emperor.friendly
+        ? '反叛皇帝震荡周身，附近敌人将被击退。'
+        : '皇帝蓄力震荡周身，迅速离开金色范围！';
+      return true;
+    }
     // up close the emperor still slips in a special every third action
     if (close && !(moves.length && emperor.sweeps >= 2)) {
       emperor.sweeps = (emperor.sweeps || 0) + 1;
@@ -1097,7 +1156,7 @@
     run.nextRebellionAt = run.elapsed + 10;
     pruneDead(run);
     const group = addFormation(run, run.player, {friendly: true});
-    const count = run.level;
+    const count = 3 + Math.floor((run.layer - 1) / 5);
     let monarchs = 0;
     for (let i = 0; i < count; i++) {
       const roll = run.random();
@@ -1212,8 +1271,9 @@
     run.stageElapsed += dt;
     const now = run.elapsed;
     if (run.player.swingStartedAt !== null && now >= run.player.swingUntil) run.player.swingStartedAt = null;
-    const moveX = clamp(Number(input?.x) || 0, -1, 1);
-    const moveY = clamp(Number(input?.y) || 0, -1, 1);
+    const playerKnockedBack = stepDash(run.player, now);
+    const moveX = playerKnockedBack ? 0 : clamp(Number(input?.x) || 0, -1, 1);
+    const moveY = playerKnockedBack ? 0 : clamp(Number(input?.y) || 0, -1, 1);
     const magnitude = Math.hypot(moveX, moveY) || 1;
     if (Math.abs(moveX) + Math.abs(moveY) > .02) run.player.facing = Math.atan2(moveY, moveX);
     run.player.x = clamp(run.player.x + moveX / magnitude * run.player.speed * dt, WORLD.margin, WORLD.width - WORLD.margin);
