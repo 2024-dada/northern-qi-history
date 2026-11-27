@@ -1759,7 +1759,10 @@
       else if (mode === 'paused') resumeGame();
       return;
     }
-    if (event.key.toLowerCase() === 'q' && !event.repeat && !event.target.closest?.('input, textarea')) {
+    const textEntry = event.target instanceof Element && event.target.closest('input, textarea, [contenteditable="true"]');
+    if (event.code === 'KeyQ' && !event.repeat && !event.isComposing && !textEntry
+      && mode === 'playing' && run?.phase === 'playing' && !skillButton.disabled) {
+      event.preventDefault();
       handleAction('rebellion');
       return;
     }

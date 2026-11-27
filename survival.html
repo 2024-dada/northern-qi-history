@@ -16,7 +16,7 @@
   <script src="survival-engine.js?v=20261126shockwave" defer></script>
   <script src="survival-hazards.js?v=20261123rebels" defer></script>
   <script src="survival-audio.js?v=20261123rebels" defer></script>
-  <script src="survival.js?v=20261126shockwave" defer></script>
+  <script src="survival.js?v=20261127qskill" defer></script>
 </head>
 <body class="survival-page">
   <header class="survival-header">
@@ -62,7 +62,7 @@
         </div>
 
         <div class="survival-stage" data-stage-wrap>
-          <canvas id="survival-canvas" width="1100" height="640" tabindex="0" aria-label="黑雾探索游戏地图：使用W、A、S、D移动，寻找武器和回血药；拾取武器后自动攻击附近敌人。">
+          <canvas id="survival-canvas" width="1100" height="640" tabindex="0" aria-label="黑雾探索游戏地图：使用W、A、S、D移动，Q召唤反叛军团，E切换武器；拾取武器后自动攻击附近敌人。">
             当前浏览器不支持画布，请使用更新的浏览器打开游戏。
           </canvas>
           <section class="survival-overlay survival-start" data-overlay="start" aria-labelledby="start-title">
@@ -70,14 +70,14 @@
               <p class="survival-eyebrow">每局地图与危险区域都会变化</p>
               <h2 id="start-title">准备进入宫禁</h2>
               <p class="survival-lead">在黑雾笼罩的宫苑里寻找武器和回血药，击败每层的皇帝就能进入下一层。你只控制移动，攻击会自动进行。</p>
-              <div class="survival-keys" aria-hidden="true"><span class="survival-keycaps"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>或方向键移动</span><span class="survival-keys-sep">·</span><span>手机用左下角摇杆</span><span class="survival-keys-sep">·</span><span><kbd>E</kbd> 换武器</span><span class="survival-keys-sep">·</span><span><kbd>Esc</kbd> 暂停</span></div>
+              <div class="survival-keys" aria-hidden="true"><span class="survival-keycaps"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>或方向键移动</span><span class="survival-keys-sep">·</span><span>手机用左下角摇杆</span><span class="survival-keys-sep">·</span><span><kbd>Q</kbd> 召唤援军</span><span class="survival-keys-sep">·</span><span><kbd>E</kbd> 换武器</span><span class="survival-keys-sep">·</span><span><kbd>Esc</kbd> 暂停</span></div>
               <div class="survival-start-form">
               <label for="player-name">玩家名称</label>
               <input id="player-name" name="player-name" type="text" maxlength="16" autocomplete="nickname" placeholder="输入一个名称" required>
               <button type="button" data-game-action="start" class="survival-primary">开始闯关</button>
               </div>
               <details class="survival-rules"><summary>完整规则：武器、敌人、皇帝、危险区与天赋</summary>
-              <p>未探索区域会被黑雾遮住，走到附近才会显现。WASD 或方向键移动，攻击自动进行；空手时走过兵器自动拾取，已持兵器时靠近另一把会弹出对比，按 <kbd>E</kbd>（手机点“换武器”）交换，旧兵器留在原地，出手冷却不重置。</p>
+              <p>未探索区域会被黑雾遮住，走到附近才会显现。WASD 或方向键移动，攻击自动进行；按 <kbd>Q</kbd>（或点击技能按钮）召唤反叛军团，技能有冷却时间；空手时走过兵器自动拾取，已持兵器时靠近另一把会弹出对比，按 <kbd>E</kbd>（手机点“换武器”）交换，旧兵器留在原地，出手冷却不重置。</p>
               <p>九种近战各有判定形状：宝剑 18 伤害、0.5 秒，只砍最近一人；双刀 10 伤害、0.34 秒，同时砍最近两人；长剑 26 伤害、0.75 秒，前方 120° 扇面；长柄斧 35 伤害、1.15 秒，180° 半圆；铁锏 34 伤害、1.25 秒，90° 扇面，无视盾牌并砸晕 0.6 秒；流星锤 22 伤害、1.1 秒，周身 360° 一圈。第三层起还会掉落长枪（30 伤害，110 远直线贯穿两人）、戟（27 伤害，96 远宽刃贯穿三人并击退）和连弩（16 伤害，220 远弩矢贯穿三人，不耗箭）。近战够不着时，弓会自动射向 240 内最近的目标。地上预警的形状就是真实的伤害范围。</p>
               <p>每层只新加一种兵：第二层盾兵（正面减伤 55%，挥盾后露出 0.8 秒破绽），第三层弓手（保持距离，红线瞄准 0.9 秒后放箭），第四层枪兵（直线预警后冲刺，冲完收势 0.8 秒），第四层必有一杆长枪。第五层起是大将军亲兵与盾阵、弓阵、枪阵三队将领。</p>
               <p>皇帝在你走近或被打中后才开战。第一层只会横扫；第二到四层体力过 60% 后分别进入护驾、齐射、追袭；第五层起按守阵、弓阵、追袭三段推进（70%、35% 换阵），末段加入落点封锁。皇帝一次只出一招，招式之后会喘息——这时伤害更高；换阵时有 1 秒护体。召来的援兵同时最多 3 名。击败皇帝即可进入下一层。</p>
@@ -128,7 +128,7 @@
             </div>
             <p>按住并拖动移动</p>
           </div>
-          <p class="survival-live" data-game-live role="status" aria-live="polite">输入名称后开始。WASD 控制移动；近战自动挥击，弓箭自动瞄准。</p>
+          <p class="survival-live" data-game-live role="status" aria-live="polite">输入名称后开始。WASD 控制移动；Q 召唤反叛军团；近战自动挥击，弓箭自动瞄准。</p>
         </div>
         <p class="survival-landscape-note">手机横屏游玩，地图会更宽、更容易看清。</p>
       </section>
